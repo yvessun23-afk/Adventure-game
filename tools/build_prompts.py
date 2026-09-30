@@ -189,6 +189,42 @@ ASSETS.append(dict(
             "\"Der Fall der verschwundenen Nudelsuppe\" in small letters below it. Leave the right third of the image calmer "
             "and darker (menu buttons will be placed there). No watermark.\n\n" + STIL)))
 
+# ---------- Endbilder ----------
+END_TAIL = "Cinematic 16:9 illustration. No text, no letters, no watermark, no UI, no frame."
+KLEO = ("KLEO, a 12-year-old girl who appears as a slightly transparent hologram with softly glowing cyan and pink edges, "
+        "two pigtails, big headphones around her neck and an oversized dark hoodie with a small \"NC\" logo")
+TEDDY = ("TEDDY-BOT, a worn, patched plush teddy-bear robot with button eyes, and a small chrome tongue-sensor plugged into "
+         "his mouth")
+ASSETS.append(dict(
+    title="Endbild 01: Kleo schmeckt zum ersten Mal", path="assets/raw/ende_01.png", fmt=FORMAT_BG,
+    refs="ref_03_stil_nudelgasse.png, bg_01_zhangs_imbiss.png, ref_01_pixel_turnaround.png",
+    prompt=("Inside the cozy noodle shop (as in the attached interior image), warm orange lantern light and steam. "
+            f"{KLEO}, stands at the counter and holds a spoon with steaming soup toward {TEDDY}, who sits on the counter. "
+            "Teddy-Bot's button eyes sparkle, and Kleo's face beams with pure, huge, surprised joy because she tastes for the "
+            "very first time; tiny glowing sparkles and heart-shaped steam float around them. A bowl of ramen with a golden "
+            "glowing broth stands in front of them. Medium shot, both characters clearly visible in the foreground. "
+            "No other characters. " + END_TAIL + "\n\n" + STIL)))
+ASSETS.append(dict(
+    title="Endbild 02: Die Stadt feiert", path="assets/raw/ende_02.png", fmt=FORMAT_BG,
+    refs="ref_03_stil_nudelgasse.png, intro_01.png (oder intro_02.png)",
+    prompt=("A wide view of the cyberpunk megacity at night, all three levels, celebrating: street soup vending machines "
+            "everywhere pour glowing golden broth into bowls, happy people and funny robots of all shapes dance and cheer in "
+            "the streets with steaming bowls, confetti and paper lanterns fill the air, flying taxis carry banners (no readable "
+            "text), fireworks in the shape of noodles and bowls light up the sky in magenta, cyan and amber. A huge neon noodle-bowl "
+            "sign glows on a tower. Joyful, chaotic and warm. No text. " + END_TAIL + "\n\n" + STIL)))
+ASSETS.append(dict(
+    title="Endbild 03: Alle am Tresen", path="assets/raw/ende_03.png", fmt=FORMAT_BG,
+    refs="bg_01_zhangs_imbiss.png, ref_01_pixel_turnaround.png, ref_02_kruemel.png, ende_01.png",
+    prompt=("The cozy final scene inside the noodle shop (same interior as in the first attached image): four friends sit and "
+            "stand around the counter sharing bowls of steaming ramen with golden broth. PIXEL (the teal-haired courier girl in "
+            "the orange jacket, exactly as in the reference) grins with chopsticks in hand; KRÜMEL, the small flying toaster drone "
+            "(as in the reference), hovers beside her with a slice of toast; OMA ZHANG, a tiny 87-year-old woman with huge round "
+            "glasses, a kitchen apron and a hair bun held by chopsticks, proudly ladles soup behind the counter; KLEO, the "
+            "12-year-old hologram girl with pigtails and headphones, and her plush robot TEDDY-BOT (exactly as in the fourth "
+            "attached image) sit at the counter, both smiling happily. Warm orange lantern light, steam, the soup dispenser in "
+            "the background now pouring golden broth, the safe closed again. Wide group shot, everyone clearly visible. "
+            + END_TAIL + "\n\n" + STIL)))
+
 ui = [
     "mouse cursor arrow (neon outlined)", "look cursor (an eye)", "use cursor (a hand)", "talk cursor (a speech bubble)",
     "walk cursor (two footprints)", "arrow pointing left", "arrow pointing right", "arrow pointing up", "arrow pointing down",
@@ -215,7 +251,7 @@ stelle das Format ein und speichere das Ergebnis im genannten Pfad (beim Speiche
 - Bei Sheets steht die Zeilen-/Spaltenzahl im Prompt. Wenn die KI das Raster nicht einhält, ist das kein Drama, ich erkenne die Figuren automatisch.
 - Sieht ein Ergebnis gut aus, aber hat einen kleinen Fehler (falsches Schild, ein Gegenstand fehlt), korrigiere im selben Chat per Textbefehl.
 
-**Empfohlene Reihenfolge:** 1 bis 11 (Hintergründe) → 12 (NPCs) → 13 (Props, erst nachdem ich die Hintergründe gesehen habe) → 14 bis 22 (Karte, Intro, Titel) → 23 (UI).
+**Empfohlene Reihenfolge:** 1 bis 11 (Hintergründe) → 12 (NPCs) → 13 (Props, erst nachdem ich die Hintergründe gesehen habe) → 14 bis 22 (Karte, Intro, Titel) → 23 bis 25 (Endbilder) → 26 (UI).\nDie Endbilder legen das Aussehen von **Kleo und Teddy-Bot** fest. Erzeuge `ende_01` zuerst und hänge es bei `ende_03` als Referenz an.
 Du musst nicht alles auf einmal liefern. Sag mir nach jeder Gruppe Bescheid.
 
 ---
