@@ -259,6 +259,233 @@ Du musst nicht alles auf einmal liefern. Sag mir nach jeder Gruppe Bescheid.
 """
 
 
+# =====================================================================
+# Teil 2: alle noch fehlenden Bilder (Rest von Akt 1, Akt 2, Akt 3)
+# =====================================================================
+MISSING = [a for a in ASSETS if any(a["path"].endswith(f"intro_{n}.png") for n in ("01", "03", "04", "05", "06"))]
+
+REF_ACT = "ref_03_stil_nudelgasse.png, bg_01_zhangs_imbiss.png, bg_02_nudelgasse.png"
+
+def bg2(n, name, desc):
+    return bg(n, name, REF_ACT, desc)
+
+# ---------- Akt 2: Mittel-Heights ----------
+ACT2 = [
+    bg2(13, "plaza",
+        "Giant corporate plaza between glass skyscrapers in Mid-Heights, wide horizontal 16:9 composition, clean and cold with bright magenta and cyan accents, open walkable ground in the lower third. "
+        "A huge holographic billboard reading \"NUDELN FÜR ALLE*\" floats in the center. On the left a police station entrance with a sign \"REVIER 404\", next to it a hair salon with a sign \"SCHNIPP & ZAP\" and a glamorous golden casino entrance with a sign \"GOLDEN BYTE\". "
+        "In the center the revolving door of a tall tower with the sign \"NOODLECORP\". On the right a side alley with a keypad on a metal door and a sign \"KANTINE\", a factory door with a sign \"HOLOGRAMM-WERBEFABRIK\", a park entrance with plastic trees and a cable car station far right with a sign \"HIMMELFAHRT\". "
+        "A kiosk with an empty newspaper bench in the foreground (no newspaper lying around)."),
+    bg2(14, "lobby",
+        "Sterile corporate lobby of the NoodleCorp tower, wide 16:9, cold white and magenta light. A huge empty reception desk with a small hamster-wheel clock in the center (no receptionist), a revolving door at the front, a security scanner gate, potted plastic plants, "
+        "a row of elevators on the right with one elevator door open, and a cheerful but soulless mural of a noodle bowl on the wall. Open floor space in front."),
+    bg2(15, "kantine",
+        "Industrial company cafeteria of NoodleCorp, wide 16:9, stainless steel and pale green light. Self-service counters with bowls of gray paste, huge empty soup kettles, a stack of serving trays on a counter, a green trash bin with an empty bottle visible inside, "
+        "a clothes rack with white coats and uniforms hanging on hooks near the back, a service door with a keypad at the right. Cafeteria tables in the foreground with open floor space. No cook."),
+    bg2(16, "bueros",
+        "Open-plan office maze of NoodleCorp, wide 16:9, harsh office light with magenta accents. Gray cubicle walls in a maze, stacks of forms, a jammed printer with paper sticking out, a desk in the foreground with a hamster cage and a little nameplate reading \"MR. TACKERT\", "
+        "a computer terminal on the desk, motivational posters with slogans like \"SYNERGIE!\". Open floor space in the front. No people."),
+    bg2(17, "werbefabrik",
+        "Hologram advertisement factory, wide 16:9, colorful glowing light. Holographic projectors, half-finished floating ads, a large hologram printer machine in the center with a wide scanner slot and a tray, cables everywhere, an empty swivel chair where a technician sleeps (no person), "
+        "a door to the plaza on the right. Open floor space in the front."),
+    bg2(18, "friseur",
+        "Robot barber shop \"SCHNIPP & ZAP\", wide 16:9, bright colorful and chaotic. Barber chairs with crazy helmet hair dryers, walls with posters of wild hairstyles, a big mirror with flashing bulbs, a tool station with a robotic scissor arm that hangs broken and dull, "
+        "a doorway on the right leading to the casino. No barber, no customers. Open floor space in front."),
+    bg2(19, "casino",
+        "Glamorous casino \"GOLDEN BYTE\", wide 16:9, gold, magenta and deep violet. Golden slot machines, a round roulette table in the center with a polished steel ball in the wheel, velvet curtains, a mirror ball on the ceiling, and at the back a heavy doorway with a sign \"TRESOR\". "
+        "No guests, no staff. Open floor space in front."),
+    bg2(20, "tresor",
+        "Casino vault room, wide 16:9, dim gold and cyan light. A heavy round vault door standing open on the left, stacks of golden coins, rows of safety deposit boxes, a steel desk with a stack of files and folders in the center, "
+        "and a square air vent grate high on the right wall. Open floor space in front."),
+    bg2(21, "klinik",
+        "Implant clinic \"DR. SCHRAUB\", wide 16:9, cheerful but slightly creepy, pastel teal and pink light. An operating chair with robotic arms in the center, shelves with glowing implants in jars (hearts, eyes, tongues), a cabinet with instruments, cheerful posters about cyber hearts, "
+        "a desk with a tray of tools. No doctor. Open floor space in front."),
+    bg2(22, "park",
+        "Artificial turf park in the middle of the corporate district, wide 16:9, too-perfect plastic green with neon accents. Plastic trees, a painted blue pond, benches, a small gardener's shed on the left, and in a hidden corner behind the shed a tiny patch with a small pot of dry soil (a secret herb garden). "
+        "Paths leading to the right toward a museum and a clinic. No gardener. Open walkable ground in front."),
+    bg2(23, "museum",
+        "Museum of analog things, wide 16:9, warm dim light. Glass display cases with old objects (vinyl records, a telephone, a floppy disk, a tube TV), in the center a glass case with an old water tap on a little fountain (clearly the main exhibit) with \"BITTE NICHT BERÜHREN\" stripes on the floor, "
+        "a smoke detector on the ceiling. No curator. Open floor space in front."),
+    bg2(24, "revier",
+        "Police station \"REVIER 404\" with a lost-and-found counter, wide 16:9, gray-blue light with neon accents. A long counter with a giant rubber stamp on it and stacks of paperwork, shelves with labeled boxes behind it, a glass showcase with a glittering platinum card inside, "
+        "wanted posters on the wall. No officer. Open floor space in front."),
+    bg2(25, "gondel",
+        "Cable car station \"HIMMELFAHRT\" to the upper city, wide 16:9, bright gold and sky blue. A glass gondola cabin ready at the platform, a bouncer podium with a velvet rope and gold posts in front of it (no bouncer), "
+        "a wide view of clouds and floating buildings above. Open floor space in front."),
+]
+
+# ---------- Akt 3: Ober-Heights & Orbit ----------
+ACT3 = [
+    bg2(26, "promenade",
+        "Floating upper-city promenade in the clouds, wide 16:9, sunset gold and pink. Luxury shops, a champagne fountain, golden lamps, floating villas in the background, a villa gate on the right, a signpost with arrows to \"SPA\" and \"RAUMHAFEN\", "
+        "and a cable car station on the far left. No people. Open walkable ground in front."),
+    bg2(27, "villa",
+        "Grand hall of Villa von Chrom, wide 16:9, marble, golden statues and warm light. A collection of \"originals\" on pedestals (an old vinyl record, a telephone, a paper book), a huge chandelier, an empty golf club stand, "
+        "and a throne-like armchair on a carpet. No people. Open floor space in front."),
+    bg2(28, "spa_golfdome",
+        "Sky spa and golf dome in one wide 16:9 image: on the left a luxury spa with massage beds, steam and pools; on the right a glass golf dome with an artificial hill and a large wind turbine in the center (no golf ball visible). "
+        "A control panel with a row of switches and one big red button next to the spa side. No people. Open floor space in front."),
+    bg2(29, "raumhafen",
+        "Spaceport terminal, wide 16:9, retro-futuristic design with bright colors. A ticket counter with a sign \"FLUG-HANS\" (no clerk), departure boards, a shuttle docked outside a huge window, a baggage belt, rockets painted in bright colors. "
+        "Open floor space in front."),
+    bg2(30, "hyperhub",
+        "Docking ring \"HYPER-HUB\" of an orbital station, wide 16:9, a view of Earth through big windows. A sealed door to the moon shuttle with strike signs (no readable long text, only \"STREIK\") leaning against it, benches, a souvenir shop, "
+        "arrows on the floor to a garden and a bridge. No people. Open floor space in front."),
+    bg2(31, "orbitalgarten",
+        "Zero-gravity garden on a space station, wide 16:9, a dome window with stars. Floating plants and leaves, a coffee plant with floating beans drifting around it, tangled vines, floating water droplets. "
+        "No people. Open floor space in front."),
+    bg2(32, "bruecke",
+        "Command bridge of an orbital station, wide 16:9, blue and amber light. A captain's chair in the center, a big star map, blinking panels, a half-empty steaming coffee mug on the armrest, "
+        "and at the entrance on the left a door panel with a badge scanner. No people. Open floor space in front."),
+    bg2(33, "mond_eingang",
+        "Moon surface with an airlock entrance into a mine, wide 16:9. Lunar dust, a small flag, machinery, stars and Earth in the black sky, a keypad next to the airlock door. No people. Open ground in front."),
+    bg2(34, "mond_tiefe",
+        "Deep moon mine, wide 16:9, dark with glowing crystals. Tunnel walls, rails, a minecart hanging on a crane hook above a wide chasm in the middle, a steel door with a glowing panel on the far side. No people. Walkable ledge in front."),
+    bg2(35, "serverkern",
+        "Kleo's server core on the moon, wide 16:9, blue glow. Endless server racks with glowing lights, a huge round firewall door at the back, pools of neon noodles on the floor, cables like tentacles. "
+        "No creatures, no people. Open floor space in front."),
+    bg2(36, "kinderzimmer",
+        "A virtual child's bedroom as a dreamy digital space, wide 16:9, pastel colors with a hint of neon and glitchy edges. Toy shelves, floating building blocks, crayon drawings of soup bowls on the wall, a small empty chair, a little bed. "
+        "No people, no teddy. Open floor space in front."),
+]
+
+# ---------- Sheets Akt 2 und 3 ----------
+def figs(lst, offset=0):
+    return "\n".join(f"{i + 1 + offset}. {n}: {d}." for i, (n, d) in enumerate(lst))
+
+npc2 = [
+    ("Frau Ablage", "stern receptionist robot with a filing-cabinet body, glasses on a chain, a sour expression"),
+    ("Chef Kloß", "desperate chubby cook robot with a dumpling-shaped head, a ladle in his hand"),
+    ("Grünhorn", "gardener robot built from garden tools and a watering can, a leaf on his head"),
+    ("Prof. Staub", "curator robot in a dusty tailcoat with a magnifying-glass eye"),
+    ("Schnipp", "barber robot with scissor hands, wild electrified hair, a striped coat"),
+    ("Madame Jackpot", "elegant woman with a roulette-wheel hat, a gold gown and a cold smile"),
+    ("Mortimer", "tall casino doorman robot in a velvet suit, red rope in his hand"),
+    ("Dr. Schraub", "nervous thin doctor with big round glasses, a white coat and trembling hands"),
+    ("Stempel-Stefan", "stout official with an oversized rubber stamp and ink-stained fingers"),
+    ("Kiosk-Zeus", "newspaper vendor robot with a roll-up screen body and a hat full of headlines"),
+    ("Flimmer", "sleepy hologram technician, headphones around the neck, eyes closed"),
+    ("Mr. Tackert", "a tiny hamster in a running wheel wearing a tiny tie"),
+]
+npc3 = [
+    ("Türsteher Klaus", "bulky bouncer robot in a velvet jacket with an earpiece"),
+    ("Sebastian.exe", "tall perfectionist butler robot with a monocle lens and white gloves"),
+    ("Baron von Chrom", "pompous chrome-plated man with a huge moustache, a cane and a fur collar"),
+    ("Masseur Zen-3", "calm multi-armed massage robot in a bathrobe"),
+    ("Flug-Hans", "cheerful ticket clerk robot with a pilot cap"),
+    ("Käpt'n Kabel", "tired captain with cable-like hair and dark circles, holding an empty mug"),
+    ("Schicht", "union leader mining robot with a hard hat, a megaphone and a protest vest"),
+    ("Streikposten", "generic mining robot holding a strike sign"),
+    ("Ramen-Kraken", "giant noodle octopus with sad eyes, standing in a puddle of broth"),
+    ("Kleo", "exactly as in the last attached image: the 12-year-old hologram girl with pigtails, big headphones and the dark NC hoodie, slightly transparent with glowing cyan and pink edges"),
+    ("Teddy-Bot", "exactly as in the last attached image: the worn, patched plush teddy bear with button eyes and an empty open mouth socket"),
+    ("Teddy-Bot mit Sensor", "the same teddy bear with a small chrome tongue-sensor plugged into his mouth"),
+]
+
+def npc_sheet(title, path, refs, lst):
+    return dict(title=title, path=path, fmt=FORMAT_SHEET, refs=refs,
+        prompt=(FIGURE_HEAD.format(cols=6, rows=4, n=24) + " All figures stand in a three-quarter view facing left (toward the player character), full body.\n\n"
+                "Rows 1 and 2 (cells 1 to 12): the characters standing idle, in this order:\n" + figs(lst) +
+                "\n\nRows 3 and 4 (cells 13 to 24): the same 12 characters in the same order, now talking or acting (mouth open, one arm gesturing).\n\n" + STIL))
+
+pix_poses = ("Poses in order: 1 idle front, 2 idle side facing right, 3 idle back, 4 talking (mouth open, gesturing), 5 talking (different mouth shape and hand), 6 shrugging, "
+             "7 to 13 walk cycle in side view facing right, seven consecutive frames of one walking loop, 14 walking toward the camera, 15 walking away from the camera, "
+             "16 reaching up high, 17 using an object with the arm stretched forward, 18 handing over an object, 19 standing neutral front, 20 surprised, 21 bending down to pick something up, 22 cheering, 23 exhausted and slouching, 24 sitting cross-legged.")
+
+def pixel_outfit(title, path, outfit, refs="ref_01_pixel_turnaround.png, sheet_pixel.png"):
+    return dict(title=title, path=path, fmt=FORMAT_SHEET, refs=refs,
+        prompt=(FIGURE_HEAD.format(cols=8, rows=3, n=24) +
+                f"\n\nThe same character PIXEL as in the attached references (teal messy short hair, yellow goggles pushed up on the forehead, face and proportions exactly like the reference) but wearing {outfit}. "
+                "Full body, side views facing right unless noted. " + pix_poses + "\n\n" + STIL))
+
+items2 = ["newspaper \"TAGESKRÜMEL\" folded", "cafeteria serving tray", "empty glass bottle", "bottle filled with water", "a bunch of herbs with purple-blue leaves (no green)",
+          "a few white and yellow chamomile flowers", "white lab coat with a name tag", "a form sheet \"404-B\"", "a holographic coat-of-arms seal sticker", "platinum access card",
+          "a small scalpel", "a small chrome tongue-shaped taste sensor with a cable", "a golden casino chip", "a folder \"KLEO\" with a child's drawing on the cover", "a cog wheel",
+          "a tangled knot of cables", "a gummy bear", "a coffee cup", "a light bulb", "a paper clip"]
+items3 = ["a golden golf ball", "an antique chrome space suit (complete, helmet next to it)", "a shuttle ticket", "a few coffee beans", "a few roasted dark coffee beans",
+          "a permit paper with a signature and a stamp", "a miner's helmet with a lamp", "a small note with a code", "the golden glowing taste crystal with a tiny noodle bowl engraved inside"]
+
+props2 = ["cafeteria back door, closed, with a keypad", "the same door, open", "a wall keypad with lit buttons", "an old water tap on a small fountain in a glass case", "a smoke detector on a ceiling plate",
+          "a small flower pot with dry soil", "the same pot with purple-blue herbs and white chamomile growing", "an elevator door, closed", "the same elevator door, open", "a jammed office printer",
+          "a hologram printer, switched off", "the same hologram printer switched on printing a glowing coat of arms", "a glass showcase with a platinum card inside, closed", "the same showcase opened, empty",
+          "a casino roulette table with a steel ball", "a round vault door, closed", "a wall air vent grate, closed", "the same air vent grate hanging open"]
+props3 = ["a wind turbine, running", "the same wind turbine stopped", "a control panel with switches and a big red button", "a coffee plant with floating beans", "a floating cloud of coffee beans",
+          "a bridge door panel with a badge scanner", "an airlock door, closed", "the same airlock door, open", "a minecart hanging from a crane hook", "a moon rail cart on the rail",
+          "a huge firewall door, closed, glowing red", "the same firewall door, open", "a keypad on a pole", "a golf club stand", "a champagne fountain", "a shuttle boarding gate, closed",
+          "the same boarding gate, open", "a teddy bear chair"]
+
+def sheet_items(title, path, lst, cols, rows):
+    return dict(title=title, path=path, fmt=FORMAT_SHEET, refs="ref_03_stil_nudelgasse.png, sheet_items_akt1.png",
+        prompt=(SHEET_HEAD.format(cols=cols, rows=rows, n=cols * rows) + " Inventory-icon style, slightly exaggerated, seen from the front or slightly from above. Items in order: " +
+                ", ".join(f"{i + 1} {x}" for i, x in enumerate(lst)) + ".\n\n" + STIL))
+
+def sheet_props(title, path, lst, refs):
+    return dict(title=title, path=path, fmt=FORMAT_SHEET, refs=refs,
+        prompt=(SHEET_HEAD.format(cols=6, rows=3, n=18) + " Draw every object at its natural size relative to a 1.7 m tall person; the objects will be scaled later. Objects in order: " +
+                ", ".join(f"{i + 1} {x}" for i, x in enumerate(lst)) + ".\n\n" + STIL))
+
+SHEETS = [
+    pixel_outfit("Pixel im Gala-Look (24 Posen)", "assets/raw/sheet_pixel_gala.png",
+                 "an absurdly fancy gala outfit: a glittering teal tuxedo jacket over her dark cargo pants, a bow tie, hair styled into a dramatic quiff (goggles removed)"),
+    pixel_outfit("Pixel im Raumanzug (24 Posen)", "assets/raw/sheet_pixel_raumanzug.png",
+                 "an antique retro space suit in dented chrome with rivets and a round glass helmet (face visible)"),
+    npc_sheet("NPC-Sheet Akt 2 (12 Figuren, je ruhig und sprechend)", "assets/raw/sheet_npc_akt2.png",
+              "ref_01_pixel_turnaround.png, sheet_npc_akt1.png", npc2),
+    npc_sheet("NPC-Sheet Akt 3 (12 Figuren, je ruhig und sprechend)", "assets/raw/sheet_npc_akt3.png",
+              "sheet_npc_akt1.png, ende_03.png, ende_01.png (zuletzt anhängen: Kleo und Teddy-Bot)", npc3),
+    sheet_items("Item-Sheet Akt 2 (20 Gegenstände)", "assets/raw/sheet_items_akt2.png", items2, 5, 4),
+    sheet_items("Item-Sheet Akt 3 (9 Gegenstände)", "assets/raw/sheet_items_akt3.png", items3, 3, 3),
+    sheet_props("Props Akt 2 (18 Szenen-Objekte)", "assets/raw/sheet_props_akt2.png", props2, "sheet_props_akt1.png, bg_13_plaza.png"),
+    sheet_props("Props Akt 3 (18 Szenen-Objekte)", "assets/raw/sheet_props_akt3.png", props3, "sheet_props_akt1.png, bg_26_promenade.png"),
+]
+
+MAPS = [
+    dict(title="Karte Mittel-Heights", path="assets/raw/map_mittelstadt.png", fmt=FORMAT_BG, refs="map_unterstadt.png, ref_03_stil_nudelgasse.png",
+         prompt=("Illustrated top-down map of a corporate city district, 16:9, the same parchment-meets-neon style, border and compass as the attached map, NO text labels. "
+                 "Thirteen clearly separated, recognizable small illustrated places connected by streets, spread evenly with empty space between them: a large central plaza (center), "
+                 "a corporate tower lobby, a cafeteria building, an office floor block, a hologram ad factory, a barber shop with a striped pole, a casino with a golden entrance and a vault drawn beneath it, "
+                 "a clinic with a cross, an artificial park with a pond, a museum with columns, a police station, and a cable car station at the top right with cables leading up off the map.\n\n" + STIL)),
+    dict(title="Karte Ober-Heights und Orbit", path="assets/raw/map_oberstadt_orbit.png", fmt=FORMAT_BG, refs="map_unterstadt.png, ref_03_stil_nudelgasse.png",
+         prompt=("Illustrated map of a floating upper city and orbit, 16:9, the same parchment-meets-neon style as the attached map but with clouds and stars around, NO text labels. "
+                 "Eleven clearly separated small illustrated places with empty space between them: a floating promenade in the clouds, a grand villa, a spa with a glass golf dome, a spaceport with a rocket, "
+                 "an orbital space station ring with a garden dome and a command bridge, and the moon at the top right with a mine entrance, a deep mine with crystals, a server core and a dreamy child's room bubble. "
+                 "Dotted lines connect the places.\n\n" + STIL)),
+]
+
+INTRO_NOTE = """\
+# Bild-Prompts: alles, was noch fehlt
+
+Stand: fertig sind `ref_01` bis `ref_03`, `bg_01` bis `bg_12`, die Sheets für Pixel, Krümel, NPC Akt 1, Items Akt 1, Props Akt 1 und UI, die Karte Unter-Heights, `titel`, `intro_02`, `intro_07` und `ende_01` bis `ende_03`.
+
+**Noch fehlend (dieses Dokument):**
+- Rest von Akt 1: Intro-Bilder 01, 03, 04, 05, 06
+- Akt 2: 13 Hintergründe, Karte, Sheets (Pixel Gala, NPCs, Items, Props)
+- Akt 3: 11 Hintergründe, Karte, Sheets (Pixel Raumanzug, NPCs, Items, Props)
+
+**So gehst du vor**
+- Kopiere jeden Block unverändert, hänge die genannten Referenzbilder an (16:9, höchste Auflösung, neuer Chat pro Bild), speichere unter dem genannten Pfad (nur den Namen ohne `.png` eintippen, falls dein System die Endung ergänzt).
+- Bei Sheets nutzt die KI das Raster oft nicht genau. Das ist okay, ich erkenne die Figuren automatisch.
+- **Reihenfolge:** Erst die Intro-Bilder (klein, schnell), dann Akt 2 Hintergründe, danach Sheets. Die Props-Sheets erst nachdem ich die Hintergründe derselben Akt gesehen habe.
+- Wichtig für die Schilder: kurze deutsche Wörter in Großbuchstaben gelingen meist. Falls ein Schild falsch geschrieben ist, korrigiere im selben Chat („Change the sign to read …").
+
+---
+
+"""
+
+def write_missing():
+    allp = MISSING + ACT2 + MAPS[:1] + SHEETS[:1] + SHEETS[2:3] + SHEETS[4:5] + SHEETS[6:7] + ACT3 + MAPS[1:] + SHEETS[1:2] + SHEETS[3:4] + SHEETS[5:6] + SHEETS[7:8]
+    out = [INTRO_NOTE]
+    for i, a in enumerate(allp, start=1):
+        out.append(f"## {i}. {a['title']}\n")
+        out.append(f"- **Speichern als:** `{a['path']}`")
+        out.append(f"- **Format:** {a['fmt']}")
+        out.append(f"- **Referenzbilder anhängen:** {a['refs']}\n")
+        out.append("```\n" + a["prompt"] + "\n```\n")
+    path = ROOT / "docs" / "prompts-fehlend.md"
+    path.write_text("\n".join(out), encoding="utf-8")
+    print(f"{len(allp)} fehlende Prompts nach {path.relative_to(ROOT)} geschrieben.")
+
+
 def main():
     out = [ORDER_NOTE]
     for i, a in enumerate(ASSETS, start=1):
@@ -270,6 +497,7 @@ def main():
     path = ROOT / "docs" / "prompts-akt1.md"
     path.write_text("\n".join(out), encoding="utf-8")
     print(f"{len(ASSETS)} Prompts nach {path.relative_to(ROOT)} geschrieben.")
+    write_missing()
 
 
 if __name__ == "__main__":

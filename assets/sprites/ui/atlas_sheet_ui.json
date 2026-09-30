@@ -1,0 +1,164 @@
+{
+  "cursor_normal": {
+    "file": "cursor_normal.png",
+    "w": 127,
+    "h": 183,
+    "anchor": [
+      63,
+      183
+    ]
+  },
+  "cursor_ansehen": {
+    "file": "cursor_ansehen.png",
+    "w": 211,
+    "h": 148,
+    "anchor": [
+      105,
+      148
+    ]
+  },
+  "cursor_benutzen": {
+    "file": "cursor_benutzen.png",
+    "w": 182,
+    "h": 198,
+    "anchor": [
+      91,
+      198
+    ]
+  },
+  "cursor_sprechen": {
+    "file": "cursor_sprechen.png",
+    "w": 191,
+    "h": 177,
+    "anchor": [
+      95,
+      177
+    ]
+  },
+  "cursor_gehen": {
+    "file": "cursor_gehen.png",
+    "w": 88,
+    "h": 153,
+    "anchor": [
+      44,
+      153
+    ]
+  },
+  "pfeil_links": {
+    "file": "pfeil_links.png",
+    "w": 88,
+    "h": 154,
+    "anchor": [
+      44,
+      154
+    ]
+  },
+  "pfeil_rechts": {
+    "file": "pfeil_rechts.png",
+    "w": 196,
+    "h": 144,
+    "anchor": [
+      98,
+      144
+    ]
+  },
+  "pfeil_hoch": {
+    "file": "pfeil_hoch.png",
+    "w": 195,
+    "h": 144,
+    "anchor": [
+      97,
+      144
+    ]
+  },
+  "pfeil_runter": {
+    "file": "pfeil_runter.png",
+    "w": 142,
+    "h": 201,
+    "anchor": [
+      71,
+      201
+    ]
+  },
+  "pin_besucht": {
+    "file": "pin_besucht.png",
+    "w": 144,
+    "h": 200,
+    "anchor": [
+      72,
+      200
+    ]
+  },
+  "pin_aktuell": {
+    "file": "pin_aktuell.png",
+    "w": 131,
+    "h": 229,
+    "anchor": [
+      65,
+      229
+    ]
+  },
+  "pin_gesperrt": {
+    "file": "pin_gesperrt.png",
+    "w": 184,
+    "h": 256,
+    "anchor": [
+      92,
+      256
+    ]
+  },
+  "haken_an": {
+    "file": "haken_an.png",
+    "w": 148,
+    "h": 243,
+    "anchor": [
+      74,
+      243
+    ]
+  },
+  "haken_aus": {
+    "file": "haken_aus.png",
+    "w": 193,
+    "h": 195,
+    "anchor": [
+      96,
+      195
+    ]
+  },
+  "regler_knopf": {
+    "file": "regler_knopf.png",
+    "w": 185,
+    "h": 185,
+    "anchor": [
+      92,
+      185
+    ]
+  },
+  "button_normal": {
+    "file": "button_normal.png",
+    "w": 217,
+    "h": 130,
+    "anchor": [
+      108,
+      130
+    ]
+  },
+  "button_hover": {
+    "file": "button_hover.png",
+    "w": 214,
+    "h": 194,
+    "anchor": [
+      107,
+      194
+    ]
+  },
+  "button_gedrueckt": {
+    "file": "button_gedrueckt.png",
+    "w": 465,
+    "h": 225,
+    "anchor": [
+      232,
+      225
+    ]
+  }
+}

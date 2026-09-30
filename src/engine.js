@@ -24,8 +24,7 @@ window.NN = window.NN || {};
     dyslexic: '"OpenDyslexic","Comic Sans MS",Verdana,sans-serif'
   };
   const font = (px, weight) => `${weight || 'bold'} ${Math.round(px * SIZE[NN.opts.textSize])}px ${FONTS[NN.opts.font]}`;
-  const COLORS = { pixel: '#ffb347', kruemel: '#8fe8ff', oma: '#ff9dd2', erzaehler: '#ffffff' };
-  const PITCH = { pixel: 1.0, kruemel: 1.9, oma: 0.75 };
+  const speaker = who => (NN.speakers && NN.speakers[who]) || { color: '#ffffff', pitch: 1.1 };
 
   // ---------- Koordinaten ----------
   const L = (x, y) => [x * G.view.fx + G.view.ox, y * G.view.fy + G.view.oy];
@@ -51,6 +50,7 @@ window.NN = window.NN || {};
     const rs = RENDER_SCALE[NN.opts.quality] || 1;
     canvas.width = Math.round(W * rs); canvas.height = Math.round(H * rs);
     canvas.classList.toggle('pixelated', !NN.opts.smoothing);
+    document.documentElement.style.setProperty('--tb', String(NN.opts.textBg));
     document.body.classList.toggle('fx-neon', NN.opts.filter === 'neon');
     document.body.classList.toggle('fx-crt', NN.opts.filter === 'crt');
     document.body.classList.remove('size-s', 'size-m', 'size-l', 'size-xl', 'font-comic', 'font-readable', 'font-dyslexic');
@@ -159,9 +159,10 @@ window.NN = window.NN || {};
   }
 
   function say(who, text) {
+    if (NN.debug && NN.debug.fast) return Promise.resolve();
     return new Promise(res => {
-      const cps = 42 * NN.opts.textSpeed;
-      const dur = Math.max(1.4, text.length / cps + 0.7 + text.length * 0.012);
+      const cps = 24 * NN.opts.textSpeed;
+      const dur = Math.max(2.2, text.length / cps + 1.4);
       G.speech = { who, text, t: 0, cps, dur, res, lastBlip: 0 };
       if (who === 'pixel') pixel.talking = true;
     });
@@ -177,18 +178,21 @@ window.NN = window.NN || {};
     s.t += dt;
     const shown = Math.min(s.text.length, Math.floor(s.t * s.cps));
     if (shown > s.lastBlip && shown < s.text.length) {
-      if (shown - s.lastBlip >= 2) { NN.audio.blip(PITCH[s.who] || 1.2); s.lastBlip = shown; }
+      if (shown - s.lastBlip >= 3) { NN.audio.blip(speaker(s.who).pitch); s.lastBlip = shown; }
     }
     if (s.who !== 'pixel') pixel.talking = false;
     if (NN.opts.autoAdvance && s.t >= s.dur) endSpeech();
   }
 
-  function choose(options) { return new Promise(res => { G.choices = { options, res, hover: -1 }; }); }
+  function choose(options) {
+    if (NN.debug && NN.debug.fast) { const q = NN.debug.choices; return Promise.resolve(q && q.length ? q.shift() : options.length - 1); }
+    return new Promise(res => { G.choices = { options, res, hover: -1 }; });
+  }
 
   // ---------- Hotspots ----------
   function hitTest(sx, sy) {
     const def = G.def;
-    for (const e of def.exits || []) if (U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
+    for (const e of def.exits || []) if ((!e.if || e.if(NN.S)) && U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
     const hs = def.hotspots || [];
     for (let i = hs.length - 1; i >= 0; i--) {
       const h = hs[i];
@@ -268,6 +272,7 @@ window.NN = window.NN || {};
     face(dir) { pixel.dir = dir; },
     wait: sec => new Promise(r => setTimeout(r, sec * 1000)),
     animate(name, sec) { pixel.anim = name; pixel.animT = sec; return new Promise(r => setTimeout(r, sec * 1000)); },
+    actEnd(title, text) { return new Promise(res => { NN.ui.showActEnd(title, text, res); }); },
     async kruemelScan() { NN.audio.scan(); G.scan = 1.2; await new Promise(r => setTimeout(r, 1300)); }
   };
   G.api = api;
@@ -314,6 +319,14 @@ window.NN = window.NN || {};
     ctx.fillStyle = '#7b8aa0'; ctx.beginPath(); ctx.ellipse(0, -58, w, 5, 0, 0, 7); ctx.fill(); ctx.stroke();
     ctx.restore();
   }
+
+  // Bild-Objekt in Szenenkoordinaten zeichnen (unten mittig verankert, Breite w in Szenen-Pixeln)
+  NN.drawProp = function (name, x, y, w) {
+    const img = A.get('assets/sprites/props/' + name + '.png');
+    if (!img) return;
+    const [lx, ly] = L(x, y), k = (w * G.view.fx) / img.width;
+    ctx.drawImage(img, lx - img.width * k / 2, ly - img.height * k, img.width * k, img.height * k);
+  };
 
   const KRU = 'assets/sprites/characters/kruemel_';
   function kruemelSpriteName() {
@@ -408,6 +421,23 @@ window.NN = window.NN || {};
     }
   }
 
+  function drawNpc(a) {
+    const [lx, ly] = L(a.x, a.y);
+    const sc = depthScale(a.y) * G.view.fy * (a.scale || 1);
+    if (!a.sprite) { a.draw(ctx, lx, ly, sc); return; }
+    const base = typeof a.sprite === 'function' ? a.sprite(NN.S) : a.sprite;
+    const talking = G.speech && G.speech.who === a.id && Math.floor(G.time * 6) % 2;
+    const dir = 'assets/sprites/npcs/';
+    const img = A.get(dir + base + (talking ? '_talk' : '_idle') + '.png') || A.get(dir + base + '_idle.png');
+    if (!img) return;
+    a.h = img.height * (a.scale || 1);
+    ctx.save();
+    if (a.clipY) { ctx.beginPath(); ctx.rect(0, 0, W, L(0, a.clipY)[1]); ctx.clip(); }
+    drawSprite(img, lx, ly, sc, !!a.flip, !a.clipY);
+    ctx.restore();
+    if (a.after) a.after(ctx, lx, ly - img.height * sc, sc, NN.S);
+  }
+
   function drawScene() {
     const def = G.def;
     ctx.fillStyle = '#0b0714'; ctx.fillRect(0, 0, W, VH);
@@ -420,7 +450,7 @@ window.NN = window.NN || {};
     (def.props || []).forEach(p => { if (!p.if || p.if(NN.S)) p.draw(ctx, L, NN.S); });
     // Figuren nach Tiefe sortiert
     const list = [{ y: pixel.y, draw: drawPixel }];
-    (def.actors || []).forEach(a => list.push({ y: a.y, draw: () => { const [lx, ly] = L(a.x, a.y); a.draw(ctx, lx, ly, depthScale(a.y) * G.view.fy); } }));
+    (def.actors || []).forEach(a => { if (!a.hide || !a.hide(NN.S)) list.push({ y: a.y, draw: () => drawNpc(a) }); });
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
     // Krümel schwebt immer oben
     drawKruemel();
@@ -444,6 +474,7 @@ window.NN = window.NN || {};
       ctx.beginPath(); ctx.arc(lx, ly, 15, 0, 7); ctx.fill(); ctx.stroke();
     });
     (G.def.exits || []).forEach(e => {
+      if (e.if && !e.if(NN.S)) return;
       const c = U.centroid(e.poly), [lx, ly] = L(c[0], c[1]);
       ctx.fillStyle = `rgba(39,230,255,${pulse})`; ctx.strokeStyle = '#1a0f26';
       ctx.beginPath(); ctx.arc(lx, ly - 8, 15, 0, 7); ctx.fill(); ctx.stroke();
@@ -470,8 +501,13 @@ window.NN = window.NN || {};
     lines.forEach((line, i) => {
       const part = line.slice(0, Math.max(0, Math.min(line.length, shown))); shown -= line.length + 1;
       const x = cx - ctx.measureText(line).width / 2, y = y0 + i * lh;
-      ctx.strokeText(part, x, y); ctx.fillStyle = COLORS[s.who] || '#fff'; ctx.fillText(part, x, y);
+      ctx.strokeText(part, x, y); ctx.fillStyle = speaker(s.who).color; ctx.fillText(part, x, y);
     });
+    if (!NN.opts.autoAdvance && s.t * s.cps >= s.text.length && Math.floor(G.time * 2) % 2 === 0) {
+      const last = lines[lines.length - 1], lx = cx + ctx.measureText(last).width / 2 + 22, ly = y0 + (lines.length - 1) * lh - 10;
+      ctx.fillStyle = speaker(s.who).color; ctx.strokeStyle = '#120a22'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(lx - 10, ly - 10); ctx.lineTo(lx + 10, ly - 10); ctx.lineTo(lx, ly + 6); ctx.closePath(); ctx.stroke(); ctx.fill();
+    }
     ctx.restore();
   }
 
@@ -624,7 +660,14 @@ window.NN = window.NN || {};
     if (h.type === 'menu') return G.onMenu && G.onMenu();
     if (h.type === 'prev') { G.invPage = Math.max(0, G.invPage - 1); return; }
     if (h.type === 'next') { G.invPage = Math.min(Math.ceil(NN.S.inv.length / BAR.slots) - 1, G.invPage + 1); G.invPage = Math.max(0, G.invPage); return; }
-    if (h.type === 'kru') { G.selected = G.selected === 'kruemel' ? null : 'kruemel'; return; }
+    if (h.type === 'kru') {
+      if (G.selected && G.selected !== 'kruemel') {
+        const b = G.selected, comb = NN.items[b].combine && NN.items[b].combine.kruemel; G.selected = null;
+        if (comb) return run(comb);
+        NN.audio.fail(); return run(async g => g.say('kruemel', 'Das kann ich weder toasten noch scannen.'));
+      }
+      G.selected = G.selected === 'kruemel' ? null : 'kruemel'; return;
+    }
     if (h.type === 'slot') {
       const id = h.id;
       if (button === 2) return run(async g => g.say('pixel', NN.items[id].look));
@@ -684,8 +727,26 @@ window.NN = window.NN || {};
 
   // Debug-Hilfen für Tests
   NN.debug = {
+    fast: false, choices: [],
     unlockTravel() { NN.S.flags.schnellreise = true; },
-    giveAll() { Object.keys(NN.items).forEach(i => api.give(i)); }
+    giveAll() { Object.keys(NN.items).forEach(i => api.give(i)); },
+    // Hotspot oder Ausgang direkt auslösen (ohne Laufen). mode: 'use' | 'look' | 'item'
+    async act(id, mode, item, choices) {
+      NN.debug.choices = (choices || []).slice();
+      const hit = (G.def.exits || []).concat(G.def.hotspots || []).find(o => o.id === id);
+      if (!hit) throw new Error('Kein Hotspot ' + id + ' in ' + G.scene);
+      if (hit.to) return G.changeScene(hit.to, hit.spawn);
+      const h = mode === 'look' ? hit.look : mode === 'item' ? (hit.useWith && (hit.useWith[item] || hit.useWith._default)) : hit.use;
+      if (!h) throw new Error('Keine Aktion ' + mode + ' ' + (item || '') + ' bei ' + id);
+      await run(h);
+    },
+    async combine(a, b) {
+      const ia = a === 'kruemel' ? NN.kruemelTool : NN.items[a];
+      const comb = (ia.combine && ia.combine[b]) || (NN.items[b].combine && NN.items[b].combine[a]);
+      if (!comb) throw new Error('Keine Kombination ' + a + '+' + b);
+      await run(comb);
+    },
+    async item(id) { const it = NN.items[id]; await run(it.useSelf); }
   };
 
   requestAnimationFrame(frame);

@@ -24,10 +24,30 @@ NN.items = {
   glasfaserkabel: { name: 'Glasfaserkabel', look: 'Ein leuchtendes Kabel. Hübsch und praktisch.' },
   log_stick: { name: 'Stick mit Log', look: 'Enthält Flugdaten einer Lieferdrohne. Das Geheimnis liegt auf meiner Handfläche.' },
   powerbank: { name: 'Powerbank', look: 'Saft für müde Toaster.' },
-  baguette: { name: 'Baguette', look: 'Ein echtes Baguette! In dieser Stadt so selten wie Sonnenschein.' },
+  baguette: {
+    name: 'Baguette', look: 'Ein echtes Baguette! In dieser Stadt so selten wie Sonnenschein.',
+    combine: {
+      kruemel: async g => {
+        if (g.get('kruemel_leer') && !g.get('kruemel_geladen')) return g.say('kruemel', 'Toasten ohne Strom? Ich bin ein Toaster, kein Wunder.');
+        await g.say('pixel', 'Krümel, machst du das Baguette knusprig?');
+        await g.say('kruemel', 'Einen Moment. Ich bin Toaster. Das ist mein Beruf, meine Berufung und mein einziger Hobby.');
+        g.remove('baguette'); g.give('knuspertoast');
+        await g.say('kruemel', 'Perfekt gebräunt. Es riecht nach Zuhause.');
+      }
+    }
+  },
   knuspertoast: { name: 'Knuspertoast', look: 'Perfekt gebräunt. Krümel ist stolz, und die Tauben sabbern.' },
   zhang_chip: { name: 'Hackerchip „ZN“', look: 'Zhang-Nulls legendärer Hackerchip. Oma hatte ein Vorleben.' },
-  stempel: { name: 'Stempel „GÜLTIG“', look: 'Mit diesem Stempel ist jedes Stück Papier plötzlich amtlich.' },
+  stempel: {
+    name: 'Stempel „GÜLTIG“', look: 'Mit diesem Stempel ist jedes Stück Papier plötzlich amtlich.',
+    combine: {
+      altes_ticket: async g => {
+        await g.say('pixel', 'Ein bisschen Tinte, ein bisschen Zuversicht …');
+        g.remove('altes_ticket'); g.remove('stempel'); g.give('gueltiges_ticket');
+        await g.say('kruemel', 'Das ist Urkundenfälschung. Aber sehr stilvolle.');
+      }
+    }
+  },
   altes_ticket: { name: 'Zerknittertes Ticket', look: 'Ein Magnetbahn-Ticket. Abgelaufen, zerknittert, traurig.' },
   gueltiges_ticket: { name: 'Gültiges Ticket', look: 'Gestempelt und amtlich. Schaffner 4711 wird weinen vor Freude.' },
   schraube: { name: 'Schraube', look: 'Eine Schraube. Irgendwer vermisst sie bestimmt.' }

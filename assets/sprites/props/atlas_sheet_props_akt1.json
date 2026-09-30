@@ -1,0 +1,164 @@
+{
+  "kiste_zu": {
+    "file": "kiste_zu.png",
+    "w": 216,
+    "h": 206,
+    "anchor": [
+      108,
+      206
+    ]
+  },
+  "kiste_offen": {
+    "file": "kiste_offen.png",
+    "w": 219,
+    "h": 235,
+    "anchor": [
+      109,
+      235
+    ]
+  },
+  "kanaldeckel_zu": {
+    "file": "kanaldeckel_zu.png",
+    "w": 219,
+    "h": 132,
+    "anchor": [
+      109,
+      132
+    ]
+  },
+  "kanaldeckel_offen": {
+    "file": "kanaldeckel_offen.png",
+    "w": 229,
+    "h": 170,
+    "anchor": [
+      114,
+      170
+    ]
+  },
+  "terminal_aus": {
+    "file": "terminal_aus.png",
+    "w": 217,
+    "h": 214,
+    "anchor": [
+      108,
+      214
+    ]
+  },
+  "terminal_an": {
+    "file": "terminal_an.png",
+    "w": 217,
+    "h": 214,
+    "anchor": [
+      108,
+      214
+    ]
+  },
+  "sicherungskasten_zu": {
+    "file": "sicherungskasten_zu.png",
+    "w": 155,
+    "h": 203,
+    "anchor": [
+      77,
+      203
+    ]
+  },
+  "sicherungskasten_offen_heiss": {
+    "file": "sicherungskasten_offen_heiss.png",
+    "w": 225,
+    "h": 209,
+    "anchor": [
+      112,
+      209
+    ]
+  },
+  "sicherungskasten_offen_leer": {
+    "file": "sicherungskasten_offen_leer.png",
+    "w": 226,
+    "h": 209,
+    "anchor": [
+      113,
+      209
+    ]
+  },
+  "socke": {
+    "file": "socke.png",
+    "w": 148,
+    "h": 168,
+    "anchor": [
+      74,
+      168
+    ]
+  },
+  "kabel_gekappt": {
+    "file": "kabel_gekappt.png",
+    "w": 81,
+    "h": 222,
+    "anchor": [
+      40,
+      222
+    ]
+  },
+  "kabel_verbunden": {
+    "file": "kabel_verbunden.png",
+    "w": 206,
+    "h": 184,
+    "anchor": [
+      103,
+      184
+    ]
+  },
+  "schranke_zu": {
+    "file": "schranke_zu.png",
+    "w": 221,
+    "h": 172,
+    "anchor": [
+      110,
+      172
+    ]
+  },
+  "schranke_offen": {
+    "file": "schranke_offen.png",
+    "w": 215,
+    "h": 171,
+    "anchor": [
+      107,
+      171
+    ]
+  },
+  "tuer_personal_zu": {
+    "file": "tuer_personal_zu.png",
+    "w": 167,
+    "h": 243,
+    "anchor": [
+      83,
+      243
+    ]
+  },
+  "tuer_personal_offen": {
+    "file": "tuer_personal_offen.png",
+    "w": 174,
+    "h": 247,
+    "anchor": [
+      87,
+      247
+    ]
+  },
+  "foto_rahmen": {
+    "file": "foto_rahmen.png",
+    "w": 196,
+    "h": 234,
+    "anchor": [
+      98,
+      234
+    ]
+  },
+  "kranmagnet_haken": {
+    "file": "kranmagnet_haken.png",
+    "w": 165,
+    "h": 243,
+    "anchor": [
+      82,
+      243
+    ]
+  }
+}

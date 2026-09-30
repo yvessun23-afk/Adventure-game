@@ -1,33 +1,22 @@
-// Szenen. Koordinaten in "space" (Pixel des Hintergrundbilds), die Engine rechnet auf den Bildschirm um.
+// Szenen Akt 1, Teil 1: Imbiss und Nudelgasse. Koordinaten in "space" (Pixel des Hintergrundbilds, 1376x768).
 // Skripte sind async-Funktionen mit dem API-Objekt g (siehe src/engine.js).
 window.NN = window.NN || {};
 NN.scenes = {};
 
+NN.sceneHelpers = {
+  R: NN.util.rect,
+  // Ausgang am unteren Bildrand
+  bottomExit(name, to, spawn, walkX) {
+    return { id: 'ex_' + to, name, poly: NN.util.rect(130, 742, 1376, 768), walkTo: [walkX || 700, 766], to, spawn, arrow: 'down' };
+  },
+  // Kurze Beschreibungs-Hotspots ohne Logik
+  look(id, name, poly, text, use) {
+    return { id, name, poly, walkTo: null, look: text, use: use || text };
+  }
+};
+
 (function () {
-  const R = NN.util.rect;
-
-  // Platzhalter-Figur für Oma Zhang, bis das NPC-Sheet vorliegt
-  function drawOma(ctx, x, y, s) {
-    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-    ctx.lineWidth = 5; ctx.strokeStyle = '#1a0f26'; ctx.lineJoin = 'round';
-    ctx.fillStyle = '#c9559b'; ctx.beginPath(); ctx.roundRect(-46, -110, 92, 110, 26); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#ffe6cf'; ctx.beginPath(); ctx.arc(0, -138, 38, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#d8d3e0'; ctx.beginPath(); ctx.arc(0, -182, 18, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.lineWidth = 4;
-    [-16, 16].forEach(dx => { ctx.beginPath(); ctx.arc(dx, -140, 14, 0, 7); ctx.fill(); ctx.stroke(); });
-    ctx.fillStyle = '#1a0f26'; [-16, 16].forEach(dx => { ctx.beginPath(); ctx.arc(dx, -140, 4, 0, 7); ctx.fill(); });
-    ctx.restore();
-  }
-
-  function drawFoto(ctx, L, S) {
-    if (S.flags.foto_genommen) return;
-    const [x0, y0] = L(930, 242), [x1, y1] = L(996, 312);
-    ctx.save();
-    ctx.fillStyle = '#f2e3c2'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
-    ctx.fillStyle = '#c9559b'; ctx.beginPath(); ctx.arc(x0 + (x1 - x0) * 0.32, y0 + (y1 - y0) * 0.5, 13, 0, 7); ctx.fill();
-    ctx.fillStyle = '#27a9c4'; ctx.beginPath(); ctx.arc(x0 + (x1 - x0) * 0.68, y0 + (y1 - y0) * 0.5, 13, 0, 7); ctx.fill();
-    ctx.restore();
-  }
+  const H = NN.sceneHelpers, R = H.R;
 
   NN.scenes.imbiss = {
     id: 'imbiss', name: 'Zhangs Ramen-Imbiss', space: [1376, 768], fit: 'stretch',
@@ -35,11 +24,9 @@ NN.scenes = {};
     walk: [[180, 768], [1376, 768], [1376, 690], [1040, 565], [960, 548], [720, 560], [580, 640], [300, 705]],
     depth: { y0: 548, y1: 768, s0: 0.6, s1: 1.0 },
     spawns: { default: [880, 690], nudelgasse: [700, 740] },
-    props: [{ draw: drawFoto }],
-    actors: [{ id: 'oma', name: 'Oma Zhang', x: 600, y: 636, h: 200, draw: drawOma }],
-    exits: [
-      { id: 'ex_gasse', name: 'Nudelgasse', poly: R(180, 738, 1376, 768), walkTo: [700, 766], to: 'nudelgasse', spawn: 'imbiss', arrow: 'down' }
-    ],
+    props: [{ if: S => !S.flags.foto_genommen, draw: () => NN.drawProp('foto_rahmen', 962, 333, 92) }],
+    actors: [{ id: 'oma', name: 'Oma Zhang', x: 600, y: 636, sprite: 'oma', flip: true, h: 218 }],
+    exits: [{ id: 'ex_gasse', name: 'Nudelgasse', poly: R(180, 738, 1376, 768), walkTo: [700, 766], to: 'nudelgasse', spawn: 'imbiss', arrow: 'down' }],
     hotspots: [
       {
         id: 'oma', name: 'Oma Zhang', poly: R(548, 440, 660, 640), walkTo: [700, 650], facing: 'left',
@@ -63,6 +50,19 @@ NN.scenes = {};
             } else break;
           }
           await g.say('oma', 'Und iss was! Du bist zu dünn! … Ach nein, es gibt ja nur Paste.');
+        },
+        useWith: {
+          log_stick: async g => {
+            if (g.get('gab_zhang_chip')) return g.say('oma', 'Das Log kenne ich schon. Schnapp dir endlich den Dieb!');
+            await g.say('pixel', 'Oma, sieh dir das an. Flugdaten einer Lieferdrohne. Die Nummer: NC-07.');
+            await g.say('oma', 'NC … NoodleCorp. Und der Auftraggeber? … „Kleo“. Nie gehört.');
+            await g.say('oma', 'Dann wird es Zeit, dass du mein altes Geheimnis erfährst. Früher hieß ich nämlich Zhang-Null.');
+            await g.say('pixel', 'Die Zhang-Null? Die Hackerlegende?');
+            await g.say('oma', 'Hier, mein Chip. Damals habe ich in jedes System eine Hintertür gebaut. Vielleicht funktioniert sie noch.');
+            g.give('zhang_chip');
+            await g.say('oma', 'Fahr mit der Magnetbahn nach Mittel-Heights. Dort sitzt NoodleCorp.');
+          },
+          _default: async g => g.say('oma', 'Mein Kind, das kann ich nicht brauchen. Bring mir lieber meinen Kristall.')
         }
       },
       {
@@ -79,11 +79,7 @@ NN.scenes = {};
           g.give('graue_paste');
         }
       },
-      {
-        id: 'topf', name: 'Suppentopf', poly: R(370, 300, 535, 420), walkTo: [480, 640], facing: 'up',
-        look: 'Der Topf brodelt. Mit Brühe aus Panik und Hoffnung.',
-        use: 'Viel zu heiß. Und er sieht mich an, als wollte er etwas sagen.'
-      },
+      { id: 'topf', name: 'Suppentopf', poly: R(370, 300, 535, 420), walkTo: [480, 640], facing: 'up', look: 'Der Topf brodelt. Mit Brühe aus Panik und Hoffnung.', use: 'Viel zu heiß. Und er sieht mich an, als wollte er etwas sagen.' },
       {
         id: 'regal', name: 'Küchenregal', poly: R(120, 215, 300, 340), walkTo: [330, 700], facing: 'up',
         look: 'Ein Regal mit Küchenkram. Erstaunlich sauber für einen Imbiss.',
@@ -102,11 +98,7 @@ NN.scenes = {};
           g.give('essstaebchen');
         }
       },
-      {
-        id: 'safe', name: 'Offener Safe', poly: R(785, 350, 1040, 550), walkTo: [900, 600], facing: 'up',
-        look: 'Der Safe ist offen und leer. Keine Kratzer. Jemand kannte die Kombination – oder hatte sehr gute Hände.',
-        use: 'Leer. Wie mein Konto am Monatsende.'
-      },
+      { id: 'safe', name: 'Offener Safe', poly: R(785, 350, 1040, 550), walkTo: [900, 600], facing: 'up', look: 'Der Safe ist offen und leer. Keine Kratzer. Jemand kannte die Kombination – oder hatte sehr gute Hände.', use: 'Leer. Wie mein Konto am Monatsende.' },
       {
         id: 'rahmen', name: 'Bilderrahmen', poly: R(920, 230, 1005, 325), walkTo: [960, 590], facing: 'up',
         look: async g => {
@@ -127,7 +119,7 @@ NN.scenes = {};
         useWith: {
           kruemel: async g => {
             if (g.get('spur_nc')) return g.say('kruemel', 'Schon gescannt. Ergebnis: immer noch NoodleCorp.');
-            if (g.get('kruemel_leer')) return g.say('kruemel', '0 Prozent Akku. Ich bin ein sehr müder Toaster.');
+            if (g.get('kruemel_leer') && !g.get('kruemel_geladen')) return g.say('kruemel', '0 Prozent Akku. Ich bin ein sehr müder Toaster.');
             await g.say('pixel', 'Krümel, scan das mal.');
             await g.kruemelScan();
             await g.say('kruemel', 'Muster erkannt: Profil mit Firmenlogo. NC. NoodleCorp.');
@@ -138,11 +130,7 @@ NN.scenes = {};
           }
         }
       },
-      {
-        id: 'fenster', name: 'Fenster', poly: R(1035, 60, 1376, 440), walkTo: [1150, 640], facing: 'up',
-        look: 'Regen, Neon und ein Schwarm Lieferdrohnen. Gute Gegend.',
-        use: 'Ich öffne das Fenster nicht. Der Regen schmeckt nach Kabelbrand.'
-      }
+      { id: 'fenster', name: 'Fenster', poly: R(1035, 60, 1376, 440), walkTo: [1150, 640], facing: 'up', look: 'Regen, Neon und ein Schwarm Lieferdrohnen. Gute Gegend.', use: 'Ich öffne das Fenster nicht. Der Regen schmeckt nach Kabelbrand.' }
     ],
     onEnter: async g => {
       if (g.get('intro_szene')) return;
@@ -155,52 +143,79 @@ NN.scenes = {};
   };
 
   NN.scenes.nudelgasse = {
-    id: 'nudelgasse', name: 'Nudelgasse (Platzhalter)', space: [1584, 672], fit: 'contain',
-    bg: { file: 'assets/raw/ref_03_stil_nudelgasse.png' }, music: 'mus_unterstadt',
-    walk: [[150, 672], [1584, 672], [1584, 600], [1250, 520], [900, 500], [700, 490], [480, 540], [300, 600]],
-    depth: { y0: 490, y1: 672, s0: 0.55, s1: 0.9 }, charScale: 0.7,
-    spawns: { default: [330, 640], imbiss: [330, 640] },
-    actors: [],
+    id: 'nudelgasse', name: 'Nudelgasse', space: [1376, 768], fit: 'stretch',
+    bg: { tiers: 'bg_02_nudelgasse' }, music: 'mus_unterstadt',
+    walk: [[0, 768], [1376, 768], [1376, 690], [1300, 660], [1100, 640], [870, 585], [700, 575], [560, 640], [300, 645], [150, 700], [0, 745]],
+    depth: { y0: 575, y1: 768, s0: 0.55, s1: 1.0 },
+    spawns: { default: [200, 730], imbiss: [200, 730], waschsalon: [360, 720], baeckerei: [560, 720], schrottplatz: [740, 650], bar: [1030, 730], basar: [1290, 730] },
+    props: [{
+      if: S => !S.flags.gab_schroedinger_kiste,
+      draw: (ctx, L, S) => NN.drawProp(S.flags.kiste_offen ? 'kiste_offen' : 'kiste_zu', 900, 722, 110)
+    }],
+    actors: [{ id: 'bello', name: 'Bello-5000', x: 745, y: 640, sprite: 'bello', flip: true, h: 150, hide: S => S.flags.bello_weg }],
     exits: [
-      { id: 'ex_imbiss', name: 'Zhangs Imbiss', poly: R(110, 290, 420, 520), walkTo: [300, 610], to: 'imbiss', spawn: 'nudelgasse', arrow: 'left' }
+      { id: 'ex_imbiss', name: 'Zhangs Imbiss', poly: R(20, 300, 270, 650), walkTo: [170, 735], to: 'imbiss', spawn: 'nudelgasse', arrow: 'left' },
+      { id: 'ex_wasch', name: 'Waschsalon „Waschbär“', poly: R(280, 380, 430, 625), walkTo: [360, 720], to: 'waschsalon', spawn: 'nudelgasse' },
+      { id: 'ex_baecker', name: 'Bäckerei', poly: R(455, 290, 625, 515), walkTo: [560, 700], to: 'baeckerei', spawn: 'nudelgasse' },
+      { id: 'ex_bar', name: 'Bar „Null Pointer“', poly: R(970, 385, 1095, 625), walkTo: [1030, 720], to: 'bar', spawn: 'nudelgasse' },
+      { id: 'ex_basar', name: 'Schwarzer Basar', poly: R(1185, 250, 1376, 650), walkTo: [1290, 725], to: 'basar', spawn: 'nudelgasse', arrow: 'right' }
     ],
     hotspots: [
       {
-        id: 'tonne', name: 'Mülltonne', poly: R(465, 555, 705, 672), walkTo: [585, 650], facing: 'up',
+        id: 'gate', name: 'Schrottplatz', poly: R(625, 385, 855, 555), walkTo: [740, 650], facing: 'up',
+        look: 'Ein altes Tor zum Schrottplatz. Dahinter türmen sich Dinge, die früher mal Dinge waren.',
+        use: async g => {
+          if (!g.get('bello_weg')) return g.say('pixel', 'Bello-5000 sitzt davor und fletscht freundlich die Zähne. Er lässt mich nicht durch.');
+          await g.goto('schrottplatz', 'nudelgasse');
+        }
+      },
+      {
+        id: 'bello', name: 'Bello-5000', poly: R(690, 540, 810, 650), walkTo: [660, 700], facing: 'right',
+        look: 'Bello-5000, Wachhund der Schrottplatz-Mafia. Sein Schwanz wedelt so heftig, dass er Strom erzeugt.',
+        use: async g => { await g.say('bello', 'Wuff! (Übersetzung: Spiel mit mir oder verschwinde.)'); await g.say('pixel', 'Ich brauche etwas zum Werfen. Stöckchen, Stab, irgendwas Langes.'); },
+        useWith: {
+          essstaebchen: async g => {
+            await g.say('pixel', 'Bello! Hol das Stöckchen!');
+            await g.say('bello', 'WUFF!!! (Er rennt in Lichtgeschwindigkeit die Gasse hinunter.)');
+            g.flag('bello_weg', true);
+            await g.say('pixel', 'Das gibt mir ein paar Minuten. Die Essstäbchen hole ich mir später wieder.');
+          },
+          _default: async g => g.say('bello', 'Wuff. (Das ist kein Stöckchen.)')
+        }
+      },
+      {
+        id: 'tonne', name: 'Mülltonne', poly: R(410, 525, 635, 745), walkTo: [520, 762], facing: 'up',
         look: 'Eine grüne Mülltonne. Sie quillt über vor Schrott und Hoffnungslosigkeit.',
         use: async g => {
           if (g.get('gab_neonroehre')) return g.say('pixel', 'Ich habe genug Müll für heute angefasst.');
-          await g.say('pixel', 'Da leuchtet etwas im Müll … eine Neonröhre! Flackert noch.');
+          await g.say('pixel', 'Da leuchtet etwas im Müll … eine Neonröhre! Sie flackert noch.');
           g.give('neonroehre');
         }
       },
       {
-        id: 'nudelschild', name: 'Neonschild „NUDEL“', poly: R(110, 60, 470, 290), walkTo: [330, 600], facing: 'up',
-        look: 'Das Neonschild flackert. Es will nur noch schlafen.', use: 'Da komme ich ohne Leiter nicht ran.'
+        id: 'kiste', name: 'Holzkiste', poly: R(850, 640, 950, 725), walkTo: [900, 745], facing: 'up',
+        if: S => !S.flags.gab_schroedinger_kiste,
+        look: 'Auf dem Schild steht: „Nicht öffnen! Katze (vielleicht).“',
+        use: async g => {
+          if (!g.get('kiste_offen')) {
+            g.flag('kiste_offen', true);
+            await g.say('pixel', 'Ich öffne die Kiste ja nur ganz kurz …');
+            await g.say('pixel', 'Leer. Die Katze ist wohl gerade woanders. Oder sie ist nur da, wenn niemand hinsieht?');
+            return;
+          }
+          await g.say('pixel', 'Ich mache den Deckel wieder zu, ohne hineinzusehen, und nehme die Kiste mit. Wer weiß, wann die Katze wieder da ist.');
+          g.give('schroedinger_kiste');
+        }
       },
-      {
-        id: 'bar', name: 'Bar', poly: R(950, 230, 1190, 570), walkTo: [1050, 560], facing: 'up',
-        look: 'Die Hacker-Bar. Hinter der Tür dudelt Lo-Fi und glitcht ein Barkeeper.',
-        use: 'Noch verschlossen. Die Bar wird erst in einer der nächsten Ausbaustufen gebaut.'
-      },
-      {
-        id: 'waschsalon', name: 'Waschsalon', poly: R(500, 280, 660, 500), walkTo: [580, 540], facing: 'up',
-        look: 'Ein Waschsalon. Hinter dem Fenster drehen sich Socken im Kreis.', use: 'Kommt später.'
-      },
-      {
-        id: 'baeckerei', name: 'Bäckerei', poly: R(660, 240, 780, 500), walkTo: [700, 520], facing: 'up',
-        look: 'Eine Bäckerei. Der Duft nach echtem Brot liegt in der Luft. Das ist verboten wahrscheinlich.', use: 'Kommt später.'
-      },
-      {
-        id: 'basar', name: 'Markt', poly: R(1290, 150, 1584, 480), walkTo: [1400, 560], facing: 'up',
-        look: 'Ein Torbogen mit Lampions. Dahinter der Schwarze Markt.', use: 'Kommt später.'
-      }
+      { id: 'nudelschild', name: 'Neonschild „NUDEL“', poly: R(20, 100, 270, 300), walkTo: [170, 735], look: 'Das Neonschild „NUDEL“ flackert. Es will nur noch schlafen.', use: 'Da komme ich ohne Leiter nicht ran.' },
+      { id: 'waschbaer_schild', name: 'Waschbär-Schild', poly: R(280, 150, 470, 380), walkTo: [360, 720], look: 'Ein Waschbär mit Hemd. Ein Waschsalon mit Humor.', use: 'Der Waschbär hängt zu hoch.' },
+      { id: 'byte_schild', name: 'Bäckerei-Schild', poly: R(470, 210, 620, 290), walkTo: [560, 700], look: '„Zum knusprigen Byte“. Ein Croissant mit Prozessor. Ich hab Hunger.', use: 'Ich komme nicht ran. Aber es riecht nach Frühstück.' }
     ],
     onEnter: async g => {
       if (g.get('gasse_besucht')) return;
       g.flag('gasse_besucht', true);
-      await g.say('pixel', 'Die Nudelgasse. Hier geht es bald weiter.');
-      g.toast('Platzhalter-Szene: Hier werden noch Orte gebaut.');
+      await g.say('pixel', 'Die Nudelgasse. Hier kennt jeder jeden. Und keiner redet darüber.');
+      await g.say('kruemel', 'Im Gegensatz zu dir. Du redest immer.');
     }
   };
 })();

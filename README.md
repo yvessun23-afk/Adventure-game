@@ -3,7 +3,7 @@
 Ein 2D-Point-and-Click-Adventure im Browser (HTML/JavaScript), inspiriert von *Day of the Tentacle* und *Monkey Island*.
 Cyberpunk, lustig, mit 36 Orten, Karte mit Schnellreise, Intro, Speichern/Laden, Hilfesystem und Optionen für Grafik, Sound und Text.
 
-**Status:** Engine-Kern (M1) spielbar: Imbiss mit echtem Hintergrund und Pixel, Nudelgasse als Platzhalter. Menüs, Optionen, Speichern/Laden, Karte und Hilfe laufen.
+**Status:** Akt 1 (Unter-Heights, 12 Orte) ist komplett spielbar: alle Hintergründe, Figuren, Gegenstände und Rätsel bis zur Abfahrt nach Mittel-Heights. Menüs, Optionen, Speichern/Laden, Karte mit Schnellreise und dreistufige Hilfe laufen. Akt 2 und 3 folgen.
 
 ## Spielen
 

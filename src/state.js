@@ -6,7 +6,7 @@ NN.VERSION = 1;
 NN.defaults = {
   quality: 'hi', smoothing: true, filter: 'none', fps: 60, reduceAnim: false, hotspotHints: true, highContrast: false,
   vMaster: 0.8, vMusic: 0.6, vSfx: 0.8, vBlips: 0.6, muteAll: false, muteBlur: true,
-  lang: 'de', textSize: 'm', font: 'comic', subtitles: true, textSpeed: 1, autoAdvance: true, textBg: 0.35
+  lang: 'de', textSize: 'm', font: 'comic', subtitles: true, textSpeed: 0.7, autoAdvance: true, textBg: 0.35, optV: 2
 };
 
 NN.opts = Object.assign({}, NN.defaults);
@@ -20,7 +20,11 @@ function safeGet(key) { try { return localStorage.getItem(key); } catch (e) { re
 function safeSet(key, val) { try { localStorage.setItem(key, val); return true; } catch (e) { console.warn('Speichern nicht möglich', e); return false; } }
 
 NN.loadOptions = function () {
-  try { Object.assign(NN.opts, JSON.parse(safeGet('nn.options') || '{}')); } catch (e) { /* defaults */ }
+  try {
+    const stored = JSON.parse(safeGet('nn.options') || '{}');
+    if (stored.optV !== 2) { stored.textSpeed = NN.defaults.textSpeed; stored.optV = 2; } // Version 2: langsamerer Text
+    Object.assign(NN.opts, stored);
+  } catch (e) { /* defaults */ }
 };
 NN.saveOptions = function () { safeSet('nn.options', JSON.stringify(NN.opts)); };
 

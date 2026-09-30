@@ -1,50 +1,96 @@
 // Hilfesystem: drei Stufen pro Rätsel (Hinweis, Ansatz, Lösung). IDs wie in docs/story.md
+// Reihenfolge = Reihenfolge, in der die Hilfe offene Rätsel anbietet.
 window.NN = window.NN || {};
 
+var hasItem = (s, id) => s.inv.includes(id) || !!s.flags['gab_' + id];
+
 NN.hints = [
-  {
-    id: 'A1.01', title: 'Die Spur im Imbiss',
-    done: s => !!s.flags.spur_nc,
-    tiers: [
-      'Am Tatort gibt es einen Hinweis auf dem Boden. Schau dich im Imbiss um.',
+  { id: 'A1.01', title: 'Die Spur im Imbiss', done: s => !!s.flags.spur_nc,
+    tiers: ['Am Tatort gibt es einen Hinweis auf dem Boden. Schau dich im Imbiss um.',
       'Der Fußabdruck aus Sojasoße ist auffällig. Und du hast einen Begleiter, der scannen kann.',
-      'Klicke unten links auf „Krümel“ und dann auf den Fußabdruck vor dem Safe.'
-    ]
-  },
-  {
-    id: 'A1.02', title: 'Das Foto an der Wand',
-    done: s => !!s.flags.passwort_bekannt,
-    tiers: [
-      'Irgendetwas an der Wand im Imbiss ist persönlich. Vielleicht steckt ein Geheimnis dahinter.',
+      'Klicke unten links auf „Krümel“ und dann auf den Fußabdruck vor dem Safe.'] },
+  { id: 'A1.02', title: 'Das Foto an der Wand', done: s => !!s.flags.passwort_bekannt,
+    tiers: ['Irgendetwas an der Wand im Imbiss ist persönlich. Vielleicht steckt ein Geheimnis dahinter.',
       'Nimm das Foto aus dem Rahmen und sieh dir an, was hinten drauf steht.',
-      'Klicke den Rahmen an. Dann im Inventar das Foto anklicken und noch einmal anklicken, um es umzudrehen.'
-    ]
-  },
-  {
-    id: 'A1.03', title: 'Nützliches im Imbiss einsammeln',
-    done: s => ['nudelsieb', 'essstaebchen', 'sojasosse', 'graue_paste'].every(i => s.inv.includes(i) || s.flags['gab_' + i]),
-    tiers: [
-      'Ein Imbiss steckt voller Küchenkram. Schau Regal, Theke und Automat genauer an.',
+      'Klicke den Rahmen an. Dann im Inventar das Foto anklicken und noch einmal anklicken, um es umzudrehen.'] },
+  { id: 'A1.03', title: 'Nützliches im Imbiss einsammeln', done: s => ['nudelsieb', 'essstaebchen', 'graue_paste'].every(i => hasItem(s, i)),
+    tiers: ['Ein Imbiss steckt voller Küchenkram. Schau Regal, Theke und Automat genauer an.',
       'Das Regal, die Theke und die graue Paste am Automaten liefern jeweils etwas.',
-      'Regal anklicken (Nudelsieb und Sojasoße), Theke anklicken (Essstäbchen), Paste auf der Theke anklicken (Glas mit Paste).'
-    ]
-  },
-  {
-    id: 'A1.05', title: 'Die Nudelgasse erkunden',
-    done: s => s.inv.includes('neonroehre') || s.flags.gab_neonroehre,
-    tiers: [
-      'Draußen in der Nudelgasse liegt Müll, und manchmal ist Müll wertvoll.',
+      'Regal anklicken (Nudelsieb und Sojasoße), Theke anklicken (Essstäbchen), Paste auf der Theke anklicken (Glas mit Paste).'] },
+  { id: 'A1.04', title: 'Der Wachhund', done: s => !!s.flags.bello_weg,
+    tiers: ['Draußen in der Nudelgasse blockiert jemand den Weg zum Schrottplatz.',
+      'Bello-5000 ist ein Hund. Hunde mögen es, wenn man etwas wirft.',
+      'Wähle die Essstäbchen im Inventar und klicke dann auf Bello.'] },
+  { id: 'A1.05', title: 'Leuchtendes im Müll', done: s => hasItem(s, 'neonroehre'),
+    tiers: ['In der Nudelgasse liegt Müll, und manchmal ist Müll wertvoll.',
       'Die Mülltonne im Vordergrund sieht interessant aus.',
-      'Verlasse den Imbiss unten und klicke die Mülltonne an. Dort liegt eine Neonröhre.'
-    ]
-  },
-  {
-    id: 'ENDE-M1', title: 'Wie geht es weiter?',
-    done: () => false,
-    tiers: [
-      'Dies ist der erste spielbare Ausschnitt. Mehr Orte und Rätsel werden noch gebaut.',
-      'Du hast alles Erreichbare gefunden. Probiere Gegenstände an Hotspots und sprich mit Oma Zhang.',
-      'Der Rest von Akt 1 folgt in den nächsten Ausbaustufen.'
-    ]
-  }
+      'Klicke die Mülltonne an. Dort liegt eine Neonröhre.'] },
+  { id: 'A1.06', title: 'Die geheimnisvolle Kiste', done: s => hasItem(s, 'schroedinger_kiste'),
+    tiers: ['Eine Kiste in der Nudelgasse trägt ein Schild mit einer merkwürdigen Warnung.',
+      'Wenn man sie öffnet, ist sie leer. Vielleicht sollte man sie mitnehmen, ohne hineinzusehen.',
+      'Klicke die Kiste einmal an (öffnen), ein zweites Mal (mitnehmen).'] },
+  { id: 'A1.07', title: 'Rosis Kranmagnet', done: s => hasItem(s, 'kranmagnet'),
+    tiers: ['Auf dem Schrottplatz wohnt jemand mit einem mächtigen Magneten. Sie mag Licht.',
+      'Rosi möchte eine leuchtende Röhre haben und tauscht dafür ihren Kranmagnet.',
+      'Wähle die Neonröhre im Inventar und klicke auf Rosi.'] },
+  { id: 'A1.08a', title: 'Die heiße Sicherung', done: s => hasItem(s, 'sicherung'),
+    tiers: ['Ein kaputter Staubsauger auf dem Schrottplatz braucht ein Ersatzteil. Im Waschsalon gibt es Elektrik.',
+      'Der Sicherungskasten im Waschsalon ist offen, die Sicherung ist aber zu heiß zum Anfassen.',
+      'Kasten anklicken (öffnet sich), dann Essstäbchen wählen und den Kasten nochmal anklicken.'] },
+  { id: 'A1.08b', title: 'Wuschel reparieren', done: s => !!s.flags.wuschel_repariert,
+    tiers: ['Bring dem Staubsauger das, was ihm fehlt.',
+      'Rosi hat erwähnt: Seine Sicherung ist durchgebrannt.',
+      'Wähle die Sicherung im Inventar und klicke auf Wuschel. Er saugt ein altes Ticket aus.'] },
+  { id: 'A1.09', title: 'Die Socke im Waschsalon', done: s => hasItem(s, 'speicherstick'),
+    tiers: ['Im Waschsalon liegt Wäsche ohne Besitzer herum. Schau genau hin.',
+      'Zwischen den Hemden im Wäschekorb steckt eine Socke, in der etwas versteckt ist.',
+      'Klicke den Wäschekorb an. Du bekommst einen Speicherstick.'] },
+  { id: 'A1.10', title: 'Der schwere Kanaldeckel', done: s => !!s.flags.kanal_offen,
+    tiers: ['Der Kanal-Eingang hinter dem Schrottplatz hat einen auffälligen Deckel, der sich nicht bewegen lässt.',
+      'Der Deckel ist aus Eisen. Rosis Magnet zieht Eisen an.',
+      'Wähle den Kranmagnet im Inventar und klicke auf den Kanaldeckel. Danach kannst du nach unten.'] },
+  { id: 'A1.11', title: 'Ratten am Kabel', done: s => hasItem(s, 'glasfaserkabel'),
+    tiers: ['Im Pumpenraum bewachen Ratten ein Glasfaserkabel. Gegen Ratten hilft ein Raubtier.',
+      'In der Nudelgasse steht eine Kiste mit „Katze (vielleicht)“. Die Katze ist nur da, wo sie niemand ansieht.',
+      'Kiste in der Nudelgasse öffnen, zumachen, mitnehmen. Im Pumpenraum Kiste wählen und auf die Ratten klicken. Dann das Kabel aufheben.'] },
+  { id: 'A1.12', title: 'Der wörtliche Barkeeper', done: s => !!s.flags.hinterzimmer_offen,
+    tiers: ['Hinter der Tür „Personal“ in der Bar liegt vielleicht etwas Wichtiges. Bit lässt niemanden durch.',
+      'Bit nimmt alles wörtlich. Was passiert, wenn man ihn auffordert zu warten?',
+      'Sprich mit Bit und wähle „Warte mal kurz!“. Dann kannst du durch die Tür „Personal“.'] },
+  { id: 'A1.13', title: 'Das Terminal im Hinterzimmer', done: s => hasItem(s, 'log_stick'),
+    tiers: ['Das Terminal braucht erst wieder Netz. Dann ein Passwort. Und zum Kopieren ein Speichermedium.',
+      'Kabel: Glasfaserkabel aus dem Pumpenraum. Passwort: Steht auf der Rückseite des Fotos. Stick: aus der Socke.',
+      'Glasfaserkabel auf das Terminal anwenden, dann das Terminal anklicken, „Erdnuss-Chili“ wählen.'] },
+  { id: 'A1.14', title: 'Saft für Krümel', done: s => !!s.flags.kruemel_geladen,
+    tiers: ['Krümel hat keinen Akku mehr. Auf dem Schwarzen Basar gibt es alles, man muss nur tauschen.',
+      'Hugo sammelt Seltenes. Seit der Krise ist die graue Paste eine Rarität.',
+      'Wähle das Glas mit der grauen Paste und klicke auf Hugo. Du bekommst eine Powerbank.'] },
+  { id: 'A1.15', title: 'Brot für ein Sieb', done: s => hasItem(s, 'baguette'),
+    tiers: ['In der Bäckerei gibt es echtes Brot. Der Bäcker hat ein Problem mit seinem Mehlsieb.',
+      'Du hast aus Omas Imbiss ein Nudelsieb mitgenommen.',
+      'Wähle das Nudelsieb und klicke auf Bäcker Brezel. Du bekommst ein Baguette.'] },
+  { id: 'A1.16', title: 'Knuspriges Brot', done: s => hasItem(s, 'knuspertoast'),
+    tiers: ['Krümel ist ein Toaster. Wofür ist das gut?',
+      'Jetzt, wo Krümel geladen ist, kann er das Baguette knusprig machen.',
+      'Wähle das Baguette im Inventar und klicke den Krümel-Button (oder umgekehrt).'] },
+  { id: 'A1.17', title: 'Was steht im Log?', done: s => hasItem(s, 'zhang_chip'),
+    tiers: ['Jetzt, da du den Log hast, sollte jemand ihn lesen, der sich mit Hackern auskennt.',
+      'Oma Zhang war früher selbst eine Hackerlegende.',
+      'Gehe zurück zum Imbiss. Wähle den Stick mit Log und klicke auf Oma Zhang.'] },
+  { id: 'A1.18', title: 'Der Taubenboss', done: s => hasItem(s, 'stempel'),
+    tiers: ['Die Datentauben auf dem Dachgarten sammeln amtliche Dinge. Ihr Chef will erst Vertrauen, dann Brot.',
+      'Kurt kennt den Namen „Zhang-Null“. Dazu will er knusprigen Toast.',
+      'Erst Hackerchip auf Kurt anwenden, dann den Knuspertoast. Der Dachgarten ist über die Treppe im Waschsalon erreichbar.'] },
+  { id: 'A1.19', title: 'Ein gültiges Ticket', done: s => hasItem(s, 'gueltiges_ticket'),
+    tiers: ['Das alte Ticket ist abgelaufen und hat keinen Stempel.',
+      'Du hast einen Stempel „GÜLTIG“ und ein zerknittertes Ticket.',
+      'Wähle den Stempel und klicke dann das alte Ticket im Inventar an.'] },
+  { id: 'A1.20', title: 'Abfahrt nach Mittel-Heights', done: s => !!s.flags.akt1_ende,
+    tiers: ['Jetzt kannst du die Magnetbahn nehmen. Der Schaffner wartet am Bahnhof.',
+      'Der Bahnhof liegt hinter dem Schwarzen Basar (rechter Tunnel).',
+      'Sprich mit Schaffner 4711 oder wähle das Ticket und klicke auf ihn.'] },
+  { id: 'ENDE', title: 'Das war Akt 1', done: () => false,
+    tiers: ['Akt 1 ist abgeschlossen. Akt 2 folgt in der nächsten Ausbaustufe.',
+      'Du kannst in der Zwischenzeit alle Orte noch einmal erkunden und jeden Hotspot ansehen.',
+      'Es gibt nichts Offenes mehr. Genieße die Szenerie!'] }
 ];

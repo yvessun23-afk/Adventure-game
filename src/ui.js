@@ -8,7 +8,27 @@ NN.ui = (function () {
 
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  let previewTimer = null;
+  function startPreview() {
+    clearTimeout(previewTimer); clearInterval(previewTimer);
+    const box = overlay.querySelector('#tpv'), el = overlay.querySelector('.tptext');
+    if (!box || !el) return;
+    box.style.backgroundImage = 'url(assets/backgrounds/low/bg_01_zhangs_imbiss.webp)';
+    const full = 'Pixel: „Das ist eine Vorschau. So erscheint der Text später im Spiel.“';
+    el.style.display = NN.opts.subtitles ? '' : 'none';
+    let n = 0; el.textContent = '';
+    previewTimer = setInterval(() => {
+      n += 24 * NN.opts.textSpeed * 0.04; el.textContent = full.slice(0, Math.floor(n));
+      if (n >= full.length) {
+        clearInterval(previewTimer);
+        el.textContent = full + (NN.opts.autoAdvance ? '' : '  ▼');
+        previewTimer = setTimeout(startPreview, NN.opts.autoAdvance ? 2600 : 1800);
+      }
+    }, 40);
+  }
+
   function open(html, cls) {
+    clearTimeout(previewTimer); clearInterval(previewTimer);
     overlay.className = cls || '';
     overlay.innerHTML = html;
     G.paused = true;
@@ -25,6 +45,7 @@ NN.ui = (function () {
     inGame = false; G.paused = true;
     const bg = document.getElementById('titlebg') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'titlebg' }));
     bg.classList.remove('hidden');
+    NN.audio.playMusic('mus_titel');
     const found = await A.loadFirst(['assets/intro/titel.webp', 'assets/raw/titel.png']);
     if (found) bg.style.backgroundImage = `url(${found.src})`;
     const latest = NN.latestSlot();
@@ -127,8 +148,8 @@ NN.ui = (function () {
       { k: 'textSize', t: 'select', label: 'Textgröße', opts: [['s', 'Klein'], ['m', 'Mittel'], ['l', 'Groß'], ['xl', 'Sehr groß']] },
       { k: 'font', t: 'select', label: 'Schriftart', opts: [['comic', 'Comic (Stil)'], ['readable', 'Gut lesbar'], ['dyslexic', 'Dyslexie-freundlich']] },
       { k: 'subtitles', t: 'check', label: 'Text über den Figuren anzeigen' },
-      { k: 'textSpeed', t: 'range', label: 'Textgeschwindigkeit', min: 0.5, max: 2.5, step: 0.25 },
-      { k: 'autoAdvance', t: 'check', label: 'Text automatisch weiterschalten' },
+      { k: 'textSpeed', t: 'range', label: 'Textgeschwindigkeit (links langsamer)', min: 0.3, max: 2, step: 0.05 },
+      { k: 'autoAdvance', t: 'select', label: 'Text weiterschalten', opts: [['true', 'Automatisch'], ['false', 'Erst nach Klick']] },
       { k: 'textBg', t: 'range', label: 'Textbox-Hintergrund', min: 0, max: 0.85, step: 0.05 }
     ]
   };
@@ -150,11 +171,13 @@ NN.ui = (function () {
       if (c.t === 'range') return `<div class="row"><label>${c.label}</label><input type="range" data-i="${i}" min="${c.min ?? 0}" max="${c.max ?? 1}" step="${c.step ?? 0.05}" value="${v}"><span class="val">${Math.round(v * 100) / 100}</span></div>`;
       return `<div class="row"><label>${c.label}</label><button class="btn" data-btn="${i}">${c.text}</button></div>`;
     }).join('');
-    open(`<div class="panel"><h1>Optionen</h1>
+    open(`<div class="panel wide"><h1>Optionen</h1>
       <div class="tabs">${Object.keys(SCHEMA).map(t => `<button class="btn ${t === tab ? 'on' : ''}" data-tab="${t}">${TAB_NAMES[t]}</button>`).join('')}</div>
       ${rows}
+      ${tab === 'text' ? '<h2>Vorschau</h2><div class="tpreview" id="tpv"><div class="tptext"></div><div class="who">So sieht der Text im Spiel aus (Hintergrund: Imbiss)</div></div><button class="btn" data-a="replay">Vorschau neu starten</button>' : ''}
       <div style="margin-top:14px"><button class="btn primary" data-a="back">Zurück</button><button class="btn" data-a="reset">Standard wiederherstellen</button></div></div>`);
     on('[data-tab]', el => showOptions(el.dataset.tab, back));
+    if (tab === 'text') { on('[data-a=replay]', startPreview); startPreview(); }
     on('[data-a=back]', () => (back ? back() : close()));
     on('[data-a=reset]', () => { Object.assign(NN.opts, NN.defaults); applyOptions('quality'); showOptions(tab, back); });
     on('[data-btn]', el => SCHEMA[tab][+el.dataset.btn].fn());
@@ -164,7 +187,8 @@ NN.ui = (function () {
         let v = el.type === 'checkbox' ? el.checked : el.value;
         if (c.t === 'range') { v = parseFloat(v); el.nextElementSibling.textContent = Math.round(v * 100) / 100; }
         else if (c.k === 'fps') v = parseInt(v, 10);
-        NN.opts[c.k] = v; applyOptions(c.k);
+        else if (c.k === 'autoAdvance') v = v === true || v === 'true';
+        NN.opts[c.k] = v; applyOptions(c.k); if (tab === 'text') startPreview();
       };
       el.addEventListener(el.type === 'range' ? 'input' : 'change', apply);
     });
@@ -264,7 +288,13 @@ NN.ui = (function () {
     });
   }
 
+  function showActEnd(title, text, done) {
+    open(`<div class="panel title"><h1>${esc(title)}</h1><p>${esc(text)}</p>
+      <button class="btn big primary" data-a="ok">Weiter</button></div>`);
+    on('[data-a=ok]', () => { close(); if (done) done(); });
+  }
+
   G.onMenu = showMenu; G.onHelp = showHelp; G.onMap = showMap;
 
-  return { showTitle, showMenu, showOptions, showSlots, showHelp, showMap, close, open };
+  return { showTitle, showMenu, showOptions, showSlots, showHelp, showMap, showActEnd, close, open };
 })();
