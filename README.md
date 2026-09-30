@@ -3,7 +3,14 @@
 Ein 2D-Point-and-Click-Adventure im Browser (HTML/JavaScript), inspiriert von *Day of the Tentacle* und *Monkey Island*.
 Cyberpunk, lustig, mit 36 Orten, Karte mit Schnellreise, Intro, Speichern/Laden, Hilfesystem und Optionen für Grafik, Sound und Text.
 
-**Status:** Planungsphase. Design, Bild-Prompts und Werkzeuge sind fertig, die Engine folgt.
+**Status:** Engine-Kern (M1) spielbar: Imbiss mit echtem Hintergrund und Pixel, Nudelgasse als Platzhalter. Menüs, Optionen, Speichern/Laden, Karte und Hilfe laufen.
+
+## Spielen
+
+- **Lokal:** `index.html` im Browser öffnen (Doppelklick genügt, Chrome empfohlen). Alternativ: `python3 -m http.server 8000` im Projektordner und `http://localhost:8000` öffnen.
+- **Online:** GitHub Pages für diesen Branch aktivieren (Settings → Pages), dann ist das Spiel per Link erreichbar.
+- **Bedienung:** Linksklick = gehen/benutzen/sprechen, Rechtsklick = ansehen, Leertaste = Hotspots zeigen, Esc = Menü, M = Karte, H = Hilfe, F2 = Editor-Modus (Laufflächen/Hotspots einzeichnen).
+- **Krümel:** Button unten links anklicken und dann auf einen Hotspot klicken, um ihn einzusetzen. Gegenstände: anklicken und dann auf einen Hotspot oder einen anderen Gegenstand klicken.
 
 ## Dokumente
 

@@ -92,8 +92,8 @@ Optionen werden getrennt vom Spielstand gespeichert.
 
 ## 9. Meilensteine
 
-1. **M0** Design-Dokumente, Ordner und Werkzeuge (**jetzt**).
-2. **M1** Engine-Kern mit Platzhalter-Grafik (spielbar ohne fertige Bilder).
+1. **M0** Design-Dokumente, Ordner und Werkzeuge (erledigt).
+2. **M1** Engine-Kern mit Platzhalter-Grafik (erledigt: Imbiss spielbar, Menüs, Optionen, Speichern/Laden, Karte, Hilfe).
 3. **M2** Intro, Akt 1 komplett in Daten, Speichern/Laden, Optionen, Karte.
 4. **M3** Echte Grafiken einbinden (Hintergründe, Sprites), Hotspots und Laufflächen einzeichnen.
 5. **M4** Akt 2.

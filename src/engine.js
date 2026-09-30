@@ -1,0 +1,667 @@
+// Engine-Kern: Szenen, Figuren, Laufen, Sprechblasen, Dialogauswahl, Inventarleiste, Editor-Modus
+window.NN = window.NN || {};
+
+(function () {
+  const U = NN.util, A = NN.assets;
+  const W = 1920, H = 1200, VH = 1080; // logische Größe: Spielfläche 1920x1080 + Leiste 120
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const G = NN.game = {
+    scene: null, def: null, bgImg: null, view: { fx: 1, fy: 1, ox: 0, oy: 0 },
+    tok: 0, busy: false, selected: null, hover: null, mouse: { x: 0, y: 0 },
+    fade: 0, speech: null, choices: null, toast: null, paused: true, editor: false, editPts: [],
+    invPage: 0, time: 0, keys: {}, onMenu: null, onMap: null, onHelp: null, shownHint: null
+  };
+  const pixel = G.pixel = { id: 'pixel', x: 0, y: 0, dir: 'right', target: null, walkRes: null, t: 0, moving: false, talking: false, anim: null, animT: 0, lastH: 240, vdir: 'side' };
+  const kru = G.kruemel = { x: 0, y: 0, bob: 0, spin: 0 };
+
+  // ---------- Darstellung: Schrift, Farben ----------
+  const SIZE = { s: 0.85, m: 1, l: 1.2, xl: 1.45 };
+  const FONTS = {
+    comic: '"Patrick Hand","Comic Sans MS","Comic Neue","Chalkboard SE",cursive,sans-serif',
+    readable: '"Atkinson Hyperlegible",Verdana,"Segoe UI",sans-serif',
+    dyslexic: '"OpenDyslexic","Comic Sans MS",Verdana,sans-serif'
+  };
+  const font = (px, weight) => `${weight || 'bold'} ${Math.round(px * SIZE[NN.opts.textSize])}px ${FONTS[NN.opts.font]}`;
+  const COLORS = { pixel: '#ffb347', kruemel: '#8fe8ff', oma: '#ff9dd2', erzaehler: '#ffffff' };
+  const PITCH = { pixel: 1.0, kruemel: 1.9, oma: 0.75 };
+
+  // ---------- Koordinaten ----------
+  const L = (x, y) => [x * G.view.fx + G.view.ox, y * G.view.fy + G.view.oy];
+  const toScene = (lx, ly) => [(lx - G.view.ox) / G.view.fx, (ly - G.view.oy) / G.view.fy];
+  G.toLogical = L; G.toScene = toScene;
+
+  function computeView(def) {
+    const [sw, sh] = def.space;
+    if (def.fit === 'contain') {
+      const f = Math.min(W / sw, VH / sh);
+      G.view = { fx: f, fy: f, ox: (W - sw * f) / 2, oy: (VH - sh * f) / 2 };
+    } else G.view = { fx: W / sw, fy: VH / sh, ox: 0, oy: 0 };
+  }
+
+  const depthScale = y => {
+    const d = G.def.depth || { y0: 0, y1: 1, s0: 1, s1: 1 };
+    return U.lerp(d.s0, d.s1, U.clamp((y - d.y0) / (d.y1 - d.y0), 0, 1)) * (G.def.charScale || 1);
+  };
+
+  // ---------- Größe der Zeichenfläche (Grafik-Qualität, Fenster) ----------
+  const RENDER_SCALE = { hi: 1, mid: 0.67, low: 0.5 };
+  G.applyGraphics = function () {
+    const rs = RENDER_SCALE[NN.opts.quality] || 1;
+    canvas.width = Math.round(W * rs); canvas.height = Math.round(H * rs);
+    canvas.classList.toggle('pixelated', !NN.opts.smoothing);
+    document.body.classList.toggle('fx-neon', NN.opts.filter === 'neon');
+    document.body.classList.toggle('fx-crt', NN.opts.filter === 'crt');
+    document.body.classList.remove('size-s', 'size-m', 'size-l', 'size-xl', 'font-comic', 'font-readable', 'font-dyslexic');
+    document.body.classList.add('size-' + NN.opts.textSize, 'font-' + NN.opts.font);
+    G.resize();
+  };
+  G.resize = function () {
+    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    canvas.style.width = Math.floor(W * s) + 'px'; canvas.style.height = Math.floor(H * s) + 'px';
+    const crt = document.getElementById('crt');
+    crt.style.width = canvas.style.width; crt.style.height = canvas.style.height;
+  };
+  window.addEventListener('resize', G.resize);
+
+  // ---------- Szene betreten ----------
+  function bgCandidates(def) {
+    if (def.bg.file) return [def.bg.file];
+    const tiers = { hi: ['hi', 'mid', 'low'], mid: ['mid', 'low', 'hi'], low: ['low', 'mid', 'hi'] }[NN.opts.quality] || ['hi'];
+    return tiers.map(t => `assets/backgrounds/${t}/${def.bg.tiers}.webp`).concat([`assets/raw/${def.bg.tiers}.png`]);
+  }
+
+  G.enterScene = async function (id, spawn) {
+    const def = NN.scenes[id];
+    if (!def) throw new Error('Unbekannte Szene: ' + id);
+    cancelWalk(); G.speech = null; G.choices = null; G.hover = null;
+    G.def = def; G.scene = id; NN.S.scene = id; NN.S.visited[id] = true;
+    computeView(def);
+    const found = await A.loadFirst(bgCandidates(def));
+    G.bgImg = found ? found.img : null;
+    const p = Array.isArray(spawn) ? spawn : (def.spawns[spawn] || def.spawns.default);
+    pixel.x = p[0]; pixel.y = p[1]; pixel.dir = 'right'; pixel.anim = null;
+    kru.x = pixel.x - 90 * G.view.fx; kru.y = pixel.y - 140 * G.view.fy;
+    if (def.music) NN.audio.playMusic(def.music);
+    G.tok++;
+    if (def.onEnter && !G.loadedFromSave) { G.busy = true; try { await def.onEnter(api); } catch (e) { console.error(e); } G.busy = false; }
+    G.loadedFromSave = false;
+  };
+
+  G.reloadBg = async function () {
+    if (!G.def) return;
+    const found = await A.loadFirst(bgCandidates(G.def));
+    G.bgImg = found ? found.img : null;
+  };
+
+  G.changeScene = async function (id, spawn) {
+    G.busy = true; NN.audio.whoosh();
+    await fade(1, 0.3);
+    await G.enterScene(id, spawn);
+    G.busy = false;
+    await fade(0, 0.3);
+    NN.saveGame(0, null);
+  };
+
+  const fade = (to, sec) => new Promise(res => {
+    if (NN.opts.reduceAnim) sec = 0.01;
+    G.fadeAnim = { from: G.fade, to, t: 0, dur: sec, res };
+  });
+
+  // ---------- Laufen ----------
+  function cancelWalk() { pixel.target = null; if (pixel.walkRes) { const r = pixel.walkRes; pixel.walkRes = null; r(false); } }
+
+  function walkPixel(x, y) {
+    cancelWalk();
+    const t = U.clampToPoly(x, y, G.def.walk);
+    if (U.dist(t[0], t[1], pixel.x, pixel.y) < 4) return Promise.resolve(true);
+    pixel.target = t;
+    return new Promise(res => { pixel.walkRes = res; });
+  }
+  U.dist = (a, b, c, d) => Math.hypot(c - a, d - b);
+
+  function updatePixel(dt) {
+    const p = pixel;
+    if (p.anim) { p.animT -= dt; if (p.animT <= 0) p.anim = null; }
+    if (!p.target) { p.moving = false; return; }
+    const dx = p.target[0] - p.x, dy = p.target[1] - p.y, d = Math.hypot(dx, dy);
+    const speed = 330 * (depthScale(p.y) / (G.def.charScale || 1)) * (G.def.space[0] / 1376);
+    const step = speed * dt;
+    p.moving = true; p.t += dt;
+    if (Math.abs(dy) > Math.abs(dx) * 1.7) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }
+    if (d <= step) { p.x = p.target[0]; p.y = p.target[1]; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
+    const nx = p.x + dx / d * step, ny = p.y + dy / d * step;
+    if (U.inPoly(nx, ny, G.def.walk)) { p.x = nx; p.y = ny; }
+    else {
+      const c = U.clampToPoly(nx, ny, G.def.walk);
+      if (U.dist(c[0], c[1], p.x, p.y) < 0.2) { p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } }
+      else { p.x = c[0]; p.y = c[1]; }
+    }
+  }
+
+  function updateKruemel(dt) {
+    const [px, py] = L(pixel.x, pixel.y);
+    const side = pixel.dir === 'left' ? 1 : -1;
+    const tx = px + side * 110 * depthScale(pixel.y), ty = py - 260 * depthScale(pixel.y) * G.view.fy;
+    const k = 1 - Math.pow(0.001, dt);
+    kru.x += (tx - kru.x) * k * 0.6; kru.y += (ty - kru.y) * k * 0.6;
+    kru.bob += dt * 3; kru.spin += dt * 40;
+  }
+
+  // ---------- Sprechen ----------
+  function actorHead(who) {
+    if (who === 'pixel') { const [x, y] = L(pixel.x, pixel.y); return { x, top: y - pixel.lastH - 10 }; }
+    if (who === 'kruemel') return { x: kru.x, top: kru.y - 70 };
+    const a = (G.def.actors || []).find(o => o.id === who);
+    if (a) { const [x, y] = L(a.x, a.y); return { x, top: y - (a.h || 180) * depthScale(a.y) * G.view.fy - 14 }; }
+    return { x: W / 2, top: 220 };
+  }
+
+  function say(who, text) {
+    return new Promise(res => {
+      const cps = 42 * NN.opts.textSpeed;
+      const dur = Math.max(1.4, text.length / cps + 0.7 + text.length * 0.012);
+      G.speech = { who, text, t: 0, cps, dur, res, lastBlip: 0 };
+      if (who === 'pixel') pixel.talking = true;
+    });
+  }
+
+  function endSpeech() {
+    const s = G.speech; if (!s) return;
+    G.speech = null; pixel.talking = false; s.res();
+  }
+
+  function updateSpeech(dt) {
+    const s = G.speech; if (!s) return;
+    s.t += dt;
+    const shown = Math.min(s.text.length, Math.floor(s.t * s.cps));
+    if (shown > s.lastBlip && shown < s.text.length) {
+      if (shown - s.lastBlip >= 2) { NN.audio.blip(PITCH[s.who] || 1.2); s.lastBlip = shown; }
+    }
+    if (s.who !== 'pixel') pixel.talking = false;
+    if (NN.opts.autoAdvance && s.t >= s.dur) endSpeech();
+  }
+
+  function choose(options) { return new Promise(res => { G.choices = { options, res, hover: -1 }; }); }
+
+  // ---------- Hotspots ----------
+  function hitTest(sx, sy) {
+    const def = G.def;
+    for (const e of def.exits || []) if (U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
+    const hs = def.hotspots || [];
+    for (let i = hs.length - 1; i >= 0; i--) {
+      const h = hs[i];
+      if (h.if && !h.if(NN.S)) continue;
+      if (U.inPoly(sx, sy, h.poly)) return { kind: 'hot', obj: h };
+    }
+    return null;
+  }
+
+  const FAILS = [
+    'Das passt nicht zusammen.', 'Damit kann ich hier nichts anfangen.', 'Netter Versuch. Funktioniert aber nicht.',
+    'Das wäre ein sehr kreativer Fehler.', 'Nein. Einfach nein.'
+  ];
+  const fail = () => FAILS[Math.floor(Math.random() * FAILS.length)];
+
+  async function run(handler) {
+    if (!handler) return;
+    G.busy = true;
+    try {
+      if (typeof handler === 'string') await say('pixel', handler);
+      else await handler(api);
+    } catch (e) { console.error(e); }
+    G.busy = false;
+  }
+
+  async function approach(obj) {
+    const t = obj.walkTo || U.clampToPoly(...U.centroid(obj.poly), G.def.walk);
+    const tok = ++G.tok;
+    const ok = await walkPixel(t[0], t[1]);
+    if (!ok || tok !== G.tok) return false;
+    if (obj.facing) pixel.dir = obj.facing === 'up' ? 'up' : obj.facing === 'down' ? 'down' : obj.facing;
+    return true;
+  }
+
+  async function interact(hit, mode) {
+    if (hit.kind === 'exit') {
+      const e = hit.obj;
+      if (!(await approach(e))) return;
+      return G.changeScene(e.to, e.spawn);
+    }
+    const h = hit.obj;
+    if (mode === 'look') {
+      if (!(await approach(h))) return;
+      return run(h.look || 'Nichts Besonderes.');
+    }
+    if (mode === 'item') {
+      const id = G.selected;
+      if (!(await approach(h))) return;
+      G.selected = null;
+      const fn = h.useWith && (h.useWith[id] || h.useWith._default);
+      if (fn) return run(fn);
+      NN.audio.fail();
+      return run(id === 'kruemel' ? async g => g.say('kruemel', 'Hier gibt es nichts zu scannen, toasten oder kommentieren. Leider.') : fail());
+    }
+    if (!(await approach(h))) return;
+    return run(h.use || 'Damit kann ich nichts anfangen.');
+  }
+
+  // ---------- API für Skripte ----------
+  const api = {
+    get S() { return NN.S; },
+    say, choose,
+    get: k => !!NN.S.flags[k],
+    flag: (k, v) => { NN.S.flags[k] = v === undefined ? true : v; },
+    has: id => NN.S.inv.includes(id),
+    give(id) {
+      if (!NN.S.inv.includes(id)) NN.S.inv.push(id);
+      NN.S.flags['gab_' + id] = true;
+      G.toast = { text: 'Neu im Inventar: ' + NN.items[id].name, t: 2.6 };
+      NN.audio.pickup();
+      const page = Math.floor((NN.S.inv.length - 1) / 8); G.invPage = page;
+    },
+    remove(id) { NN.S.inv = NN.S.inv.filter(i => i !== id); if (G.selected === id) G.selected = null; },
+    toast(text) { G.toast = { text, t: 3.6 }; },
+    goto: (scene, spawn) => G.changeScene(scene, spawn),
+    walk: (x, y) => walkPixel(x, y),
+    face(dir) { pixel.dir = dir; },
+    wait: sec => new Promise(r => setTimeout(r, sec * 1000)),
+    animate(name, sec) { pixel.anim = name; pixel.animT = sec; return new Promise(r => setTimeout(r, sec * 1000)); },
+    async kruemelScan() { NN.audio.scan(); G.scan = 1.2; await new Promise(r => setTimeout(r, 1300)); }
+  };
+  G.api = api;
+
+  // ---------- Inventarleiste (Zeichnen und Treffer) ----------
+  const BAR = {
+    y: VH, h: H - VH,
+    kru: { x: 24, y: VH + 10, w: 140, h: 100 },
+    slotX: 190, slotW: 112, slotH: 100, slotGap: 8, slots: 8,
+    prev: { x: 1160, y: VH + 10, w: 46, h: 100 }, next: { x: 1212, y: VH + 10, w: 46, h: 100 },
+    map: { x: 1300, y: VH + 10, w: 170, h: 100 }, help: { x: 1484, y: VH + 10, w: 170, h: 100 }, menu: { x: 1668, y: VH + 10, w: 170, h: 100 }
+  };
+  const inR = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+
+  function barHit(x, y) {
+    if (inR(BAR.kru, x, y)) return { type: 'kru' };
+    for (let i = 0; i < BAR.slots; i++) {
+      const r = { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH };
+      if (inR(r, x, y)) { const id = NN.S.inv[G.invPage * BAR.slots + i]; return id ? { type: 'slot', id } : { type: 'empty' }; }
+    }
+    for (const k of ['prev', 'next', 'map', 'help', 'menu']) if (inR(BAR[k], x, y)) return { type: k };
+    return { type: 'bar' };
+  }
+
+  function panel(r, label, active) {
+    ctx.save();
+    ctx.fillStyle = active ? '#4a2a8a' : '#21103f'; ctx.strokeStyle = active ? '#ffb347' : '#27e6ff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(r.x, r.y, r.w, r.h, 12); ctx.fill(); ctx.stroke();
+    if (label) { ctx.fillStyle = '#f4ecff'; ctx.font = font(26); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(label, r.x + r.w / 2, r.y + r.h / 2); }
+    ctx.restore();
+  }
+
+  function drawKruemelShape(x, y, s, withLabel) {
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.lineWidth = 5; ctx.strokeStyle = '#1a0f26'; ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#1a0f26';
+    ctx.beginPath(); ctx.moveTo(-14, -48); ctx.lineTo(-30, -82); ctx.stroke();
+    ctx.fillStyle = '#a9b6c8'; ctx.beginPath(); ctx.roundRect(-44, -48, 88, 62, 14); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#6b7689'; ctx.fillRect(-44, 4, 88, 10);
+    ctx.fillStyle = '#fff'; [-17, 17].forEach(dx => { ctx.beginPath(); ctx.arc(dx, -20, 13, 0, 7); ctx.fill(); ctx.stroke(); });
+    ctx.fillStyle = '#1a0f26'; [-17, 17].forEach(dx => { ctx.beginPath(); ctx.arc(dx + 2, -19, 5, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#d9a25c'; ctx.fillRect(-6, -2, 12, 9);
+    const w = Math.abs(Math.cos(kru.spin)) * 34 + 6;
+    ctx.fillStyle = '#7b8aa0'; ctx.beginPath(); ctx.ellipse(0, -58, w, 5, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBar() {
+    ctx.save();
+    const grd = ctx.createLinearGradient(0, BAR.y, 0, H);
+    grd.addColorStop(0, '#1e0f3a'); grd.addColorStop(1, '#0d0620');
+    ctx.fillStyle = grd; ctx.fillRect(0, BAR.y, W, BAR.h);
+    ctx.fillStyle = '#ff3cc8'; ctx.fillRect(0, BAR.y, W, 4);
+    panel(BAR.kru, '', G.selected === 'kruemel');
+    drawKruemelShape(BAR.kru.x + BAR.kru.w / 2, BAR.kru.y + 76, 0.75);
+    ctx.fillStyle = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? '#ff6a6a' : '#7dffb0';
+    ctx.fillRect(BAR.kru.x + 12, BAR.kru.y + BAR.kru.h - 12, (BAR.kru.w - 24) * (NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? 0.06 : 1), 5);
+    for (let i = 0; i < BAR.slots; i++) {
+      const r = { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH };
+      const id = NN.S.inv[G.invPage * BAR.slots + i];
+      panel(r, '', id && G.selected === id);
+      if (id) {
+        const img = A.get('assets/sprites/items/' + id + '.png');
+        if (img) { const k = Math.min(86 / img.width, 86 / img.height); ctx.drawImage(img, r.x + (r.w - img.width * k) / 2, r.y + (r.h - img.height * k) / 2, img.width * k, img.height * k); }
+        else { ctx.fillStyle = '#ffb347'; ctx.font = font(18); ctx.textAlign = 'center'; ctx.fillText(NN.items[id].name.slice(0, 10), r.x + r.w / 2, r.y + r.h / 2); }
+      }
+    }
+    const pages = Math.max(1, Math.ceil(NN.S.inv.length / BAR.slots));
+    panel(BAR.prev, '◀'); panel(BAR.next, '▶');
+    ctx.fillStyle = '#a795c9'; ctx.font = font(16); ctx.textAlign = 'center'; ctx.fillText((G.invPage + 1) + '/' + pages, 1209, BAR.y + 116);
+    panel(BAR.map, 'Karte'); panel(BAR.help, 'Hilfe'); panel(BAR.menu, 'Menü');
+    ctx.restore();
+  }
+
+  // ---------- Zeichnen der Szene ----------
+  function drawSprite(img, lx, ly, scale, flip, shadow) {
+    const w = img.width * scale, h = img.height * scale;
+    if (shadow) {
+      ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.32)';
+      ctx.beginPath(); ctx.ellipse(lx, ly - 2, Math.max(30, w * 0.32), Math.max(9, w * 0.07), 0, 0, 7); ctx.fill(); ctx.restore();
+    }
+    ctx.save(); ctx.translate(lx, ly);
+    if (flip) ctx.scale(-1, 1);
+    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.restore();
+    return h;
+  }
+
+  function pixelSpriteName() {
+    const p = pixel;
+    if (p.anim) return p.anim;
+    if (p.moving) {
+      if (p.vdir === 'up') return Math.floor(p.t * 6) % 2 ? 'walk_back' : 'idle_back';
+      if (p.vdir === 'down') return Math.floor(p.t * 6) % 2 ? 'walk_front' : 'stand_front';
+      return 'walk_' + (1 + Math.floor(p.t * 9) % 7);
+    }
+    if (p.talking && G.speech) return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
+    if (p.dir === 'up') return 'idle_back';
+    if (p.dir === 'down') return 'idle_front';
+    return 'idle_side';
+  }
+
+  function drawPixel() {
+    const [lx, ly] = L(pixel.x, pixel.y);
+    const name = pixelSpriteName();
+    const img = A.get('assets/sprites/characters/pixel_' + name + '.png') || A.get('assets/sprites/characters/pixel_idle_front.png');
+    const sc = depthScale(pixel.y) * G.view.fy;
+    if (img) {
+      pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
+    } else {
+      ctx.fillStyle = '#ffb347'; ctx.fillRect(lx - 30, ly - 200 * sc, 60, 200 * sc); pixel.lastH = 200 * sc;
+    }
+  }
+
+  function drawScene() {
+    const def = G.def;
+    ctx.fillStyle = '#0b0714'; ctx.fillRect(0, 0, W, VH);
+    if (G.bgImg) ctx.drawImage(G.bgImg, G.view.ox, G.view.oy, def.space[0] * G.view.fx, def.space[1] * G.view.fy);
+    else {
+      const g = ctx.createLinearGradient(0, 0, 0, VH); g.addColorStop(0, '#2a1650'); g.addColorStop(1, '#0b0714');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, VH);
+      ctx.fillStyle = '#a795c9'; ctx.font = font(48); ctx.textAlign = 'center'; ctx.fillText('[Platzhalter] ' + def.name, W / 2, VH / 2);
+    }
+    (def.props || []).forEach(p => { if (!p.if || p.if(NN.S)) p.draw(ctx, L, NN.S); });
+    // Figuren nach Tiefe sortiert
+    const list = [{ y: pixel.y, draw: drawPixel }];
+    (def.actors || []).forEach(a => list.push({ y: a.y, draw: () => { const [lx, ly] = L(a.x, a.y); a.draw(ctx, lx, ly, depthScale(a.y) * G.view.fy); } }));
+    list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
+    // Krümel schwebt immer oben
+    const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 6;
+    drawKruemelShape(kru.x, kru.y + bob, 0.85 * Math.max(0.7, depthScale(pixel.y)));
+    if (G.scan > 0) {
+      const a = Math.min(1, G.scan);
+      ctx.save(); ctx.globalAlpha = a * 0.6; ctx.fillStyle = '#27e6ff';
+      ctx.beginPath(); ctx.moveTo(kru.x - 10, kru.y + 20); ctx.lineTo(kru.x + 90, kru.y + 330); ctx.lineTo(kru.x - 110, kru.y + 330); ctx.closePath(); ctx.fill(); ctx.restore();
+    }
+    drawHotspotHints();
+    drawSpeech();
+  }
+
+  function drawHotspotHints() {
+    if (!(G.keys[' '] || (NN.opts.hotspotHints && G.hintFlash > 0))) return;
+    ctx.save(); ctx.lineWidth = NN.opts.highContrast ? 5 : 3;
+    const pulse = 0.55 + Math.sin(G.time * 6) * 0.25;
+    (G.def.hotspots || []).forEach(h => {
+      if (h.if && !h.if(NN.S)) return;
+      const c = U.centroid(h.poly), [lx, ly] = L(c[0], c[1]);
+      ctx.fillStyle = `rgba(255,179,71,${pulse})`; ctx.strokeStyle = '#1a0f26';
+      ctx.beginPath(); ctx.arc(lx, ly, 15, 0, 7); ctx.fill(); ctx.stroke();
+    });
+    (G.def.exits || []).forEach(e => {
+      const c = U.centroid(e.poly), [lx, ly] = L(c[0], c[1]);
+      ctx.fillStyle = `rgba(39,230,255,${pulse})`; ctx.strokeStyle = '#1a0f26';
+      ctx.beginPath(); ctx.arc(lx, ly - 8, 15, 0, 7); ctx.fill(); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawSpeech() {
+    const s = G.speech; if (!s || !NN.opts.subtitles) return;
+    ctx.save();
+    ctx.font = font(44); ctx.textBaseline = 'alphabetic';
+    const maxW = 820, lines = U.wrap(ctx, s.text, maxW), lh = 54 * SIZE[NN.opts.textSize];
+    const head = actorHead(s.who);
+    const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+    let cx = U.clamp(head.x, widest / 2 + 40, W - widest / 2 - 40);
+    let y0 = U.clamp(head.top - lines.length * lh, 50, VH - lines.length * lh - 30);
+    if (s.who === 'erzaehler') { cx = W / 2; y0 = 160; }
+    if (NN.opts.textBg > 0) {
+      ctx.fillStyle = `rgba(10,5,22,${NN.opts.textBg})`;
+      ctx.beginPath(); ctx.roundRect(cx - widest / 2 - 18, y0 - lh * 0.85, widest + 36, lines.length * lh + 16, 16); ctx.fill();
+    }
+    let shown = Math.floor(s.t * s.cps);
+    ctx.textAlign = 'left'; ctx.lineJoin = 'round'; ctx.lineWidth = 9; ctx.strokeStyle = '#120a22';
+    lines.forEach((line, i) => {
+      const part = line.slice(0, Math.max(0, Math.min(line.length, shown))); shown -= line.length + 1;
+      const x = cx - ctx.measureText(line).width / 2, y = y0 + i * lh;
+      ctx.strokeText(part, x, y); ctx.fillStyle = COLORS[s.who] || '#fff'; ctx.fillText(part, x, y);
+    });
+    ctx.restore();
+  }
+
+  function drawChoices() {
+    const c = G.choices; if (!c) return;
+    ctx.save();
+    const lh = 66 * SIZE[NN.opts.textSize], h = c.options.length * lh + 30, y0 = VH - h;
+    ctx.fillStyle = 'rgba(12,6,28,0.9)'; ctx.fillRect(0, y0, W, h);
+    ctx.fillStyle = '#ff3cc8'; ctx.fillRect(0, y0, W, 4);
+    ctx.font = font(42); ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    c.options.forEach((o, i) => {
+      const y = y0 + 15 + i * lh + lh / 2;
+      ctx.fillStyle = i === c.hover ? '#ffb347' : '#e8ddff';
+      ctx.fillText((i + 1) + '.  ' + o, 120, y);
+    });
+    ctx.restore();
+  }
+
+  function drawOverlayText() {
+    if (G.toast && G.toast.t > 0) {
+      ctx.save(); ctx.globalAlpha = Math.min(1, G.toast.t * 2);
+      ctx.font = font(34); ctx.textAlign = 'center';
+      const w = ctx.measureText(G.toast.text).width + 50;
+      ctx.fillStyle = 'rgba(12,6,28,0.88)'; ctx.strokeStyle = '#ffb347'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.roundRect(W / 2 - w / 2, 22, w, 64, 16); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#ffd27a'; ctx.textBaseline = 'middle'; ctx.fillText(G.toast.text, W / 2, 55);
+      ctx.restore();
+    }
+    // Label unter dem Mauszeiger
+    if (G.hover && G.mouse.y < VH && !G.choices) {
+      let label = G.hover.obj.name;
+      if (G.selected) label = 'Benutze ' + (G.selected === 'kruemel' ? 'Krümel' : NN.items[G.selected].name) + ' mit ' + label;
+      else if (G.hover.kind === 'exit') label = '→ ' + label;
+      ctx.save(); ctx.font = font(34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const w = ctx.measureText(label).width + 36, x = U.clamp(G.mouse.x, w / 2 + 10, W - w / 2 - 10), y = Math.max(40, G.mouse.y - 50);
+      ctx.fillStyle = 'rgba(12,6,28,0.85)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 26, w, 52, 12); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(label, x, y); ctx.restore();
+    } else if (!G.hover && G.selected && G.mouse.y < VH) {
+      ctx.save(); ctx.font = font(30); ctx.textAlign = 'left'; ctx.fillStyle = '#ffd27a'; ctx.strokeStyle = '#120a22'; ctx.lineWidth = 6;
+      const t = 'Benutze ' + (G.selected === 'kruemel' ? 'Krümel' : NN.items[G.selected].name) + ' mit …';
+      ctx.strokeText(t, G.mouse.x + 22, G.mouse.y + 40); ctx.fillText(t, G.mouse.x + 22, G.mouse.y + 40); ctx.restore();
+    }
+  }
+
+  // ---------- Editor-Modus (F2) ----------
+  function drawEditor() {
+    if (!G.editor) return;
+    ctx.save(); ctx.lineWidth = 3;
+    const poly = (pts, fill, stroke) => { ctx.beginPath(); pts.forEach((p, i) => { const [x, y] = L(p[0], p[1]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = stroke; ctx.stroke(); };
+    poly(G.def.walk, 'rgba(0,255,120,0.22)', '#00ff78');
+    (G.def.hotspots || []).forEach(h => { poly(h.poly, 'rgba(255,0,200,0.16)', '#ff00c8'); const c = U.centroid(h.poly), [x, y] = L(c[0], c[1]); ctx.fillStyle = '#fff'; ctx.font = '22px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(h.id, x, y); });
+    (G.def.exits || []).forEach(e => poly(e.poly, 'rgba(39,230,255,0.25)', '#27e6ff'));
+    if (G.editPts.length) { ctx.fillStyle = '#ffe600'; G.editPts.forEach(p => { const [x, y] = L(p[0], p[1]); ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); }); }
+    const [sx, sy] = toScene(G.mouse.x, G.mouse.y);
+    ctx.fillStyle = '#000'; ctx.fillRect(10, 10, 620, 70);
+    ctx.fillStyle = '#ffe600'; ctx.font = '24px monospace'; ctx.textAlign = 'left';
+    ctx.fillText(`EDITOR  Maus: [${Math.round(sx)}, ${Math.round(sy)}]  Punkte: ${G.editPts.length}`, 20, 38);
+    ctx.fillText('Klick = Punkt · Enter = kopieren · C = leeren', 20, 66);
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+    ctx.imageSmoothingEnabled = NN.opts.smoothing;
+    ctx.clearRect(0, 0, W, H);
+    if (!G.def) return;
+    drawScene(); drawEditor(); drawChoices(); drawBar(); drawOverlayText();
+    if (G.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${G.fade})`; ctx.fillRect(0, 0, W, H); }
+  }
+
+  // ---------- Hauptschleife ----------
+  let last = 0;
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    const minDt = NN.opts.fps === 30 ? 1 / 31 : 0;
+    let dt = (ts - last) / 1000;
+    if (dt < minDt) return;
+    last = ts; dt = Math.min(dt, 0.05);
+    if (!G.def) return;
+    if (!G.paused) { G.time += dt; NN.S.playtime += dt; update(dt); }
+    draw();
+  }
+
+  function update(dt) {
+    updatePixel(dt); updateKruemel(dt); updateSpeech(dt);
+    if (G.toast) G.toast.t -= dt;
+    if (G.scan > 0) G.scan -= dt;
+    if (G.hintFlash > 0) G.hintFlash -= dt;
+    const f = G.fadeAnim;
+    if (f) { f.t += dt; const k = Math.min(1, f.t / f.dur); G.fade = U.lerp(f.from, f.to, k); if (k >= 1) { G.fadeAnim = null; f.res(); } }
+    G.autoT = (G.autoT || 0) + dt;
+    if (G.autoT > 90) { G.autoT = 0; if (!G.busy) NN.saveGame(0, null); }
+  }
+
+  // ---------- Eingabe ----------
+  function mousePos(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    G.mouse = mousePos(e);
+    if (G.paused || !G.def) return;
+    if (G.choices) {
+      const c = G.choices, lh = 66 * SIZE[NN.opts.textSize], y0 = VH - (c.options.length * lh + 30);
+      c.hover = G.mouse.y >= y0 && G.mouse.y < VH ? Math.floor((G.mouse.y - y0 - 15) / lh) : -1;
+      if (c.hover >= c.options.length) c.hover = -1;
+    }
+    G.hover = G.mouse.y < VH && !G.choices ? hitTest(...toScene(G.mouse.x, G.mouse.y)) : null;
+    canvas.classList.toggle('cur-hot', !!G.hover || (G.mouse.y >= VH));
+  });
+
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  canvas.addEventListener('mousedown', async e => {
+    NN.audio.ensure();
+    if (G.paused || !G.def) return;
+    G.mouse = mousePos(e);
+    const { x, y } = G.mouse;
+    if (G.choices) {
+      const c = G.choices;
+      if (c.hover >= 0) { const r = c.res; G.choices = null; NN.audio.click(); r(c.hover); }
+      return;
+    }
+    if (G.speech) { if (G.speech.t * G.speech.cps < G.speech.text.length) G.speech.t = G.speech.text.length / G.speech.cps; else endSpeech(); return; }
+    if (G.busy) return;
+    if (G.editor && y < VH) {
+      const p = toScene(x, y); G.editPts.push([Math.round(p[0]), Math.round(p[1])]); return;
+    }
+    if (y >= VH) return barClick(e.button, barHit(x, y));
+    const [sx, sy] = toScene(x, y), hit = hitTest(sx, sy);
+    if (e.button === 2) {
+      if (G.selected) { G.selected = null; return; }
+      if (hit) return interact(hit, 'look');
+      return;
+    }
+    G.tok++; cancelWalk();
+    if (hit) {
+      if (G.selected && hit.kind === 'hot') return interact(hit, 'item');
+      return interact(hit, 'use');
+    }
+    G.selected = null;
+    walkPixel(sx, sy);
+  });
+
+  async function barClick(button, h) {
+    NN.audio.click();
+    if (h.type === 'map') return G.onMap && G.onMap();
+    if (h.type === 'help') return G.onHelp && G.onHelp();
+    if (h.type === 'menu') return G.onMenu && G.onMenu();
+    if (h.type === 'prev') { G.invPage = Math.max(0, G.invPage - 1); return; }
+    if (h.type === 'next') { G.invPage = Math.min(Math.ceil(NN.S.inv.length / BAR.slots) - 1, G.invPage + 1); G.invPage = Math.max(0, G.invPage); return; }
+    if (h.type === 'kru') { G.selected = G.selected === 'kruemel' ? null : 'kruemel'; return; }
+    if (h.type === 'slot') {
+      const id = h.id;
+      if (button === 2) return run(async g => g.say('pixel', NN.items[id].look));
+      if (!G.selected) { G.selected = id; return; }
+      if (G.selected === id) { G.selected = null; const it = NN.items[id]; if (it.useSelf) return run(it.useSelf); return; }
+      const a = G.selected, b = id;
+      G.selected = null;
+      const ia = a === 'kruemel' ? NN.kruemelTool : NN.items[a];
+      const comb = (ia.combine && ia.combine[b]) || (NN.items[b].combine && NN.items[b].combine[a]);
+      if (comb) return run(comb);
+      NN.audio.fail();
+      return run(a === 'kruemel' ? async g => g.say('kruemel', 'Ich kann das toasten, scannen oder anschauen. Aber nicht das.') : fail());
+    }
+  }
+
+  window.addEventListener('keydown', e => {
+    G.keys[e.key] = true;
+    if (G.paused) return;
+    if (e.key === ' ') { e.preventDefault(); }
+    if (e.key === 'Escape') { G.selected = null; G.onMenu && G.onMenu(); }
+    if (e.key === 'F2') { e.preventDefault(); G.editor = !G.editor; G.editPts = []; }
+    if (G.editor && e.key === 'c') G.editPts = [];
+    if (G.editor && e.key === 'Enter') {
+      const txt = JSON.stringify(G.editPts);
+      console.log('Editor-Punkte:', txt);
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).catch(() => {});
+      G.toast = { text: 'Punkte kopiert (' + G.editPts.length + ')', t: 2 };
+    }
+    if (e.key.toLowerCase() === 'm') G.onMap && G.onMap();
+    if (e.key.toLowerCase() === 'h') G.onHelp && G.onHelp();
+    if (G.choices && /^[1-9]$/.test(e.key)) {
+      const i = +e.key - 1, c = G.choices;
+      if (i < c.options.length) { const r = c.res; G.choices = null; r(i); }
+    }
+  });
+  window.addEventListener('keyup', e => { G.keys[e.key] = false; });
+  window.addEventListener('blur', () => { if (NN.opts.muteBlur) NN.audio.setMuted(true); });
+  window.addEventListener('focus', () => { if (!NN.opts.muteAll) NN.audio.setMuted(false); });
+
+  // ---------- Start ----------
+  G.start = async function (state, fromSave) {
+    NN.S = state;
+    G.paused = false; G.busy = false; G.selected = null; G.invPage = 0; G.fade = 0; G.fadeAnim = null;
+    G.loadedFromSave = !!fromSave;
+    const spawn = fromSave && state.pos ? state.pos : 'default';
+    await G.enterScene(state.scene || 'imbiss', spawn);
+    G.hintFlash = 3;
+  };
+
+  G.thumbnail = function () {
+    try {
+      const c = document.createElement('canvas'); c.width = 240; c.height = 135;
+      c.getContext('2d').drawImage(canvas, 0, 0, canvas.width, canvas.height * VH / H, 0, 0, 240, 135);
+      return c.toDataURL('image/jpeg', 0.6);
+    } catch (e) { return null; } // bei file:// nicht erlaubt
+  };
+
+  // Debug-Hilfen für Tests
+  NN.debug = {
+    unlockTravel() { NN.S.flags.schnellreise = true; },
+    giveAll() { Object.keys(NN.items).forEach(i => api.give(i)); }
+  };
+
+  requestAnimationFrame(frame);
+})();

@@ -24,6 +24,7 @@ def main():
     for src in files:
         img = Image.open(src).convert("RGB")
         for tier, (width, quality) in TIERS.items():
+            width = min(width, img.width)  # nie hochskalieren
             height = round(img.height * width / img.width)
             out_dir = ROOT / "assets" / "backgrounds" / tier
             out_dir.mkdir(parents=True, exist_ok=True)
