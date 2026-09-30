@@ -25,7 +25,7 @@ NN.ui = (function () {
     inGame = false; G.paused = true;
     const bg = document.getElementById('titlebg') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'titlebg' }));
     bg.classList.remove('hidden');
-    const found = await A.loadFirst(['assets/intro/titel.png', 'assets/raw/titel.png']);
+    const found = await A.loadFirst(['assets/intro/titel.webp', 'assets/raw/titel.png']);
     if (found) bg.style.backgroundImage = `url(${found.src})`;
     const latest = NN.latestSlot();
     open(`<div class="panel title">
@@ -35,7 +35,7 @@ NN.ui = (function () {
       <button class="btn big" data-a="load">Laden</button>
       <button class="btn big" data-a="opts">Optionen</button>
       <div class="muted small" style="margin-top:10px">Linksklick: gehen/benutzen · Rechtsklick: ansehen · Leertaste: Hotspots zeigen · Esc: Menü</div>
-    </div>`, 'clear');
+    </div>`, found ? 'clear title-art' : 'clear');
     on('[data-a=new]', () => { NN.audio.ensure(); playIntro(); });
     on('[data-a=cont]', () => startFromSave(latest.data));
     on('[data-a=load]', () => showSlots('load', showTitle));
@@ -68,7 +68,7 @@ NN.ui = (function () {
     async function show(i) {
       idx = i; if (i >= panels.length) return finish();
       const p = panels[i];
-      const found = await A.loadFirst([`assets/intro/${p.img}.png`, `assets/raw/${p.img}.png`]);
+      const found = await A.loadFirst([`assets/intro/${p.img}.webp`, `assets/raw/${p.img}.png`]);
       pic.style.opacity = 0;
       setTimeout(() => { pic.style.backgroundImage = found ? `url(${found.src})` : ''; pic.style.opacity = 1; }, 80);
       txt.textContent = '';
