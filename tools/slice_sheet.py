@@ -105,10 +105,19 @@ def main():
     p.add_argument("--pad", type=int, default=4)
     p.add_argument("--erode", type=int, default=1, help="Kante um n Pixel verkleinern (gegen grüne Säume)")
     p.add_argument("--prefix", default="")
+    p.add_argument("--kill-green", type=int, default=0, metavar="N",
+                   help="Alle Pixel mit starkem Grünstich (g - max(r,b) > N) durchsichtig machen, "
+                        "für Figuren ganz ohne Grün (z. B. halbtransparente Propeller). Empfehlung: 25")
     args = p.parse_args()
 
     img = Image.open(args.sheet)
     rgba, fg = cut_out(img, parse_color(args.color), args.tol, args.erode)
+    if args.kill_green:
+        a16 = rgba.astype(np.int16)
+        greenish = (a16[..., 1] - np.maximum(a16[..., 0], a16[..., 2])) > args.kill_green
+        rgba = rgba.copy()
+        rgba[..., 3] = np.where(greenish, 0, rgba[..., 3])
+        fg = fg & ~greenish
     found, labels = find_objects(fg, args.gap, args.min_area)
     found = sort_reading_order(found, img.size, args.cols, args.rows)
     boxes = [b for b, _ in found]

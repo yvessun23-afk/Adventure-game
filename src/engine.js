@@ -152,7 +152,7 @@ window.NN = window.NN || {};
   // ---------- Sprechen ----------
   function actorHead(who) {
     if (who === 'pixel') { const [x, y] = L(pixel.x, pixel.y); return { x, top: y - pixel.lastH - 10 }; }
-    if (who === 'kruemel') return { x: kru.x, top: kru.y - 70 };
+    if (who === 'kruemel') return { x: kru.x, top: kru.y - (kru.h || 100) * 0.5 - 20 };
     const a = (G.def.actors || []).find(o => o.id === who);
     if (a) { const [x, y] = L(a.x, a.y); return { x, top: y - (a.h || 180) * depthScale(a.y) * G.view.fy - 14 }; }
     return { x: W / 2, top: 220 };
@@ -315,6 +315,30 @@ window.NN = window.NN || {};
     ctx.restore();
   }
 
+  const KRU = 'assets/sprites/characters/kruemel_';
+  function kruemelSpriteName() {
+    const f = NN.S.flags;
+    if (G.scan > 0) return Math.floor(G.time * 4) % 2 ? 'scan_b' : 'scan_a';
+    if (G.speech && G.speech.who === 'kruemel') return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
+    if (f.kruemel_leer && !f.kruemel_geladen) return 'sad';
+    if (NN.opts.reduceAnim) return 'hover_1';
+    return 'hover_' + (1 + Math.floor(G.time * 10) % 4);
+  }
+
+  function drawKruemel() {
+    const sad = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen;
+    const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 6;
+    const img = A.get(KRU + kruemelSpriteName() + '.png') || A.get(KRU + 'hover_1.png');
+    if (!img) { drawKruemelShape(kru.x, kru.y + bob, 0.85 * Math.max(0.7, depthScale(pixel.y))); kru.h = 100; return; }
+    const sc = 0.7 * depthScale(pixel.y) * G.view.fy;
+    const h = img.height * sc, w = img.width * sc;
+    ctx.save(); ctx.translate(kru.x, kru.y + bob + (sad ? 28 : 0) + h / 2);
+    if (pixel.dir === 'left') ctx.scale(-1, 1);
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+    kru.h = h;
+  }
+
   function drawBar() {
     ctx.save();
     const grd = ctx.createLinearGradient(0, BAR.y, 0, H);
@@ -322,7 +346,9 @@ window.NN = window.NN || {};
     ctx.fillStyle = grd; ctx.fillRect(0, BAR.y, W, BAR.h);
     ctx.fillStyle = '#ff3cc8'; ctx.fillRect(0, BAR.y, W, 4);
     panel(BAR.kru, '', G.selected === 'kruemel');
-    drawKruemelShape(BAR.kru.x + BAR.kru.w / 2, BAR.kru.y + 76, 0.75);
+    const kimg = A.get(KRU + 'hover_front.png');
+    if (kimg) { const k = 84 / kimg.height; ctx.drawImage(kimg, BAR.kru.x + (BAR.kru.w - kimg.width * k) / 2, BAR.kru.y + 6, kimg.width * k, 84); }
+    else drawKruemelShape(BAR.kru.x + BAR.kru.w / 2, BAR.kru.y + 76, 0.75);
     ctx.fillStyle = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? '#ff6a6a' : '#7dffb0';
     ctx.fillRect(BAR.kru.x + 12, BAR.kru.y + BAR.kru.h - 12, (BAR.kru.w - 24) * (NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? 0.06 : 1), 5);
     for (let i = 0; i < BAR.slots; i++) {
@@ -397,9 +423,8 @@ window.NN = window.NN || {};
     (def.actors || []).forEach(a => list.push({ y: a.y, draw: () => { const [lx, ly] = L(a.x, a.y); a.draw(ctx, lx, ly, depthScale(a.y) * G.view.fy); } }));
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
     // Krümel schwebt immer oben
-    const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 6;
-    drawKruemelShape(kru.x, kru.y + bob, 0.85 * Math.max(0.7, depthScale(pixel.y)));
-    if (G.scan > 0) {
+    drawKruemel();
+    if (G.scan > 0 && !A.get(KRU + 'scan_a.png')) {
       const a = Math.min(1, G.scan);
       ctx.save(); ctx.globalAlpha = a * 0.6; ctx.fillStyle = '#27e6ff';
       ctx.beginPath(); ctx.moveTo(kru.x - 10, kru.y + 20); ctx.lineTo(kru.x + 90, kru.y + 330); ctx.lineTo(kru.x - 110, kru.y + 330); ctx.closePath(); ctx.fill(); ctx.restore();

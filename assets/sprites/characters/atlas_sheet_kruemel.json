@@ -1,0 +1,164 @@
+{
+  "kruemel_hover_1": {
+    "file": "kruemel_hover_1.png",
+    "w": 178,
+    "h": 201,
+    "anchor": [
+      89,
+      201
+    ]
+  },
+  "kruemel_hover_2": {
+    "file": "kruemel_hover_2.png",
+    "w": 176,
+    "h": 215,
+    "anchor": [
+      88,
+      215
+    ]
+  },
+  "kruemel_hover_3": {
+    "file": "kruemel_hover_3.png",
+    "w": 176,
+    "h": 202,
+    "anchor": [
+      88,
+      202
+    ]
+  },
+  "kruemel_hover_4": {
+    "file": "kruemel_hover_4.png",
+    "w": 176,
+    "h": 206,
+    "anchor": [
+      88,
+      206
+    ]
+  },
+  "kruemel_hover_front": {
+    "file": "kruemel_hover_front.png",
+    "w": 165,
+    "h": 201,
+    "anchor": [
+      82,
+      201
+    ]
+  },
+  "kruemel_hover_back": {
+    "file": "kruemel_hover_back.png",
+    "w": 166,
+    "h": 201,
+    "anchor": [
+      83,
+      201
+    ]
+  },
+  "kruemel_toast": {
+    "file": "kruemel_toast.png",
+    "w": 176,
+    "h": 203,
+    "anchor": [
+      88,
+      203
+    ]
+  },
+  "kruemel_toast_fly": {
+    "file": "kruemel_toast_fly.png",
+    "w": 179,
+    "h": 249,
+    "anchor": [
+      89,
+      249
+    ]
+  },
+  "kruemel_scan_a": {
+    "file": "kruemel_scan_a.png",
+    "w": 254,
+    "h": 211,
+    "anchor": [
+      127,
+      211
+    ]
+  },
+  "kruemel_scan_b": {
+    "file": "kruemel_scan_b.png",
+    "w": 258,
+    "h": 219,
+    "anchor": [
+      129,
+      219
+    ]
+  },
+  "kruemel_sad": {
+    "file": "kruemel_sad.png",
+    "w": 172,
+    "h": 205,
+    "anchor": [
+      86,
+      205
+    ]
+  },
+  "kruemel_happy": {
+    "file": "kruemel_happy.png",
+    "w": 175,
+    "h": 203,
+    "anchor": [
+      87,
+      203
+    ]
+  },
+  "kruemel_talk_a": {
+    "file": "kruemel_talk_a.png",
+    "w": 175,
+    "h": 205,
+    "anchor": [
+      87,
+      205
+    ]
+  },
+  "kruemel_talk_b": {
+    "file": "kruemel_talk_b.png",
+    "w": 175,
+    "h": 205,
+    "anchor": [
+      87,
+      205
+    ]
+  },
+  "kruemel_surprised": {
+    "file": "kruemel_surprised.png",
+    "w": 175,
+    "h": 206,
+    "anchor": [
+      87,
+      206
+    ]
+  },
+  "kruemel_fly_away": {
+    "file": "kruemel_fly_away.png",
+    "w": 178,
+    "h": 182,
+    "anchor": [
+      89,
+      182
+    ]
+  },
+  "kruemel_squeeze": {
+    "file": "kruemel_squeeze.png",
+    "w": 188,
+    "h": 134,
+    "anchor": [
+      94,
+      134
+    ]
+  },
+  "kruemel_alarm": {
+    "file": "kruemel_alarm.png",
+    "w": 200,
+    "h": 209,
+    "anchor": [
+      100,
+      209
+    ]
+  }
+}
