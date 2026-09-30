@@ -33,44 +33,62 @@ def background_mask(rgb, color, tol):
     return np.isin(labels, border)
 
 
-def cut_out(img, color, tol, erode):
+def cut_out(img, color, tol, erode, inner_tol=70, hole_area=6, halo=14):
     rgb = np.asarray(img.convert("RGB"))
     bg = background_mask(rgb, color, tol)
+    # Eingeschlossene Löcher in Objektfarbe des Hintergrunds (z. B. Maschen, Kabelring) ebenfalls entfernen.
+    dist = np.abs(rgb.astype(np.int16) - np.array(color, dtype=np.int16)).max(axis=2)
+    holes, n = ndi.label((dist <= inner_tol) & ~bg)
+    if n:
+        sizes = ndi.sum(np.ones_like(holes), holes, index=np.arange(1, n + 1))
+        big = np.isin(holes, np.nonzero(sizes >= hole_area)[0] + 1)
+        bg = bg | big
     fg = ~bg
     if erode:
         fg = ndi.binary_erosion(fg, iterations=erode)
-    # Entfärben der Kantenpixel (Despill): Grünanteil an Kanten auf die anderen Kanäle begrenzen.
+    f = rgb.astype(np.float32)
+    key = np.array(color, dtype=np.float32)
+    # Weiche Kante: Mischpixel aus Objekt und Hintergrundfarbe entmischen (Glow-Halos verschwinden).
+    band = fg & ndi.binary_dilation(~fg, iterations=halo)
+    excess = f[..., 1] - np.maximum(f[..., 0], f[..., 2])
+    a = np.where(band & (excess > 40), np.clip(1 - excess / 200.0, 0, 1), 1.0).astype(np.float32)
+    safe = np.maximum(a, 0.05)[..., None]
+    unmixed = np.clip((f - (1 - a)[..., None] * key) / safe, 0, 255)
+    out = np.where(band[..., None], unmixed, f)
+    # Rest-Grünstich an der Kante begrenzen.
     edge = fg & ndi.binary_dilation(~fg, iterations=2)
-    out = rgb.copy()
-    g = out[..., 1].astype(np.int16)
-    limit = np.maximum(out[..., 0], out[..., 2]).astype(np.int16)
-    g = np.where(edge & (g > limit), limit, g)
-    out[..., 1] = g.astype(np.uint8)
-    alpha = ndi.gaussian_filter(fg.astype(np.float32), 0.6)
-    alpha = (np.clip(alpha, 0, 1) * 255).astype(np.uint8)
+    g = out[..., 1]
+    limit = np.maximum(out[..., 0], out[..., 2])
+    out[..., 1] = np.where(edge & (g > limit), limit, g)
+    alpha = ndi.gaussian_filter(fg.astype(np.float32), 0.6) * a
     alpha[~ndi.binary_dilation(fg, iterations=1)] = 0
-    return np.dstack([out, alpha]), fg
+    rgba = np.dstack([out.astype(np.uint8), (np.clip(alpha, 0, 1) * 255).astype(np.uint8)])
+    return rgba, fg & (a > 0.3)
 
 
 def find_objects(fg, gap, min_area):
     merged = ndi.binary_dilation(fg, iterations=gap) if gap else fg
-    labels, n = ndi.label(merged)
-    boxes = []
+    labels, _ = ndi.label(merged)
+    found = []
     for i, sl in enumerate(ndi.find_objects(labels), start=1):
         area = int((fg[sl] & (labels[sl] == i)).sum())
         if area < min_area:
             continue
         ys, xs = sl
-        boxes.append((xs.start, ys.start, xs.stop, ys.stop))
-    return boxes
+        found.append(((xs.start, ys.start, xs.stop, ys.stop), i))
+    return found, labels
 
 
-def sort_reading_order(boxes, cols):
-    if not cols:
-        return sorted(boxes, key=lambda b: ((b[1] + b[3]) // 2 // 100, b[0]))
-    by_y = sorted(boxes, key=lambda b: (b[1] + b[3]) / 2)
-    rows = [by_y[i:i + cols] for i in range(0, len(by_y), cols)]
-    return [b for row in rows for b in sorted(row, key=lambda b: (b[0] + b[2]) / 2)]
+def sort_reading_order(found, size, cols, rows):
+    """Sortiert nach Raster-Zelle (Zeile, Spalte), wenn cols/rows bekannt sind."""
+    if cols and rows:
+        w, h = size
+        def key(item):
+            (x0, y0, x1, y1), _ = item
+            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            return (min(int(cy / (h / rows)), rows - 1), min(int(cx / (w / cols)), cols - 1), cx)
+        return sorted(found, key=key)
+    return sorted(found, key=lambda it: ((it[0][1] + it[0][3]) // 2 // 100, it[0][0]))
 
 
 def main():
@@ -91,7 +109,9 @@ def main():
 
     img = Image.open(args.sheet)
     rgba, fg = cut_out(img, parse_color(args.color), args.tol, args.erode)
-    boxes = sort_reading_order(find_objects(fg, args.gap, args.min_area), args.cols)
+    found, labels = find_objects(fg, args.gap, args.min_area)
+    found = sort_reading_order(found, img.size, args.cols, args.rows)
+    boxes = [b for b, _ in found]
 
     expected = args.cols * args.rows if args.cols and args.rows else None
     names = None
@@ -109,13 +129,17 @@ def main():
     debug = img.convert("RGB")
     draw = ImageDraw.Draw(debug)
     atlas = {}
-    for idx, (x0, y0, x1, y1) in enumerate(boxes):
+    for idx, ((x0, y0, x1, y1), label_id) in enumerate(found):
         name = (names[idx] if names and idx < len(names) else f"{idx + 1:02d}")
         name = f"{args.prefix}{name}"
         box = (max(x0 - args.pad, 0), max(y0 - args.pad, 0),
                min(x1 + args.pad, full.width), min(y1 + args.pad, full.height))
         crop = full.crop(box)
-        # Nachbarobjekte, die in den Rand hineinragen, gehören nicht ins Bild.
+        # Fremde Reste von Nachbarobjekten (z. B. Glow-Ausläufer) entfernen.
+        own = labels[box[1]:box[3], box[0]:box[2]] == label_id
+        arr = np.asarray(crop).copy()
+        arr[..., 3] = np.where(own, arr[..., 3], 0)
+        crop = Image.fromarray(arr, "RGBA")
         crop.save(out / f"{name}.png", optimize=True)
         atlas[name] = {"file": f"{name}.png", "w": crop.width, "h": crop.height,
                        "anchor": [crop.width // 2, crop.height]}

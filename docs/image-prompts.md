@@ -166,12 +166,12 @@ Virtual child's bedroom rendered as a dreamy digital space: toy shelves, floatin
 
 ## 2. Figuren-Sheets
 
-Hintergrund immer **einfarbig grün #00FF00**, **keine grünen Farben im Objekt**, jedes Objekt mit **dicker dunkler Kontur**,
+Hintergrund immer **einfarbig grün #00FF00**, **keine grünen Farben im Objekt, kein Leuchten/Glow außerhalb der Kontur** (Leuchteffekte baue ich im Spiel nach), jedes Objekt mit **dicker dunkler Kontur**,
 **viel Abstand** zwischen den Zellen, **keine Schatten**. So kann ich alles automatisch ausschneiden.
 
 ### Sheet-Vorlage (`SHEET`)
 ```
-Sprite sheet on a perfectly flat solid pure green (#00FF00) background. Arrange the cells in a grid of {COLS} columns and {ROWS} rows, reading order left to right, top to bottom. Each item stands fully inside its own cell, centered, with a large empty green gap between all items. Nothing touches or overlaps. Same scale for all items. No cast shadows, no floor, no text, no green inside the items. Thick dark outline around every item. [STIL]
+Sprite sheet on a perfectly flat solid pure green (#00FF00) background. Arrange the cells in a grid of {COLS} columns and {ROWS} rows, reading order left to right, top to bottom. Each item stands fully inside its own cell, centered, with a large empty green gap between all items. Nothing touches or overlaps. Same scale for all items. No cast shadows, no floor, no text. No glow, halo or light bloom outside the outline. Do not use green colors for any item (make metal silver, circuit boards purple or blue, glass clear). Thick dark outline around every item. [STIL]
 ```
 
 ### 2.1 `assets/raw/sheet_pixel.png` – Pixel (6 × 4 = 24 Zellen)

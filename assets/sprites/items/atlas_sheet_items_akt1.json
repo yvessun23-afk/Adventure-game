@@ -1,0 +1,182 @@
+{
+  "altes_foto": {
+    "file": "altes_foto.png",
+    "w": 188,
+    "h": 184,
+    "anchor": [
+      94,
+      184
+    ]
+  },
+  "nudelsieb": {
+    "file": "nudelsieb.png",
+    "w": 200,
+    "h": 200,
+    "anchor": [
+      100,
+      200
+    ]
+  },
+  "essstaebchen": {
+    "file": "essstaebchen.png",
+    "w": 246,
+    "h": 162,
+    "anchor": [
+      123,
+      162
+    ]
+  },
+  "sojasosse": {
+    "file": "sojasosse.png",
+    "w": 110,
+    "h": 199,
+    "anchor": [
+      55,
+      199
+    ]
+  },
+  "graue_paste": {
+    "file": "graue_paste.png",
+    "w": 143,
+    "h": 201,
+    "anchor": [
+      71,
+      201
+    ]
+  },
+  "neonroehre": {
+    "file": "neonroehre.png",
+    "w": 212,
+    "h": 201,
+    "anchor": [
+      106,
+      201
+    ]
+  },
+  "schroedinger_kiste": {
+    "file": "schroedinger_kiste.png",
+    "w": 220,
+    "h": 203,
+    "anchor": [
+      110,
+      203
+    ]
+  },
+  "kranmagnet": {
+    "file": "kranmagnet.png",
+    "w": 175,
+    "h": 201,
+    "anchor": [
+      87,
+      201
+    ]
+  },
+  "sicherung": {
+    "file": "sicherung.png",
+    "w": 174,
+    "h": 164,
+    "anchor": [
+      87,
+      164
+    ]
+  },
+  "speicherstick": {
+    "file": "speicherstick.png",
+    "w": 212,
+    "h": 174,
+    "anchor": [
+      106,
+      174
+    ]
+  },
+  "glasfaserkabel": {
+    "file": "glasfaserkabel.png",
+    "w": 230,
+    "h": 182,
+    "anchor": [
+      115,
+      182
+    ]
+  },
+  "log_stick": {
+    "file": "log_stick.png",
+    "w": 241,
+    "h": 193,
+    "anchor": [
+      120,
+      193
+    ]
+  },
+  "powerbank": {
+    "file": "powerbank.png",
+    "w": 252,
+    "h": 184,
+    "anchor": [
+      126,
+      184
+    ]
+  },
+  "baguette": {
+    "file": "baguette.png",
+    "w": 264,
+    "h": 176,
+    "anchor": [
+      132,
+      176
+    ]
+  },
+  "knuspertoast": {
+    "file": "knuspertoast.png",
+    "w": 222,
+    "h": 180,
+    "anchor": [
+      111,
+      180
+    ]
+  },
+  "zhang_chip": {
+    "file": "zhang_chip.png",
+    "w": 241,
+    "h": 171,
+    "anchor": [
+      120,
+      171
+    ]
+  },
+  "stempel": {
+    "file": "stempel.png",
+    "w": 175,
+    "h": 198,
+    "anchor": [
+      87,
+      198
+    ]
+  },
+  "altes_ticket": {
+    "file": "altes_ticket.png",
+    "w": 244,
+    "h": 171,
+    "anchor": [
+      122,
+      171
+    ]
+  },
+  "gueltiges_ticket": {
+    "file": "gueltiges_ticket.png",
+    "w": 254,
+    "h": 179,
+    "anchor": [
+      127,
+      179
+    ]
+  },
+  "schraube": {
+    "file": "schraube.png",
+    "w": 108,
+    "h": 124,
+    "anchor": [
+      54,
+      124
+    ]
+  }
+}
