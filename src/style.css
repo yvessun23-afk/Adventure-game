@@ -97,3 +97,10 @@ body.gfx-panel .panel {
   border-image: url(../assets/sprites/ui/menu_panel.png) 150 fill / 64px stretch;
 }
 body.gfx-panel .panel.title { padding: 0 8px; }
+
+/* Titelmenü: unten rechts, unterhalb des Titels im Bild */
+#overlay.title-art { align-items: flex-end; justify-content: flex-end; padding: 0 3vw 5vh 0; }
+#overlay.title-art .title { width: min(360px, 26vw); min-width: 240px; }
+#overlay.title-art .title .muted { display: none; }
+body.gfx-panel #overlay.title-art .panel.title { border-width: 38px; border-image-width: 38px; padding: 0 4px; }
+.btn.gimg.big { max-width: 100%; }

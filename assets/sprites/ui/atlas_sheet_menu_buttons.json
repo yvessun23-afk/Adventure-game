@@ -1,0 +1,110 @@
+{
+  "menu_neues_spiel": {
+    "file": "menu_neues_spiel.png",
+    "w": 482,
+    "h": 198,
+    "anchor": [
+      241,
+      198
+    ]
+  },
+  "menu_fortsetzen": {
+    "file": "menu_fortsetzen.png",
+    "w": 466,
+    "h": 198,
+    "anchor": [
+      233,
+      198
+    ]
+  },
+  "menu_laden": {
+    "file": "menu_laden.png",
+    "w": 409,
+    "h": 198,
+    "anchor": [
+      204,
+      198
+    ]
+  },
+  "menu_speichern": {
+    "file": "menu_speichern.png",
+    "w": 479,
+    "h": 195,
+    "anchor": [
+      239,
+      195
+    ]
+  },
+  "menu_optionen": {
+    "file": "menu_optionen.png",
+    "w": 463,
+    "h": 195,
+    "anchor": [
+      231,
+      195
+    ]
+  },
+  "menu_hilfe": {
+    "file": "menu_hilfe.png",
+    "w": 407,
+    "h": 195,
+    "anchor": [
+      203,
+      195
+    ]
+  },
+  "menu_hauptmenue": {
+    "file": "menu_hauptmenue.png",
+    "w": 473,
+    "h": 194,
+    "anchor": [
+      236,
+      194
+    ]
+  },
+  "menu_weiter": {
+    "file": "menu_weiter.png",
+    "w": 450,
+    "h": 194,
+    "anchor": [
+      225,
+      194
+    ]
+  },
+  "menu_zurueck": {
+    "file": "menu_zurueck.png",
+    "w": 401,
+    "h": 194,
+    "anchor": [
+      200,
+      194
+    ]
+  },
+  "menu_tab_grafik": {
+    "file": "menu_tab_grafik.png",
+    "w": 402,
+    "h": 144,
+    "anchor": [
+      201,
+      144
+    ]
+  },
+  "menu_tab_sound": {
+    "file": "menu_tab_sound.png",
+    "w": 398,
+    "h": 146,
+    "anchor": [
+      199,
+      146
+    ]
+  },
+  "menu_tab_text": {
+    "file": "menu_tab_text.png",
+    "w": 383,
+    "h": 146,
+    "anchor": [
+      191,
+      146
+    ]
+  }
+}
