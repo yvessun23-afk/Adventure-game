@@ -63,7 +63,10 @@ NN.assets = (function () {
     let e = cache.get(src);
     if (!e) {
       e = { img: new Image(), ok: false, fail: false, waiters: [] };
-      e.img.onload = () => { e.ok = true; e.waiters.splice(0).forEach(f => f(e.img)); };
+      e.img.onload = () => {
+        const done = () => { e.ok = true; e.waiters.splice(0).forEach(f => f(e.img)); };
+        if (e.img.decode) e.img.decode().then(done, done); else done(); // vorab dekodieren: kein Ruckeln beim ersten Zeichnen
+      };
       e.img.onerror = () => { e.fail = true; e.waiters.splice(0).forEach(f => f(null)); };
       e.img.src = src;
       cache.set(src, e);
@@ -79,5 +82,10 @@ NN.assets = (function () {
     for (const src of list) { const img = await load(src); if (img) return { img, src }; }
     return null;
   }
-  return { get, load, loadFirst };
+  // Mehrere Bilder laden (mit begrenzter Parallelität). Fehlende Dateien sind kein Fehler.
+  async function preload(list, concurrency) {
+    const queue = list.filter(Boolean).slice(); const n = Math.max(1, concurrency || 6);
+    await Promise.all(Array.from({ length: n }, async () => { while (queue.length) await load(queue.shift()); }));
+  }
+  return { get, load, loadFirst, preload };
 })();

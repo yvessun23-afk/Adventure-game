@@ -256,7 +256,7 @@ NN.audio = (function () {
   function playMusic(name) {
     if (!name) return;
     if (session && session.name === name) return;
-    tryFile(name);
+    if (NN.musicFiles && NN.musicFiles.includes(name)) tryFile(name);
     if (!ctx || ctx.state === 'suspended') { pendingTheme = name; ensure(); return; }
     startTheme(name);
   }

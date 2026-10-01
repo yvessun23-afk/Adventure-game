@@ -87,19 +87,63 @@ window.NN = window.NN || {};
     return tiers.map(t => `assets/backgrounds/${t}/${def.bg.tiers}.webp`).concat([`assets/raw/${def.bg.tiers}.png`]);
   }
 
+  // ---------- Vorladen ----------
+  const SPR = 'assets/sprites/';
+  function actorFiles(def) {
+    const out = [];
+    (def.actors || []).forEach(a => {
+      if (!a.sprite) return;
+      const names = typeof a.sprite === 'function' ? ['wuschel_defekt', 'wuschel_repariert', 'teddy', 'teddy_sensor'].filter(n => n.length) : [a.sprite];
+      names.forEach(n => out.push(SPR + 'npcs/' + n + '_idle.png', SPR + 'npcs/' + n + '_talk.png'));
+    });
+    return out;
+  }
+  function pixelFiles() {
+    const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
+    const poses = ['idle_front', 'idle_side', 'idle_back', 'talk_a', 'talk_b', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_5', 'walk_6', 'walk_7', 'walk_front', 'walk_back'];
+    return poses.map(p => SPR + 'characters/' + pre + p + '.png');
+  }
+  const KRUEMEL = ['hover_1', 'hover_2', 'hover_3', 'hover_4', 'hover_front', 'talk_a', 'talk_b', 'scan_a', 'scan_b', 'sad'].map(n => SPR + 'characters/kruemel_' + n + '.png');
+  const warmed = new Set();
+  // Alles, was eine Szene sofort braucht (Hintergrund wird getrennt geladen)
+  const sceneFiles = def => actorFiles(def).concat(pixelFiles(), KRUEMEL);
+  // Nachbar-Szenen im Hintergrund vorbereiten
+  function warmNeighbors(def) {
+    (def.exits || []).forEach(e => {
+      if (!e.to || warmed.has(e.to) || !NN.scenes[e.to]) return;
+      warmed.add(e.to);
+      const nd = NN.scenes[e.to];
+      A.preload([bgCandidates(nd)[0]].concat(actorFiles(nd)), 2);
+    });
+  }
+  // Einmalig im Leerlauf: Props, Items, Pixel-Outfits
+  let idleWarmed = false;
+  function warmAll() {
+    if (idleWarmed) return; idleWarmed = true;
+    const list = [];
+    ['props', 'items'].forEach(d => (NN.assetIndex && NN.assetIndex[d] || []).forEach(n => list.push(SPR + d + '/' + n)));
+    A.preload(list, 3);
+  }
+
+  G.loading = false;
   G.enterScene = async function (id, spawn) {
     const def = NN.scenes[id];
     if (!def) throw new Error('Unbekannte Szene: ' + id);
     cancelWalk(); G.speech = null; G.choices = null; G.hover = null;
     G.def = def; G.scene = id; NN.S.scene = id; NN.S.visited[id] = true;
     computeView(def);
-    const found = await A.loadFirst(bgCandidates(def));
+    const t0 = performance.now();
+    const showTimer = setTimeout(() => { G.loading = true; }, 250);
+    const [found] = await Promise.all([A.loadFirst(bgCandidates(def)), A.preload(sceneFiles(def), 8)]);
+    clearTimeout(showTimer); G.loading = false;
     G.bgImg = found ? found.img : null;
     const p = Array.isArray(spawn) ? spawn : (def.spawns[spawn] || def.spawns.default);
     pixel.x = p[0]; pixel.y = p[1]; pixel.dir = 'right'; pixel.anim = null;
     kru.x = pixel.x - 90 * G.view.fx; kru.y = pixel.y - 140 * G.view.fy;
     if (def.music) NN.audio.playMusic(def.music);
     G.tok++;
+    G.lastLoadMs = Math.round(performance.now() - t0);
+    setTimeout(() => { warmNeighbors(def); warmAll(); }, 400);
     if (def.onEnter && !G.loadedFromSave) { G.busy = true; try { await def.onEnter(api); } catch (e) { console.error(e); } G.busy = false; }
     G.loadedFromSave = false;
   };
@@ -112,10 +156,10 @@ window.NN = window.NN || {};
 
   G.changeScene = async function (id, spawn) {
     G.busy = true; NN.audio.whoosh();
-    await fade(1, 0.3);
+    await fade(1, 0.16);
     await G.enterScene(id, spawn);
     G.busy = false;
-    await fade(0, 0.3);
+    await fade(0, 0.2);
     NN.saveGame(0, null);
   };
 
@@ -408,12 +452,13 @@ window.NN = window.NN || {};
     let g = footCache.get(img);
     if (g !== undefined) return g;
     try {
-      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
-      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0);
-      const d = x.getImageData(0, 0, img.width, img.height).data;
-      let last = img.height - 1;
-      for (; last > 0; last--) { let hit = 0; for (let i = 0; i < img.width; i++) if (d[(last * img.width + i) * 4 + 3] > 40) hit++; if (hit >= 2) break; }
-      g = (img.height - 1 - last) / img.height;
+      const k = Math.min(1, 64 / img.width), cw = Math.max(1, Math.round(img.width * k)), ch = Math.max(1, Math.round(img.height * k));
+      const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, cw, ch);
+      const d = x.getImageData(0, 0, cw, ch).data;
+      let last = ch - 1;
+      for (; last > 0; last--) { let hit = 0; for (let i = 0; i < cw; i++) if (d[(last * cw + i) * 4 + 3] > 40) hit++; if (hit >= 1) break; }
+      g = (ch - 1 - last) / ch;
     } catch (e) { g = 0; }
     footCache.set(img, g); return g;
   }
@@ -617,6 +662,7 @@ window.NN = window.NN || {};
     if (!G.def) return;
     drawScene(); drawEditor(); drawChoices(); drawBar(); drawOverlayText();
     if (G.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${G.fade})`; ctx.fillRect(0, 0, W, H); }
+    if (G.loading) { ctx.save(); ctx.font = font(40); ctx.textAlign = 'center'; ctx.fillStyle = '#ffd27a'; ctx.fillText('Lädt' + '.'.repeat(1 + Math.floor(G.time * 3) % 3), W / 2, VH / 2); ctx.restore(); }
   }
 
   // ---------- Hauptschleife ----------
