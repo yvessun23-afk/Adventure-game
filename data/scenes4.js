@@ -185,7 +185,7 @@
     walk: [[0, 768], [1376, 768], [1376, 705], [1180, 650], [950, 612], [700, 596], [500, 605], [320, 650], [150, 700], [0, 735]],
     depth: D(595, 768, 0.5, 1.0),
     spawns: { default: [700, 710], promenade: [350, 700], hyperhub: [1100, 650] },
-    actors: [{ id: 'flughans', name: 'Flug-Hans', x: 700, y: 510, drawY: 430, clipPoly: [[0, 0], [1376, 0], [1376, 421], [850, 421], [560, 425], [0, 425]], sprite: 'flughans', scale: 0.85, h: 210 }],
+    actors: [{ id: 'flughans', name: 'Flug-Hans', x: 700, y: 510, drawY: 468, clipPoly: [[0, 0], [1376, 0], [1376, 421], [850, 421], [560, 425], [0, 425]], sprite: 'flughans', scale: 0.85, h: 210 }],
     exits: [bottom('Zur Promenade', 'promenade', 'raumhafen', 350)],
     hotspots: [
       {
