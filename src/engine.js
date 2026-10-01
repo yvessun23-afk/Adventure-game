@@ -124,7 +124,7 @@ window.NN = window.NN || {};
   }
   function pixelFiles() {
     const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
-    const poses = ['idle_front', 'idle_side', 'idle_back', 'talk_a', 'talk_b', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_5', 'walk_6', 'walk_7', 'walk_front', 'walk_back'];
+    const poses = ['idle_front', 'idle_side', 'idle_back', 'talk_a', 'talk_b', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_5', 'walk_6', 'walk_7', 'walk_8', 'walk_front', 'walk_back'];
     return poses.map(p => SPR + 'characters/' + pre + p + '.png');
   }
   const KRUEMEL = ['hover_1', 'hover_2', 'hover_3', 'hover_4', 'hover_front', 'talk_a', 'talk_b', 'scan_a', 'scan_b', 'sad'].map(n => SPR + 'characters/kruemel_' + n + '.png');
@@ -616,7 +616,7 @@ window.NN = window.NN || {};
     return h;
   }
 
-  const STRIDE = 20; // Szenen-Pixel pro Laufbild (ungefähr eine Schrittlänge geteilt durch 7 Bilder)
+  const STRIDE = 17; // Szenen-Pixel pro Laufbild (ungefähr eine Schrittlänge geteilt durch 7 Bilder)
   function pixelSpriteName() {
     const p = pixel;
     if (p.anim) return p.anim;
@@ -624,7 +624,7 @@ window.NN = window.NN || {};
       const ph = (p.dist || 0) / (STRIDE * (G.def.space[0] / 1376));
       if (p.vdir === 'up') return Math.floor(ph * 0.5) % 2 ? 'walk_back' : 'idle_back';
       if (p.vdir === 'down') return Math.floor(ph * 0.5) % 2 ? 'walk_front' : 'stand_front';
-      return 'walk_' + (1 + Math.floor(ph) % 7);
+      return 'walk_' + (1 + Math.floor(ph) % 8);
     }
     if (p.talking && G.speech) return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
     if (p.dir === 'up') return 'idle_back';
@@ -642,7 +642,7 @@ window.NN = window.NN || {};
     if (img) {
       if (pixel.moving && !pixel.anim && !NN.opts.reduceAnim) {
         // Doppelschritt = ein Zyklus: Körper hüpft bei jedem Schritt, kippt leicht nach vorn und federt beim Aufsetzen
-        const ph = (pixel.dist || 0) / (STRIDE * (G.def.space[0] / 1376)) / 7 * Math.PI * 2 * 2;
+        const ph = (pixel.dist || 0) / (STRIDE * (G.def.space[0] / 1376)) / 8 * Math.PI * 2 * 2;
         const hop = Math.abs(Math.sin(ph / 2)), land = Math.pow(1 - hop, 6);
         const dirSign = pixel.dir === 'left' ? -1 : pixel.dir === 'right' ? 1 : 0;
         ctx.save();
