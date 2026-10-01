@@ -554,6 +554,7 @@
     await g.say('schaffner', 'Einsteigen bitte! Nach Mittel-Heights! Bitte Abstand halten und Würde wahren!');
     await g.say('kruemel', 'Wir fahren hoch zur Konzernwelt. Dort wartet die Wahrheit.');
     g.flag('akt1_ende', true);
-    await g.actEnd('Ende von Akt 1', 'Du hast Unter-Heights hinter dir gelassen. Akt 2 „Mittel-Heights“ folgt in der nächsten Ausbaustufe.');
+    await g.actEnd('Ende von Akt 1', 'Du hast Unter-Heights hinter dir gelassen. Gleich beginnt Akt 2 in Mittel-Heights.');
+    await g.goto('plaza', 'bahnhof');
   }
 })();

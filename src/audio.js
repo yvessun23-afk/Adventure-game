@@ -3,6 +3,7 @@
 window.NN = window.NN || {};
 
 NN.audio = (function () {
+  let unlocked = false;
   let ctx = null, master = null, reverbIn = null, delayIn = null;
   let musicBus = null, sfxBus = null, blipBus = null, analyser = null;
   let session = null, pendingTheme = null, fileAudio = null, noiseBuf = null, lastBlipMidi = 60;
@@ -91,6 +92,7 @@ NN.audio = (function () {
   }
 
   function ensure() {
+    if (!unlocked) return null; // Browser erlauben Audio erst nach einer Benutzeraktion
     if (!ctx) build();
     if (ctx && ctx.state === 'suspended' && !NN.opts.muteAll) ctx.resume();
     if (ctx && pendingTheme) { const t = pendingTheme; pendingTheme = null; startTheme(t); }
@@ -289,6 +291,7 @@ NN.audio = (function () {
 
   const PENTA = [0, 2, 4, 7, 9];
   return {
+    unlock() { unlocked = true; ensure(); },
     ensure, playMusic, applyVolumes, stats() {
       if (!analyser) return null;
       const d = new Float32Array(analyser.fftSize); analyser.getFloatTimeDomainData(d);
@@ -324,4 +327,4 @@ NN.audio = (function () {
 })();
 
 // Audio erst nach der ersten Benutzeraktion starten (Browser-Vorgabe)
-['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => NN.audio.ensure(), { once: false, passive: true }));
+['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => NN.audio.unlock(), { passive: true }));

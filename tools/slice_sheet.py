@@ -105,6 +105,9 @@ def main():
     p.add_argument("--pad", type=int, default=4)
     p.add_argument("--erode", type=int, default=1, help="Kante um n Pixel verkleinern (gegen grüne Säume)")
     p.add_argument("--prefix", default="")
+    p.add_argument("--by-cell", action="store_true",
+                   help="Alle Teile in derselben Rasterzelle (cols x rows) zu einem Objekt vereinigen; "
+                        "Splitter unter 4%% der größten Fläche der Zelle werden verworfen")
     p.add_argument("--kill-green", type=int, default=0, metavar="N",
                    help="Alle Pixel mit starkem Grünstich (g - max(r,b) > N) durchsichtig machen, "
                         "für Figuren ganz ohne Grün (z. B. halbtransparente Propeller). Empfehlung: 25")
@@ -119,6 +122,27 @@ def main():
         rgba[..., 3] = np.where(greenish, 0, rgba[..., 3])
         fg = fg & ~greenish
     found, labels = find_objects(fg, args.gap, args.min_area)
+    if args.by_cell and args.cols and args.rows:
+        W_, H_ = img.size
+        cells = {}
+        for (x0, y0, x1, y1), lab in found:
+            area = int((labels == lab).sum())
+            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            key = (min(int(cy / (H_ / args.rows)), args.rows - 1), min(int(cx / (W_ / args.cols)), args.cols - 1))
+            cells.setdefault(key, []).append(((x0, y0, x1, y1), lab, area))
+        merged = []
+        new_labels = labels.copy()
+        for key in sorted(cells):
+            parts = cells[key]
+            biggest = max(p_[2] for p_ in parts)
+            keep = [p_ for p_ in parts if p_[2] >= biggest * 0.04]
+            tgt = keep[0][1]
+            for (_, lab, _) in parts:
+                new_labels[labels == lab] = tgt if any(lab == k[1] for k in keep) else 0
+            xs0 = min(k[0][0] for k in keep); ys0 = min(k[0][1] for k in keep)
+            xs1 = max(k[0][2] for k in keep); ys1 = max(k[0][3] for k in keep)
+            merged.append(((xs0, ys0, xs1, ys1), tgt))
+        found, labels = merged, new_labels
     found = sort_reading_order(found, img.size, args.cols, args.rows)
     boxes = [b for b, _ in found]
 

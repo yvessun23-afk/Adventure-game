@@ -92,35 +92,50 @@ NN.ui = (function () {
   }
 
   // ---------- Intro ----------
-  async function playIntro() {
-    hideTitleBg(); close();
-    const panels = NN.intro;
+  function playSequence(panels, onDone, skipLabel) {
     const el = document.createElement('div'); el.className = 'intro';
-    el.innerHTML = '<div class="pic"></div><div class="txt"></div><button class="btn skip">Überspringen (Esc)</button>';
+    el.innerHTML = `<div class="pic"></div><div class="txt"></div><button class="btn skip">${skipLabel || 'Überspringen (Esc)'}</button>`;
     document.body.appendChild(el);
     const pic = el.querySelector('.pic'), txt = el.querySelector('.txt');
     let idx = -1, done = false, typing = null;
-    const finish = () => { if (done) return; done = true; document.removeEventListener('keydown', onKey); el.remove(); startNew(); };
+    const finish = () => { if (done) return; done = true; clearInterval(typing); document.removeEventListener('keydown', onKey, true); el.remove(); onDone(); };
     async function show(i) {
       idx = i; if (i >= panels.length) return finish();
       const p = panels[i];
-      const found = await A.loadFirst([`assets/intro/${p.img}.webp`, `assets/raw/${p.img}.png`]);
+      const found = p.img ? await A.loadFirst([`assets/intro/${p.img}.webp`, `assets/raw/${p.img}.png`]) : null;
       pic.style.opacity = 0;
       setTimeout(() => { pic.style.backgroundImage = found ? `url(${found.src})` : ''; pic.style.opacity = 1; }, 80);
-      txt.textContent = '';
-      clearInterval(typing);
+      txt.textContent = ''; clearInterval(typing);
       let n = 0;
-      typing = setInterval(() => { n++; txt.textContent = p.text.slice(0, n); if (n % 3 === 0) NN.audio.blip(1.3); if (n >= p.text.length) clearInterval(typing); }, 28 / NN.opts.textSpeed);
+      typing = setInterval(() => { n++; txt.textContent = p.text.slice(0, n); if (n % 3 === 0) NN.audio.blip(1.3); if (n >= p.text.length) clearInterval(typing); }, 40 / NN.opts.textSpeed);
     }
     const next = () => {
       const p = panels[idx];
       if (p && txt.textContent.length < p.text.length) { clearInterval(typing); txt.textContent = p.text; return; }
       show(idx + 1);
     };
-    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); finish(); } else if (e.key === ' ' || e.key === 'Enter') { e.stopPropagation(); next(); } };
+    const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); finish(); } else if (e.key === ' ' || e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); next(); } };
     el.addEventListener('click', e => { if (e.target.classList.contains('skip')) finish(); else next(); });
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     show(0);
+  }
+
+  async function playIntro() {
+    hideTitleBg(); close();
+    playSequence(NN.intro, startNew);
+  }
+
+  const ENDING = [
+    { img: 'ende_01', text: 'Kleo schmeckte zum ersten Mal in ihrem Leben. Es war bitter, warm und das Beste, was sie je erlebt hatte.' },
+    { img: 'ende_02', text: 'Oma Zhang kochte mit dem zurückgebrachten Kristall die erste echte Suppe seit Tagen. Überall in Neo-Nagoya-Heights liefen die Suppenautomaten wieder, und die Stadt roch nach Brühe, nach Hoffnung und ein wenig nach Toast.' },
+    { img: 'ende_03', text: 'Und am Tresen von Zhangs Imbiss saßen Pixel, Krümel, Oma Zhang, Kleo und Teddy-Bot und teilten sich die beste Nudelsuppe der Welt.' },
+    { img: 'ende_03', text: 'NEON NOODLE · Der Fall der verschwundenen Nudelsuppe · Ende. Danke fürs Spielen!' }
+  ];
+
+  function showEnding(done) {
+    inGame = false; G.paused = true;
+    NN.audio.playMusic('mus_finale');
+    playSequence(ENDING, () => { if (done) done(); showTitle(); }, 'Überspringen (Esc)');
   }
 
   // ---------- Pause-Menü ----------
@@ -311,5 +326,5 @@ NN.ui = (function () {
 
   G.onMenu = showMenu; G.onHelp = showHelp; G.onMap = showMap;
 
-  return { preload, showTitle, showMenu, showOptions, showSlots, showHelp, showMap, showActEnd, close, open };
+  return { preload, showEnding, showTitle, showMenu, showOptions, showSlots, showHelp, showMap, showActEnd, close, open };
 })();

@@ -1,0 +1,96 @@
+{
+ "sheet": "assets/raw/sheet_npc_akt2.png",
+ "out": "assets/sprites/npcs",
+ "gap": 8,
+ "regions": {
+  "ablage_idle": [
+   30,
+   20,
+   190,
+   255
+  ],
+  "kloss_idle": [
+   200,
+   40,
+   410,
+   255
+  ],
+  "gruenhorn_idle": [
+   410,
+   20,
+   585,
+   258
+  ],
+  "staub_idle": [
+   580,
+   25,
+   760,
+   258
+  ],
+  "schnipp_idle": [
+   740,
+   15,
+   965,
+   258
+  ],
+  "jackpot_idle": [
+   965,
+   15,
+   1140,
+   258
+  ],
+  "mortimer_idle": [
+   1170,
+   10,
+   1345,
+   258
+  ],
+  "schraub_idle": [
+   55,
+   250,
+   180,
+   400
+  ],
+  "stefan_idle": [
+   215,
+   250,
+   405,
+   400
+  ],
+  "zeus_idle": [
+   430,
+   255,
+   565,
+   400
+  ],
+  "flimmer_idle": [
+   800,
+   255,
+   905,
+   400
+  ],
+  "tackert_idle": [
+   1200,
+   265,
+   1345,
+   400
+  ],
+  "schnipp_talk": [
+   765,
+   392,
+   965,
+   630
+  ],
+  "jackpot_talk": [
+   965,
+   392,
+   1150,
+   630
+  ]
+ },
+ "keep_ratio": 0.2,
+ "kill_green_names": {
+  "sebastian_idle": 25,
+  "klaus_talk": 25
+ }
+}

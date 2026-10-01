@@ -3,7 +3,7 @@
 Ein 2D-Point-and-Click-Adventure im Browser (HTML/JavaScript), inspiriert von *Day of the Tentacle* und *Monkey Island*.
 Cyberpunk, lustig, mit 36 Orten, Karte mit Schnellreise, Intro, Speichern/Laden, Hilfesystem und Optionen für Grafik, Sound und Text.
 
-**Status:** Akt 1 (Unter-Heights, 12 Orte) ist komplett spielbar: alle Hintergründe, Figuren, Gegenstände und Rätsel bis zur Abfahrt nach Mittel-Heights. Menüs, Optionen, Speichern/Laden, Karte mit Schnellreise und dreistufige Hilfe laufen. Akt 2 und 3 folgen.
+**Status:** Das Spiel ist komplett spielbar: 3 Akte, 36 Orte, Intro, Finale mit Abspann. Alle Rätsel von Akt 1 bis 3 sind eingebaut und per Testlauf bis zum Ende durchgespielt. Menüs, Optionen, Speichern/Laden, Karte mit Schnellreise, dreistufige Hilfe und Grafik-Menü laufen.
 
 ## Spielen
 

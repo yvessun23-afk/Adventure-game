@@ -1,0 +1,9 @@
+goldener_golfball
+raumanzug
+shuttle_ticket
+kaffeebohnen
+geroestete_bohnen
+genehmigung
+bergbau_helm
+code_zettel
+kristall

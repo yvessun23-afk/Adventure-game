@@ -1,0 +1,209 @@
+{
+ "sheet": "assets/raw/sheet_npc_akt3.png",
+ "out": "assets/sprites/npcs",
+ "gap": 8,
+ "regions": {
+  "klaus_idle": [
+   20,
+   15,
+   250,
+   270
+  ],
+  "sebastian_idle": [
+   [
+    250,
+    15,
+    425,
+    236
+   ],
+   [
+    250,
+    236,
+    345,
+    270
+   ]
+  ],
+  "baron_idle": [
+   [
+    425,
+    5,
+    583,
+    238
+   ],
+   [
+    482,
+    238,
+    583,
+    270
+   ]
+  ],
+  "zen_idle": [
+   585,
+   25,
+   795,
+   270
+  ],
+  "flughans_idle": [
+   795,
+   25,
+   950,
+   270
+  ],
+  "kabel_idle": [
+   960,
+   25,
+   1180,
+   270
+  ],
+  "schicht_idle": [
+   [
+    1170,
+    25,
+    1345,
+    190
+   ],
+   [
+    1170,
+    190,
+    1292,
+    270
+   ]
+  ],
+  "schicht_talk": [
+   20,
+   270,
+   232,
+   500
+  ],
+  "streikposten_idle": [
+   232,
+   285,
+   372,
+   500
+  ],
+  "kraken_idle": [
+   [
+    522,
+    275,
+    725,
+    500
+   ],
+   [
+    418,
+    402,
+    725,
+    500
+   ]
+  ],
+  "kleo_idle": [
+   728,
+   265,
+   862,
+   500
+  ],
+  "kleo_talk": [
+   865,
+   265,
+   1045,
+   500
+  ],
+  "teddy_idle": [
+   1040,
+   270,
+   1195,
+   500
+  ],
+  "teddy_sensor_idle": [
+   1195,
+   270,
+   1376,
+   500
+  ],
+  "klaus_talk": [
+   10,
+   495,
+   252,
+   768
+  ],
+  "sebastian_talk": [
+   248,
+   495,
+   425,
+   768
+  ],
+  "baron_talk": [
+   425,
+   490,
+   595,
+   768
+  ],
+  "zen_talk": [
+   585,
+   505,
+   765,
+   768
+  ],
+  "flughans_talk": [
+   755,
+   555,
+   885,
+   768
+  ],
+  "kleo_talk2": [
+   885,
+   505,
+   1050,
+   768
+  ],
+  "teddy_talk": [
+   1058,
+   515,
+   1205,
+   768
+  ],
+  "teddy_sensor_talk": [
+   1205,
+   515,
+   1376,
+   768
+  ]
+ },
+ "keep_ratio": 0.2,
+ "kill_green_names": {
+  "kleo_idle": 25,
+  "kleo_talk": 25,
+  "kleo_talk2": 25,
+  "teddy_idle": 25,
+  "teddy_sensor_idle": 25,
+  "teddy_talk": 25,
+  "teddy_sensor_talk": 25,
+  "baron_idle": 8,
+  "sebastian_idle": 8,
+  "kabel_idle": 8,
+  "schicht_idle": 8,
+  "schicht_talk": 8,
+  "klaus_talk": 25,
+  "sebastian_talk": 25,
+  "baron_talk": 25,
+  "zen_talk": 25,
+  "flughans_talk": 25,
+  "kraken_idle": 0
+ },
+ "keep_ratio_names": {
+  "kabel_idle": 0.5,
+  "schicht_idle": 0.5,
+  "schicht_talk": 0.5,
+  "baron_idle": 0.6,
+  "sebastian_idle": 0.6,
+  "klaus_talk": 0.5,
+  "zen_idle": 0.5,
+  "flughans_idle": 0.5,
+  "kraken_idle": 0.35
+ },
+ "gap_names": {
+  "kraken_idle": 2,
+  "schicht_idle": 2,
+  "baron_idle": 0,
+  "sebastian_idle": 0
+ }
+}

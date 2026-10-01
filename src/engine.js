@@ -273,6 +273,7 @@ window.NN = window.NN || {};
     face(dir) { pixel.dir = dir; },
     wait: sec => new Promise(r => setTimeout(r, sec * 1000)),
     animate(name, sec) { pixel.anim = name; pixel.animT = sec; return new Promise(r => setTimeout(r, sec * 1000)); },
+    ending() { return new Promise(res => { NN.saveGame(0, null); NN.ui.showEnding(res); }); },
     actEnd(title, text) { return new Promise(res => { NN.ui.showActEnd(title, text, res); }); },
     async kruemelScan() { NN.audio.scan(); G.scan = 1.2; await new Promise(r => setTimeout(r, 1300)); }
   };
@@ -413,7 +414,9 @@ window.NN = window.NN || {};
   function drawPixel() {
     const [lx, ly] = L(pixel.x, pixel.y);
     const name = pixelSpriteName();
-    const img = A.get('assets/sprites/characters/pixel_' + name + '.png') || A.get('assets/sprites/characters/pixel_idle_front.png');
+    const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
+    const dirC = 'assets/sprites/characters/';
+    const img = A.get(dirC + pre + name + '.png') || A.get(dirC + 'pixel_' + name + '.png') || A.get(dirC + pre + 'idle_front.png') || A.get(dirC + 'pixel_idle_front.png');
     const sc = depthScale(pixel.y) * G.view.fy;
     if (img) {
       pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);

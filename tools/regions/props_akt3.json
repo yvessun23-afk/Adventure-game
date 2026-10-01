@@ -1,0 +1,121 @@
+{
+ "sheet": "assets/raw/sheet_props_akt3.png",
+ "out": "assets/sprites/props",
+ "gap": 8,
+ "regions": {
+  "turbine_an": [
+   18,
+   5,
+   222,
+   254
+  ],
+  "turbine_aus": [
+   246,
+   5,
+   447,
+   254
+  ],
+  "steuerpult": [
+   458,
+   56,
+   692,
+   214
+  ],
+  "kaffeepflanze": [
+   713,
+   14,
+   897,
+   250
+  ],
+  "bohnenwolke": [
+   928,
+   20,
+   1140,
+   237
+  ],
+  "brueckenpanel": [
+   1178,
+   10,
+   1360,
+   245
+  ],
+  "schleuse_zu": [
+   6,
+   273,
+   227,
+   494
+  ],
+  "schleuse_offen": [
+   230,
+   283,
+   460,
+   492
+  ],
+  "lore_haken": [
+   470,
+   246,
+   667,
+   504
+  ],
+  "lore_schiene": [
+   686,
+   286,
+   922,
+   512
+  ],
+  "firewall_zu": [
+   915,
+   272,
+   1143,
+   497
+  ],
+  "firewall_offen": [
+   1147,
+   272,
+   1376,
+   497
+  ],
+  "keypad": [
+   68,
+   523,
+   162,
+   757
+  ],
+  "golfstaender": [
+   273,
+   513,
+   422,
+   757
+  ],
+  "brunnen": [
+   486,
+   523,
+   662,
+   762
+  ],
+  "gate_zu": [
+   697,
+   560,
+   910,
+   724
+  ],
+  "gate_offen": [
+   927,
+   560,
+   1140,
+   724
+  ],
+  "teddy_sessel": [
+   1158,
+   526,
+   1370,
+   760
+  ]
+ },
+ "kill_green_names": {
+  "gate_zu": 30,
+  "gate_offen": 30,
+  "bohnenwolke": 30,
+  "turbine_an": 30
+ }
+}

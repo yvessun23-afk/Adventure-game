@@ -1,0 +1,122 @@
+{
+ "sheet": "assets/raw/sheet_props_akt2.png",
+ "out": "assets/sprites/props",
+ "gap": 8,
+ "regions": {
+  "tuer_kantine_zu": [
+   5,
+   10,
+   226,
+   250
+  ],
+  "tuer_kantine_offen": [
+   240,
+   15,
+   442,
+   252
+  ],
+  "tastenfeld": [
+   495,
+   30,
+   642,
+   212
+  ],
+  "wasserhahn": [
+   705,
+   15,
+   897,
+   247
+  ],
+  "rauchmelder": [
+   925,
+   55,
+   1147,
+   172
+  ],
+  "topf_trocken": [
+   1185,
+   68,
+   1338,
+   222
+  ],
+  "topf_gewachsen": [
+   38,
+   270,
+   192,
+   500
+  ],
+  "aufzug_zu": [
+   255,
+   258,
+   418,
+   508
+  ],
+  "aufzug_offen": [
+   468,
+   258,
+   685,
+   508
+  ],
+  "drucker": [
+   700,
+   282,
+   907,
+   497
+  ],
+  "holodrucker_aus": [
+   935,
+   350,
+   1132,
+   500
+  ],
+  "holodrucker_an": [
+   1165,
+   268,
+   1362,
+   500
+  ],
+  "vitrine_zu": [
+   20,
+   522,
+   207,
+   765
+  ],
+  "vitrine_offen": [
+   248,
+   518,
+   428,
+   766
+  ],
+  "roulette": [
+   455,
+   548,
+   692,
+   737
+  ],
+  "tresortuer": [
+   698,
+   525,
+   922,
+   752
+  ],
+  "gitter_zu": [
+   928,
+   533,
+   1142,
+   747
+  ],
+  "gitter_offen": [
+   1145,
+   543,
+   1367,
+   747
+  ]
+ },
+ "kill_green_names": {
+  "vitrine_zu": 30,
+  "vitrine_offen": 30,
+  "holodrucker_aus": 30,
+  "holodrucker_an": 30,
+  "wasserhahn": 30
+ }
+}

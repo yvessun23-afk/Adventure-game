@@ -1,0 +1,69 @@
+{
+ "sheet": "assets/raw/sheet_items_akt3.png",
+ "out": "assets/sprites/items",
+ "gap": 8,
+ "regions": {
+  "goldener_golfball": [
+   40,
+   15,
+   310,
+   275
+  ],
+  "kaffeebohnen": [
+   55,
+   300,
+   300,
+   500
+  ],
+  "bergbau_helm": [
+   35,
+   525,
+   335,
+   750
+  ],
+  "raumanzug": [
+   [
+    360,
+    20,
+    712,
+    742
+   ],
+   [
+    712,
+    50,
+    892,
+    260
+   ]
+  ],
+  "geroestete_bohnen": [
+   825,
+   295,
+   1072,
+   495
+  ],
+  "shuttle_ticket": [
+   925,
+   20,
+   1345,
+   260
+  ],
+  "genehmigung": [
+   1100,
+   270,
+   1345,
+   495
+  ],
+  "code_zettel": [
+   830,
+   535,
+   1072,
+   745
+  ],
+  "kristall": [
+   1108,
+   495,
+   1335,
+   762
+  ]
+ }
+}
