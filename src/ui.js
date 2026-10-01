@@ -16,15 +16,15 @@ NN.ui = (function () {
     box.style.backgroundImage = 'url(assets/backgrounds/low/bg_01_zhangs_imbiss.webp)';
     const full = 'Pixel: „Das ist eine Vorschau. So erscheint der Text später im Spiel.“';
     el.style.display = NN.opts.subtitles ? '' : 'none';
-    let n = 0; el.textContent = '';
+    const words = full.split(' '); let n = 0; el.textContent = '';
     previewTimer = setInterval(() => {
-      n += 24 * NN.opts.textSpeed * 0.04; el.textContent = full.slice(0, Math.floor(n));
-      if (n >= full.length) {
+      n += NN.opts.textSpeed * 3.4 * 0.12; el.textContent = words.slice(0, Math.min(words.length, Math.floor(n) + 1)).join(' ');
+      if (n >= words.length) {
         clearInterval(previewTimer);
         el.textContent = full + (NN.opts.autoAdvance ? '' : '  ▼');
         previewTimer = setTimeout(startPreview, NN.opts.autoAdvance ? 2600 : 1800);
       }
-    }, 40);
+    }, 120);
   }
 
   function open(html, cls) {
@@ -106,8 +106,8 @@ NN.ui = (function () {
       pic.style.opacity = 0;
       setTimeout(() => { pic.style.backgroundImage = found ? `url(${found.src})` : ''; pic.style.opacity = 1; }, 80);
       txt.textContent = ''; clearInterval(typing);
-      let n = 0;
-      typing = setInterval(() => { n++; txt.textContent = p.text.slice(0, n); if (n % 3 === 0) NN.audio.blip(1.3); if (n >= p.text.length) clearInterval(typing); }, 40 / NN.opts.textSpeed);
+      const words = p.text.split(' '); let n = 0;
+      typing = setInterval(() => { n++; txt.textContent = words.slice(0, n).join(' '); NN.audio.blip(1.3); if (n >= words.length) clearInterval(typing); }, 330 / NN.opts.textSpeed);
     }
     const next = () => {
       const p = panels[idx];
@@ -160,13 +160,13 @@ NN.ui = (function () {
   const SCHEMA = {
     grafik: [
       { k: 'quality', t: 'select', label: 'Grafikqualität', opts: [['hi', 'Hoch'], ['mid', 'Mittel'], ['low', 'Niedrig (schneller)']] },
+      { k: 'fullscreen', t: 'check', label: 'Vollbild (auch mit Taste F)' },
       { k: 'smoothing', t: 'check', label: 'Bildglättung' },
       { k: 'filter', t: 'select', label: 'Bildfilter', opts: [['none', 'Keiner'], ['neon', 'Neon-Glühen'], ['crt', 'Röhrenmonitor (Scanlines)']] },
       { k: 'fps', t: 'select', label: 'Bildrate', opts: [[60, '60 FPS'], [30, '30 FPS']] },
       { k: 'reduceAnim', t: 'check', label: 'Animationen reduzieren' },
       { k: 'hotspotHints', t: 'check', label: 'Hotspots beim Start kurz zeigen' },
       { k: 'highContrast', t: 'check', label: 'Hoher Kontrast bei Markierungen' },
-      { t: 'button', label: 'Vollbild', text: 'Vollbild umschalten', fn: () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); } }
     ],
     sound: [
       { k: 'vMaster', t: 'range', label: 'Gesamtlautstärke' }, { k: 'vMusic', t: 'range', label: 'Musik' },
@@ -191,6 +191,7 @@ NN.ui = (function () {
     if (key === 'quality' && G.def) G.reloadBg();
     NN.audio.applyMusicVolume();
     if (key === 'muteAll') NN.audio.setMuted(NN.opts.muteAll);
+    if (key === 'fullscreen') G.toggleFullscreen(!!NN.opts.fullscreen);
   }
 
   function showOptions(tab, back) {

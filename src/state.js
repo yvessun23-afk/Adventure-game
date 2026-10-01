@@ -4,7 +4,7 @@ window.NN = window.NN || {};
 NN.VERSION = 1;
 
 NN.defaults = {
-  quality: 'hi', smoothing: true, filter: 'none', fps: 60, reduceAnim: false, hotspotHints: true, highContrast: false,
+  quality: 'hi', fullscreen: false, smoothing: true, filter: 'none', fps: 60, reduceAnim: false, hotspotHints: true, highContrast: false,
   vMaster: 0.8, vMusic: 0.6, vSfx: 0.8, vBlips: 0.6, muteAll: false, muteBlur: true,
   lang: 'de', textSize: 'm', font: 'comic', subtitles: true, textSpeed: 0.7, autoAdvance: true, textBg: 0.35, optV: 2
 };

@@ -104,3 +104,21 @@ body.gfx-panel .panel.title { padding: 0 8px; }
 #overlay.title-art .title .muted { display: none; }
 body.gfx-panel #overlay.title-art .panel.title { border-width: 38px; border-image-width: 38px; padding: 0 4px; }
 .btn.gimg.big { max-width: 100%; }
+
+/* ---------- Menü: kompakter und scharf (Grafiken nie größer als ihre Originalgröße) ---------- */
+.btn.gimg.big { width: min(280px, 21vh, 70vw); max-width: 280px; margin: 5px auto; }
+.panel .btn.gimg:not(.big) { width: min(170px, 14vh, 40vw); }
+.tabs .btn.gimg { width: min(140px, 13vh, 28vw); }
+.panel h1 { font-size: calc(30px * var(--fs)); margin: 0 0 8px; }
+.panel { font-size: calc(19px * var(--fs)); }
+body.gfx-panel .panel { border-width: 34px; border-image-width: 34px; padding: 0 6px 6px; max-height: 94vh; }
+body.gfx-panel .panel.title { padding: 0 4px; }
+body.gfx-panel #overlay.title-art .panel.title { border-width: 30px; border-image-width: 30px; width: min(300px, 24vw); min-width: 210px; }
+#overlay.title-art { padding: 0 3vw 4vh 0; }
+.btn.gimg img { image-rendering: auto; }
+
+.panel.title { min-width: 0; width: min(330px, 84vw); }
+body:not(.gfx-panel) .panel.title { width: min(460px, 90vw); }
+.tpreview { height: 150px; margin: 8px 0 6px; }
+.tptext { top: 14px; }
+.row { margin: 6px 0; }

@@ -27,7 +27,7 @@ window.NN = window.NN || {};
   const speaker = who => (NN.speakers && NN.speakers[who]) || { color: '#ffffff', pitch: 1.1 };
 
   // ---------- Koordinaten ----------
-  const CHAR = 1.45; // globaler Größenfaktor für alle Figuren
+  const CHAR = 1.75; // globaler Größenfaktor für alle Figuren
   const L = (x, y) => [x * G.view.fx + G.view.ox, y * G.view.fy + G.view.oy];
   const toScene = (lx, ly) => [(lx - G.view.ox) / G.view.fx, (ly - G.view.oy) / G.view.fy];
   G.toLogical = L; G.toScene = toScene;
@@ -58,6 +58,20 @@ window.NN = window.NN || {};
     document.body.classList.add('size-' + NN.opts.textSize, 'font-' + NN.opts.font);
     G.resize();
   };
+  G.toggleFullscreen = function (force) {
+    const on = force === undefined ? !document.fullscreenElement : force;
+    try {
+      if (on && !document.fullscreenElement) (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+      else if (!on && document.fullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } catch (e) { /* nicht erlaubt */ }
+  };
+  document.addEventListener('fullscreenchange', () => { NN.opts.fullscreen = !!document.fullscreenElement; NN.saveOptions(); G.resize(); });
+  // Option „Vollbild“: beim ersten Klick/Tastendruck automatisch aktivieren (Browser verlangen eine Benutzeraktion)
+  ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, function once() {
+    if (NN.opts.fullscreen && !document.fullscreenElement) G.toggleFullscreen(true);
+    window.removeEventListener(ev, once);
+  }, { passive: true }));
+
   G.resize = function () {
     const s = Math.min(window.innerWidth / W, window.innerHeight / H);
     canvas.style.width = Math.floor(W * s) + 'px'; canvas.style.height = Math.floor(H * s) + 'px';
@@ -162,9 +176,11 @@ window.NN = window.NN || {};
   function say(who, text) {
     if (NN.debug && NN.debug.fast) return Promise.resolve();
     return new Promise(res => {
-      const cps = 24 * NN.opts.textSpeed;
-      const dur = Math.max(2.2, text.length / cps + 1.4);
-      G.speech = { who, text, t: 0, cps, dur, res, lastBlip: 0 };
+      const ends = []; const re = /\S+/g; let m;
+      while ((m = re.exec(text))) ends.push(m.index + m[0].length);
+      const wps = 3.4 * NN.opts.textSpeed; // Wörter pro Sekunde
+      const dur = Math.max(2.2, ends.length / wps + 1.5);
+      G.speech = { who, text, t: 0, ends, wps, dur, res, words: 0 };
       if (who === 'pixel') pixel.talking = true;
     });
   }
@@ -174,13 +190,15 @@ window.NN = window.NN || {};
     G.speech = null; pixel.talking = false; s.res();
   }
 
+  // Anzahl bereits sichtbarer Wörter
+  const wordsShown = sp => Math.min(sp.ends.length, Math.floor(sp.t * sp.wps) + 1);
+  const speechDone = sp => wordsShown(sp) >= sp.ends.length;
+
   function updateSpeech(dt) {
     const s = G.speech; if (!s) return;
     s.t += dt;
-    const shown = Math.min(s.text.length, Math.floor(s.t * s.cps));
-    if (shown > s.lastBlip && shown < s.text.length) {
-      if (shown - s.lastBlip >= 3) { NN.audio.blip(speaker(s.who).pitch); s.lastBlip = shown; }
-    }
+    const n = wordsShown(s);
+    if (n > s.words) { s.words = n; NN.audio.blip(speaker(s.who).pitch); }
     if (s.who !== 'pixel') pixel.talking = false;
     if (NN.opts.autoAdvance && s.t >= s.dur) endSpeech();
   }
@@ -384,11 +402,28 @@ window.NN = window.NN || {};
   }
 
   // ---------- Zeichnen der Szene ----------
+  // Wie viel transparenter Rand unten im Bild ist (Anteil der Höhe), damit die Füße genau auf dem Boden stehen
+  const footCache = new WeakMap();
+  function footGap(img) {
+    let g = footCache.get(img);
+    if (g !== undefined) return g;
+    try {
+      const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0);
+      const d = x.getImageData(0, 0, img.width, img.height).data;
+      let last = img.height - 1;
+      for (; last > 0; last--) { let hit = 0; for (let i = 0; i < img.width; i++) if (d[(last * img.width + i) * 4 + 3] > 40) hit++; if (hit >= 2) break; }
+      g = (img.height - 1 - last) / img.height;
+    } catch (e) { g = 0; }
+    footCache.set(img, g); return g;
+  }
+
   function drawSprite(img, lx, ly, scale, flip, shadow) {
     const w = img.width * scale, h = img.height * scale;
+    ly += footGap(img) * h; // Fußlinie = Standpunkt
     if (shadow) {
       ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.32)';
-      ctx.beginPath(); ctx.ellipse(lx, ly - 2, Math.max(30, w * 0.32), Math.max(9, w * 0.07), 0, 0, 7); ctx.fill(); ctx.restore();
+      ctx.beginPath(); ctx.ellipse(lx, ly - 4, Math.max(30, w * 0.3), Math.max(9, w * 0.06), 0, 0, 7); ctx.fill(); ctx.restore();
     }
     ctx.save(); ctx.translate(lx, ly);
     if (flip) ctx.scale(-1, 1);
@@ -491,7 +526,8 @@ window.NN = window.NN || {};
     ctx.save();
     ctx.font = font(44); ctx.textBaseline = 'alphabetic';
     const maxW = 820, lines = U.wrap(ctx, s.text, maxW), lh = 54 * SIZE[NN.opts.textSize];
-    const head = actorHead(s.who);
+    if (!s.pos) s.pos = actorHead(s.who); // Position einmal festlegen: Text bleibt still stehen
+    const head = s.pos;
     const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
     let cx = U.clamp(head.x, widest / 2 + 40, W - widest / 2 - 40);
     let y0 = U.clamp(head.top - lines.length * lh, 50, VH - lines.length * lh - 30);
@@ -500,14 +536,15 @@ window.NN = window.NN || {};
       ctx.fillStyle = `rgba(10,5,22,${NN.opts.textBg})`;
       ctx.beginPath(); ctx.roundRect(cx - widest / 2 - 18, y0 - lh * 0.85, widest + 36, lines.length * lh + 16, 16); ctx.fill();
     }
-    let shown = Math.floor(s.t * s.cps);
+    const nWords = wordsShown(s);
+    let shown = s.ends[nWords - 1] || 0;
     ctx.textAlign = 'left'; ctx.lineJoin = 'round'; ctx.lineWidth = 9; ctx.strokeStyle = '#120a22';
     lines.forEach((line, i) => {
       const part = line.slice(0, Math.max(0, Math.min(line.length, shown))); shown -= line.length + 1;
       const x = cx - ctx.measureText(line).width / 2, y = y0 + i * lh;
       ctx.strokeText(part, x, y); ctx.fillStyle = speaker(s.who).color; ctx.fillText(part, x, y);
     });
-    if (!NN.opts.autoAdvance && s.t * s.cps >= s.text.length && Math.floor(G.time * 2) % 2 === 0) {
+    if (!NN.opts.autoAdvance && speechDone(s) && Math.floor(G.time * 2) % 2 === 0) {
       const last = lines[lines.length - 1], lx = cx + ctx.measureText(last).width / 2 + 22, ly = y0 + (lines.length - 1) * lh - 10;
       ctx.fillStyle = speaker(s.who).color; ctx.strokeStyle = '#120a22'; ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(lx - 10, ly - 10); ctx.lineTo(lx + 10, ly - 10); ctx.lineTo(lx, ly + 6); ctx.closePath(); ctx.stroke(); ctx.fill();
@@ -636,7 +673,7 @@ window.NN = window.NN || {};
       if (c.hover >= 0) { const r = c.res; G.choices = null; NN.audio.click(); r(c.hover); }
       return;
     }
-    if (G.speech) { if (G.speech.t * G.speech.cps < G.speech.text.length) G.speech.t = G.speech.text.length / G.speech.cps; else endSpeech(); return; }
+    if (G.speech) { if (!speechDone(G.speech)) G.speech.t = G.speech.ends.length / G.speech.wps + 0.05; else endSpeech(); return; }
     if (G.busy) return;
     if (G.editor && y < VH) {
       const p = toScene(x, y); G.editPts.push([Math.round(p[0]), Math.round(p[1])]); return;
@@ -693,6 +730,7 @@ window.NN = window.NN || {};
     if (e.key === ' ') { e.preventDefault(); }
     if (e.key === 'Escape') { G.selected = null; G.onMenu && G.onMenu(); }
     if (e.key === 'F2') { e.preventDefault(); G.editor = !G.editor; G.editPts = []; }
+    if (e.key === 'f' || e.key === 'F') { if (!G.editor) G.toggleFullscreen(); }
     if (G.editor && e.key === 'c') G.editPts = [];
     if (G.editor && e.key === 'Enter') {
       const txt = JSON.stringify(G.editPts);
