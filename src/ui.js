@@ -180,6 +180,11 @@ NN.ui = (function () {
     sound: [
       { k: 'vMaster', t: 'range', label: 'Gesamtlautstärke' }, { k: 'vMusic', t: 'range', label: 'Musik' },
       { k: 'vSfx', t: 'range', label: 'Effekte' }, { k: 'vBlips', t: 'range', label: 'Sprechgeräusche' },
+      { k: 'ttsOn', t: 'check', get label() { return 'Sprachausgabe (Figuren sprechen den Text)' + (NN.tts.supported && NN.tts.germanVoices().length ? '' : ' – keine deutsche Stimme auf diesem Gerät gefunden'); } },
+      { k: 'ttsVol', t: 'range', label: 'Sprachausgabe: Lautstärke', min: 0.1, max: 1, step: 0.05 },
+      { k: 'ttsRate', t: 'range', label: 'Sprachausgabe: Tempo', min: 0.6, max: 1.6, step: 0.05 },
+      { k: 'ttsVoice', t: 'select', label: 'Sprachausgabe: Stimme', opts: () => [['auto', 'Automatisch (je Figur verschieden)']].concat(NN.tts.germanVoices()) },
+      { t: 'btn', label: 'Stimme', text: 'Stimme testen', fn: () => NN.tts.test() },
       { k: 'muteAll', t: 'check', label: 'Alles stumm' }, { k: 'muteBlur', t: 'check', label: 'Stumm, wenn das Fenster nicht aktiv ist' }
     ],
     text: [
@@ -211,7 +216,7 @@ NN.ui = (function () {
   function showOptions(tab, back) {
     const rows = SCHEMA[tab].map((c, i) => {
       const v = NN.opts[c.k];
-      if (c.t === 'select') return `<div class="row"><label>${c.label}</label><select data-i="${i}">${c.opts.map(o => `<option value="${o[0]}" ${String(o[0]) === String(v) ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div>`;
+      if (c.t === 'select') return `<div class="row"><label>${c.label}</label><select data-i="${i}">${(typeof c.opts === 'function' ? c.opts() : c.opts).map(o => `<option value="${o[0]}" ${String(o[0]) === String(v) ? 'selected' : ''}>${o[1]}</option>`).join('')}</select></div>`;
       if (c.t === 'check') return `<div class="row"><label>${c.label}</label><input type="checkbox" data-i="${i}" ${v ? 'checked' : ''}></div>`;
       if (c.t === 'range') return `<div class="row"><label>${c.label}</label><input type="range" data-i="${i}" min="${c.min ?? 0}" max="${c.max ?? 1}" step="${c.step ?? 0.05}" value="${v}"><span class="val">${Math.round(v * 100) / 100}</span></div>`;
       return `<div class="row"><label>${c.label}</label><button class="btn" data-btn="${i}">${c.text}</button></div>`;

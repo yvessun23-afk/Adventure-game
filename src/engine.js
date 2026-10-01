@@ -153,7 +153,7 @@ window.NN = window.NN || {};
   G.enterScene = async function (id, spawn, defer) {
     const def = NN.scenes[id];
     if (!def) throw new Error('Unbekannte Szene: ' + id);
-    cancelWalk(); G.speech = null; G.choices = null; G.hover = null;
+    cancelWalk(); NN.tts.cancel(); G.speech = null; G.choices = null; G.hover = null;
     G.def = def; G.scene = id; NN.S.scene = id; NN.S.visited[id] = true;
     computeView(def);
     const t0 = performance.now();
@@ -275,31 +275,41 @@ window.NN = window.NN || {};
   function say(who, text) {
     if (NN.debug && NN.debug.fast) return Promise.resolve();
     return new Promise(res => {
-      const ends = []; const re = /\S+/g; let m;
-      while ((m = re.exec(text))) ends.push(m.index + m[0].length);
+      const ends = [], starts = []; const re = /\S+/g; let m;
+      while ((m = re.exec(text))) { ends.push(m.index + m[0].length); starts.push(m.index); }
       const wps = 3.4 * NN.opts.textSpeed; // Wörter pro Sekunde
       const dur = Math.max(2.2, ends.length / wps + 1.5);
-      G.speech = { who, text, t: 0, ends, wps, dur, res, words: 0 };
+      const sp = G.speech = { who, text, t: 0, ends, starts, wps, dur, res, words: 0, tts: false, ttsDone: false, ttsChar: -1 };
+      // Sprachausgabe: Wörter erscheinen passend zur Stimme, Weiter erst nach dem Sprechen
+      sp.tts = NN.tts.speak(who, text, { onword: c => { sp.ttsChar = c; }, onend: () => { sp.ttsDone = true; } });
       if (who === 'pixel') pixel.talking = true;
     });
   }
 
   function endSpeech() {
     const s = G.speech; if (!s) return;
-    G.speech = null; pixel.talking = false; s.res();
+    G.speech = null; pixel.talking = false; NN.tts.cancel(); s.res();
   }
 
   // Anzahl bereits sichtbarer Wörter
-  const wordsShown = sp => Math.min(sp.ends.length, Math.floor(sp.t * sp.wps) + 1);
+  const wordsShown = sp => {
+    if (sp.tts) {
+      if (sp.ttsDone) return sp.ends.length;
+      if (sp.ttsChar >= 0) return Math.min(sp.ends.length, sp.starts.filter(x => x <= sp.ttsChar).length);
+      return 1; // Stimme hat noch nicht begonnen
+    }
+    return Math.min(sp.ends.length, Math.floor(sp.t * sp.wps) + 1);
+  };
   const speechDone = sp => wordsShown(sp) >= sp.ends.length;
 
   function updateSpeech(dt) {
     const s = G.speech; if (!s) return;
     s.t += dt;
     const n = wordsShown(s);
-    if (n > s.words) { s.words = n; NN.audio.blip(speaker(s.who).pitch); }
+    if (n > s.words) { s.words = n; if (!s.tts) NN.audio.blip(speaker(s.who).pitch); }
     if (s.who !== 'pixel') pixel.talking = false;
-    if (NN.opts.autoAdvance && s.t >= s.dur) endSpeech();
+    if (s.tts && !s.ttsDone && s.t > s.dur + 20) s.ttsDone = true; // Sicherung, falls die Stimme nie meldet
+    if (NN.opts.autoAdvance && (s.tts ? (s.ttsDone && s.t > 0.8) : s.t >= s.dur)) endSpeech();
   }
 
   function choose(options) {
@@ -926,7 +936,7 @@ window.NN = window.NN || {};
       if (c.hover >= 0) { const r = c.res; G.choices = null; NN.audio.click(); r(c.hover); }
       return;
     }
-    if (G.speech) { if (!speechDone(G.speech)) G.speech.t = G.speech.ends.length / G.speech.wps + 0.05; else endSpeech(); return; }
+    if (G.speech) { if (G.speech.tts) { if (G.speech.ttsDone) endSpeech(); else { NN.tts.cancel(); G.speech.ttsDone = true; } return; } if (!speechDone(G.speech)) G.speech.t = G.speech.ends.length / G.speech.wps + 0.05; else endSpeech(); return; }
     if (G.busy) return;
     if (G.editor && y < VH) {
       const p = toScene(x, y); G.editPts.push([Math.round(p[0]), Math.round(p[1])]); return;
