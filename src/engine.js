@@ -232,7 +232,7 @@ window.NN = window.NN || {};
     const dx = p.target[0] - p.x, dy = p.target[1] - p.y, d = Math.hypot(dx, dy);
     const speed = 330 * (depthScale(p.y) / (G.def.charScale || 1) / CHAR) * (G.def.space[0] / 1376);
     const step = speed * dt;
-    p.moving = true; p.t += dt;
+    p.moving = true; p.t += dt; p.dist = (p.dist || 0) + step;
     if (Math.abs(dy) > Math.abs(dx) * 1.7) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }
     if (d <= step) { p.x = p.target[0]; p.y = p.target[1]; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
     let nx = p.x + dx / d * step, ny = p.y + dy / d * step;
@@ -616,13 +616,15 @@ window.NN = window.NN || {};
     return h;
   }
 
+  const STRIDE = 20; // Szenen-Pixel pro Laufbild (ungefähr eine Schrittlänge geteilt durch 7 Bilder)
   function pixelSpriteName() {
     const p = pixel;
     if (p.anim) return p.anim;
     if (p.moving) {
-      if (p.vdir === 'up') return Math.floor(p.t * 6) % 2 ? 'walk_back' : 'idle_back';
-      if (p.vdir === 'down') return Math.floor(p.t * 6) % 2 ? 'walk_front' : 'stand_front';
-      return 'walk_' + (1 + Math.floor(p.t * 9) % 7);
+      const ph = (p.dist || 0) / (STRIDE * (G.def.space[0] / 1376));
+      if (p.vdir === 'up') return Math.floor(ph * 0.5) % 2 ? 'walk_back' : 'idle_back';
+      if (p.vdir === 'down') return Math.floor(ph * 0.5) % 2 ? 'walk_front' : 'stand_front';
+      return 'walk_' + (1 + Math.floor(ph) % 7);
     }
     if (p.talking && G.speech) return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
     if (p.dir === 'up') return 'idle_back';
@@ -638,7 +640,19 @@ window.NN = window.NN || {};
     const img = A.get(dirC + pre + name + '.png') || A.get(dirC + 'pixel_' + name + '.png') || A.get(dirC + pre + 'idle_front.png') || A.get(dirC + 'pixel_idle_front.png');
     const sc = depthScale(pixel.y) * G.view.fy;
     if (img) {
-      pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
+      if (pixel.moving && !pixel.anim && !NN.opts.reduceAnim) {
+        // Doppelschritt = ein Zyklus: Körper hüpft bei jedem Schritt, kippt leicht nach vorn und federt beim Aufsetzen
+        const ph = (pixel.dist || 0) / (STRIDE * (G.def.space[0] / 1376)) / 7 * Math.PI * 2 * 2;
+        const hop = Math.abs(Math.sin(ph / 2)), land = Math.pow(1 - hop, 6);
+        const dirSign = pixel.dir === 'left' ? -1 : pixel.dir === 'right' ? 1 : 0;
+        ctx.save();
+        ctx.translate(lx, ly - hop * 9 * sc * G.view.fy);
+        ctx.rotate(dirSign * 0.045 + Math.sin(ph / 2) * (dirSign ? 0.02 : 0.045));
+        ctx.scale(1 + land * 0.045, 1 - land * 0.05 + hop * 0.02);
+        ctx.translate(-lx, -ly);
+        pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
+        ctx.restore();
+      } else pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
     } else {
       ctx.fillStyle = '#ffb347'; ctx.fillRect(lx - 30, ly - 200 * sc, 60, 200 * sc); pixel.lastH = 200 * sc;
     }
