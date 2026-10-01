@@ -212,8 +212,8 @@ def build():
         out.append(f"- **Höhe:** {pct} % von Pixel\n")
         out.append("```\n" + prompt + "\n```\n")
         meta[k] = ["idle", "talk", "a", "b"]
-    (ROOT / "docs" / "prompts-npc-neu.md").write_text("\n".join(out), encoding="utf-8")
-    (ROOT / "tools" / "npc_poses.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
+    pass
+    pass
     print(len(ORDER), "Prompts geschrieben")
 
 

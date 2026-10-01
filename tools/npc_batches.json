@@ -1,0 +1,62 @@
+{
+ "01": [
+  "oma",
+  "rosi",
+  "bit"
+ ],
+ "02": [
+  "hugo",
+  "kurt",
+  "brezel"
+ ],
+ "03": [
+  "schaffner",
+  "bello",
+  "wuschel_defekt"
+ ],
+ "04": [
+  "wuschel_repariert",
+  "ratten",
+  "katze"
+ ],
+ "05": [
+  "ablage",
+  "kloss",
+  "gruenhorn"
+ ],
+ "06": [
+  "staub",
+  "schnipp",
+  "jackpot"
+ ],
+ "07": [
+  "mortimer",
+  "schraub",
+  "stefan"
+ ],
+ "08": [
+  "zeus",
+  "flimmer",
+  "tackert"
+ ],
+ "09": [
+  "klaus",
+  "sebastian",
+  "baron"
+ ],
+ "10": [
+  "zen",
+  "flughans",
+  "kabel"
+ ],
+ "11": [
+  "schicht",
+  "streikposten",
+  "kraken"
+ ],
+ "12": [
+  "kleo",
+  "teddy",
+  "teddy_sensor"
+ ]
+}
