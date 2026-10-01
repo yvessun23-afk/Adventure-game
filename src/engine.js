@@ -27,6 +27,7 @@ window.NN = window.NN || {};
   const speaker = who => (NN.speakers && NN.speakers[who]) || { color: '#ffffff', pitch: 1.1 };
 
   // ---------- Koordinaten ----------
+  const CHAR = 1.45; // globaler Größenfaktor für alle Figuren
   const L = (x, y) => [x * G.view.fx + G.view.ox, y * G.view.fy + G.view.oy];
   const toScene = (lx, ly) => [(lx - G.view.ox) / G.view.fx, (ly - G.view.oy) / G.view.fy];
   G.toLogical = L; G.toScene = toScene;
@@ -41,7 +42,7 @@ window.NN = window.NN || {};
 
   const depthScale = y => {
     const d = G.def.depth || { y0: 0, y1: 1, s0: 1, s1: 1 };
-    return U.lerp(d.s0, d.s1, U.clamp((y - d.y0) / (d.y1 - d.y0), 0, 1)) * (G.def.charScale || 1);
+    return U.lerp(d.s0, d.s1, U.clamp((y - d.y0) / (d.y1 - d.y0), 0, 1)) * (G.def.charScale || 1) * CHAR;
   };
 
   // ---------- Größe der Zeichenfläche (Grafik-Qualität, Fenster) ----------
@@ -126,7 +127,7 @@ window.NN = window.NN || {};
     if (p.anim) { p.animT -= dt; if (p.animT <= 0) p.anim = null; }
     if (!p.target) { p.moving = false; return; }
     const dx = p.target[0] - p.x, dy = p.target[1] - p.y, d = Math.hypot(dx, dy);
-    const speed = 330 * (depthScale(p.y) / (G.def.charScale || 1)) * (G.def.space[0] / 1376);
+    const speed = 330 * (depthScale(p.y) / (G.def.charScale || 1) / CHAR) * (G.def.space[0] / 1376);
     const step = speed * dt;
     p.moving = true; p.t += dt;
     if (Math.abs(dy) > Math.abs(dx) * 1.7) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }

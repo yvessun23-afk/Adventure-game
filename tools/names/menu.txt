@@ -1,0 +1,12 @@
+neues_spiel
+fortsetzen
+laden
+speichern
+optionen
+hilfe
+hauptmenue
+weiter
+zurueck
+tab_grafik
+tab_sound
+tab_text

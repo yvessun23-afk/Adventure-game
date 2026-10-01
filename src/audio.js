@@ -16,27 +16,27 @@ NN.audio = (function () {
   // Tiefe Drones, langsam aufschwellende Akkordflächen, sehr lange Hallfahnen, einzelne weite Melodielinien.
   // chords: bass = Basston (MIDI), notes = Flächen. lead = Tonvorrat für Melodielinien (leer = keine)
   const THEMES = {
-    warm: { cut: 620, pad: 0.05, sub: 0.17, chordSec: 18, lead: [74, 77, 79, 81, 84, 86], leadEvery: [10, 18], braam: [40, 70], glass: [14, 26],
+    warm: { cut: 620, pad: 0.05, sub: 0.17, chordSec: 26, lead: [74, 77, 79, 81, 84, 86], leadEvery: [10, 18], braam: [40, 70], glass: [14, 26],
       noise: 0.006, pulse: 0, chords: [
         { bass: 38, notes: [50, 57, 60, 64, 69] }, { bass: 34, notes: [46, 53, 57, 62, 64] },
         { bass: 31, notes: [43, 50, 58, 62, 65] }, { bass: 33, notes: [45, 52, 57, 62, 64] }] },
-    groove: { cut: 560, pad: 0.05, sub: 0.2, chordSec: 16, lead: [72, 75, 77, 80, 82, 84], leadEvery: [14, 26], braam: [28, 55], glass: [16, 30],
+    groove: { cut: 560, pad: 0.05, sub: 0.2, chordSec: 24, lead: [72, 75, 77, 80, 82, 84], leadEvery: [14, 26], braam: [28, 55], glass: [16, 30],
       noise: 0.008, pulse: 58, chords: [
         { bass: 29, notes: [41, 48, 53, 56, 60] }, { bass: 37, notes: [49, 53, 56, 60] },
         { bass: 34, notes: [46, 53, 58, 61] }, { bass: 36, notes: [48, 55, 60, 65] }] },
-    dark: { cut: 430, pad: 0.055, sub: 0.2, chordSec: 22, lead: [69, 72, 76, 79], leadEvery: [26, 44], braam: [45, 80], glass: [18, 34],
+    dark: { cut: 430, pad: 0.055, sub: 0.2, chordSec: 30, lead: [69, 72, 76, 79], leadEvery: [26, 44], braam: [45, 80], glass: [18, 34],
       noise: 0.012, pulse: 0, chords: [
         { bass: 33, notes: [45, 52, 57, 60] }, { bass: 29, notes: [41, 48, 55, 60] },
         { bass: 31, notes: [43, 50, 55, 62] }, { bass: 33, notes: [45, 52, 59, 64] }] },
-    lofi: { cut: 520, pad: 0.042, sub: 0.15, chordSec: 16, lead: [63, 67, 70, 72, 75, 79], leadEvery: [8, 15], braam: [60, 100], glass: [12, 20],
+    lofi: { cut: 520, pad: 0.042, sub: 0.15, chordSec: 24, lead: [63, 67, 70, 72, 75, 79], leadEvery: [8, 15], braam: [60, 100], glass: [12, 20],
       noise: 0.009, pulse: 66, epiano: true, chords: [
         { bass: 36, notes: [48, 55, 58, 62, 65] }, { bass: 41, notes: [53, 60, 63, 67] },
         { bass: 37, notes: [49, 56, 60, 63] }, { bass: 31, notes: [43, 53, 59, 63, 65] }] },
-    airy: { cut: 820, pad: 0.045, sub: 0.1, chordSec: 18, lead: [79, 81, 83, 86, 88, 91], leadEvery: [7, 13], braam: [60, 100], glass: [9, 18],
+    airy: { cut: 820, pad: 0.045, sub: 0.1, chordSec: 26, lead: [79, 81, 83, 86, 88, 91], leadEvery: [7, 13], braam: [60, 100], glass: [9, 18],
       noise: 0.01, pulse: 0, chords: [
         { bass: 43, notes: [55, 62, 66, 69, 74] }, { bass: 40, notes: [52, 59, 63, 66, 71] },
         { bass: 36, notes: [48, 55, 59, 64, 67] }, { bass: 38, notes: [50, 57, 61, 64, 69] }] },
-    pulse: { cut: 600, pad: 0.04, sub: 0.2, chordSec: 16, lead: [76, 79, 81, 83, 86], leadEvery: [12, 22], braam: [32, 60], glass: [14, 26],
+    pulse: { cut: 600, pad: 0.04, sub: 0.2, chordSec: 24, lead: [76, 79, 81, 83, 86], leadEvery: [12, 22], braam: [32, 60], glass: [14, 26],
       noise: 0.005, pulse: 72, chords: [
         { bass: 28, notes: [40, 47, 52, 55, 59] }, { bass: 36, notes: [48, 52, 55, 59] },
         { bass: 31, notes: [43, 50, 55, 59] }, { bass: 26, notes: [38, 45, 50, 54] }] }
@@ -71,8 +71,8 @@ NN.audio = (function () {
     musicBus = ctx.createGain(); sfxBus = ctx.createGain(); blipBus = ctx.createGain();
     [musicBus, sfxBus, blipBus].forEach(b => b.connect(master));
 
-    const conv = ctx.createConvolver(); conv.buffer = impulse(7, 2.1);
-    const revOut = ctx.createGain(); revOut.gain.value = 0.95;
+    const conv = ctx.createConvolver(); conv.buffer = impulse(10, 1.7);
+    const revOut = ctx.createGain(); revOut.gain.value = 1.1;
     reverbIn = ctx.createGain(); reverbIn.connect(conv); conv.connect(revOut); revOut.connect(master);
 
     // weiches Stereo-Echo
@@ -116,11 +116,11 @@ NN.audio = (function () {
     const key = THEME_OF[name] || 'warm', th = THEMES[key], t0 = ctx.currentTime;
     const s = { name, th, dry: ctx.createGain(), wetIn: ctx.createGain(), timer: null, chord: 0, alive: true, nodes: [],
       nextChord: t0 + 0.3, nextLead: t0 + rnd(th.leadEvery[0] * 0.5, th.leadEvery[0]), nextBraam: t0 + rnd(th.braam[0], th.braam[1]),
-      nextGlass: t0 + rnd(th.glass[0], th.glass[1]), nextPulse: t0 + 2, leadIdx: 2 };
-    s.dry.gain.value = 0.0001; s.dry.gain.linearRampToValueAtTime(1, t0 + 5);
+      nextGlass: t0 + rnd(th.glass[0], th.glass[1]), nextPulse: t0 + 2, nextRiser: t0 + rnd(22, 40), leadIdx: 2 };
+    s.dry.gain.value = 0.0001; s.dry.gain.linearRampToValueAtTime(1, t0 + 8);
     s.wetIn.gain.value = 1; s.dry._wet = s.wetIn; s.dry.connect(musicBus); s.wetIn.connect(reverbIn);
     const old = session; session = s;
-    if (old) stopSession(old, 5);
+    if (old) stopSession(old, 8);
     s.timer = setInterval(() => {
       if (!s.alive) return;
       const now = ctx.currentTime;
@@ -128,6 +128,7 @@ NN.audio = (function () {
       if (s.nextLead < now + 1) { lead(s, s.nextLead); s.nextLead += rnd(th.leadEvery[0], th.leadEvery[1]); }
       if (s.nextBraam < now + 1) { braam(s, s.nextBraam, th.chords[(s.chord + 3) % th.chords.length].bass); s.nextBraam += rnd(th.braam[0], th.braam[1]); }
       if (s.nextGlass < now + 1) { glass(s, s.nextGlass); s.nextGlass += rnd(th.glass[0], th.glass[1]); }
+      if (s.nextRiser < now + 1) { riser(s, s.nextRiser); s.nextRiser += rnd(45, 80); }
       if (th.pulse) while (s.nextPulse < now + 0.5) { thump(s, s.nextPulse, 0.13); s.nextPulse += 60 / th.pulse; }
     }, 120);
     ambience(s);
@@ -143,9 +144,9 @@ NN.audio = (function () {
 
   // Lange, langsam aufschwellende Akkordfläche mit Sub-Drone
   function pad(s, t, chord, dur) {
-    const th = s.th, filter = ctx.createBiquadFilter(), env = ctx.createGain(), att = 6, rel = 7;
-    filter.type = 'lowpass'; filter.frequency.value = th.cut; filter.Q.value = 1.1;
-    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.045 + Math.random() * 0.04; lg.gain.value = th.cut * 0.4;
+    const th = s.th, filter = ctx.createBiquadFilter(), env = ctx.createGain(), att = 10, rel = 11;
+    filter.type = 'lowpass'; filter.frequency.value = th.cut; filter.Q.value = 1.3;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.025 + Math.random() * 0.03; lg.gain.value = th.cut * 0.55;
     lfo.connect(lg); lg.connect(filter.frequency); lfo.start(t); lfo.stop(t + dur + rel + 1); s.nodes.push(lfo);
     env.gain.setValueAtTime(0.0001, t); env.gain.linearRampToValueAtTime(1, t + att); env.gain.setValueAtTime(1, t + dur - 1); env.gain.linearRampToValueAtTime(0.0001, t + dur + rel);
     chord.notes.forEach(n => {
@@ -155,7 +156,8 @@ NN.audio = (function () {
         o.connect(g); g.connect(filter); o.start(t); o.stop(t + dur + rel + 0.1); s.nodes.push(o);
       });
     });
-    filter.connect(env); emit(env, s.dry, 0.8, 0);
+    filter.connect(env); emit(env, s.dry, 1.2, 0.15);
+    shimmer(s, t, chord, dur);
     // Sub-Drone: tiefer Sinus plus rauere Oktave
     const bass = mtof(chord.bass), so = ctx.createOscillator(), sg = ctx.createGain(), go = ctx.createOscillator(), gg = ctx.createGain(), gf = ctx.createBiquadFilter();
     so.type = 'sine'; so.frequency.value = bass; go.type = 'sawtooth'; go.frequency.value = bass * 2; go.detune.value = 5;
@@ -164,6 +166,29 @@ NN.audio = (function () {
     gg.gain.setValueAtTime(0.0001, t); gg.gain.linearRampToValueAtTime(th.sub * 0.18, t + 6); gg.gain.setValueAtTime(th.sub * 0.18, t + dur - 1); gg.gain.linearRampToValueAtTime(0.0001, t + dur + 5);
     so.connect(sg); go.connect(gf); gf.connect(gg); emit(sg, s.dry, 0.08, 0); emit(gg, s.dry, 0.4, 0);
     so.start(t); go.start(t); so.stop(t + dur + 5.2); go.stop(t + dur + 5.2); s.nodes.push(so, go);
+  }
+
+  // Hohe, schimmernde Obertöne, die sehr langsam ein- und ausschwellen
+  function shimmer(s, t, chord, dur) {
+    const top = chord.notes.slice(-3);
+    top.forEach((n, i) => {
+      [12, 19].forEach(iv => {
+        const o = ctx.createOscillator(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain(), base = 0.009 / (i + 1);
+        o.type = 'sine'; o.frequency.value = mtof(n + iv); o.detune.value = rnd(-6, 6);
+        lfo.frequency.value = 0.05 + Math.random() * 0.08; lg.gain.value = base * 0.8; lfo.connect(lg); lg.connect(g.gain);
+        g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(base, t + 12); g.gain.setValueAtTime(base, t + dur - 2); g.gain.linearRampToValueAtTime(0.0001, t + dur + 10);
+        o.connect(g); emit(g, s.dry, 1.3, 0.5); o.start(t); lfo.start(t); o.stop(t + dur + 10.5); lfo.stop(t + dur + 10.5); s.nodes.push(o, lfo);
+      });
+    });
+  }
+
+  // Langer, dunkler Geräusch-Anstieg wie ein ferner Sturm
+  function riser(s, t) {
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), len = rnd(9, 14);
+    src.buffer = noiseBuf; f.type = 'bandpass'; f.Q.value = 1.4;
+    f.frequency.setValueAtTime(180, t); f.frequency.exponentialRampToValueAtTime(rnd(1400, 2600), t + len * 0.8); f.frequency.exponentialRampToValueAtTime(400, t + len);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.03, t + len * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    src.connect(f); f.connect(g); emit(g, s.dry, 1.3, 0.3); src.start(t, rnd(0, 1)); src.stop(t + len + 0.1);
   }
 
   // Tiefer, brassartiger Schwellklang, selten und leise
@@ -193,8 +218,8 @@ NN.audio = (function () {
       vib.frequency.value = 4.6; vg.gain.value = f * 0.004; vib.connect(vg); vg.connect(o1.frequency); vg.connect(o2.frequency);
       lp.type = 'lowpass'; lp.frequency.value = 2400; const g2 = ctx.createGain(); g2.gain.value = 0.4;
       o1.connect(g); o2.connect(g2); g2.connect(g); g.connect(lp);
-      g.gain.setValueAtTime(0.0001, tt); g.gain.linearRampToValueAtTime(0.06, tt + 0.35); g.gain.exponentialRampToValueAtTime(0.0001, tt + len);
-      emit(lp, s.dry, 0.95, 0.7);
+      g.gain.setValueAtTime(0.0001, tt); g.gain.linearRampToValueAtTime(0.05, tt + 0.9); g.gain.exponentialRampToValueAtTime(0.0001, tt + len);
+      emit(lp, s.dry, 1.3, 0.8);
       [o1, o2, vib].forEach(o => { o.start(tt); o.stop(tt + len + 0.1); });
       tt += rnd(2.6, 4.2);
     }
@@ -222,7 +247,7 @@ NN.audio = (function () {
   function ambience(s) {
     const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(), lfo = ctx.createOscillator(), lg = ctx.createGain();
     src.buffer = noiseBuf; src.loop = true; f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 0.6;
-    g.gain.value = s.th.noise; lfo.frequency.value = 0.03; lg.gain.value = 260; lfo.connect(lg); lg.connect(f.frequency);
+    g.gain.value = s.th.noise * 1.8; lfo.frequency.value = 0.02; lg.gain.value = 320; lfo.connect(lg); lg.connect(f.frequency);
     src.connect(f); f.connect(g); emit(g, s.dry, 0.4, 0); src.start(); lfo.start(); s.nodes.push(src, lfo);
   }
 

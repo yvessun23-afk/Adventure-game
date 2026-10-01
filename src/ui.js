@@ -40,6 +40,21 @@ NN.ui = (function () {
   }
   function on(sel, fn) { overlay.querySelectorAll(sel).forEach(el => el.addEventListener('click', e => { NN.audio.click(); fn(el, e); })); }
 
+  // ---------- Grafik-Buttons (optional): assets/sprites/ui/menu_<key>.png, sonst Textknopf ----------
+  const MENU_KEYS = ['neues_spiel', 'fortsetzen', 'laden', 'speichern', 'optionen', 'hilfe', 'hauptmenue', 'weiter', 'zurueck', 'tab_grafik', 'tab_sound', 'tab_text'];
+  const imgSrc = k => 'assets/sprites/ui/menu_' + k + '.png';
+  function preload() {
+    return Promise.all(MENU_KEYS.map(k => A.load(imgSrc(k))).concat([A.load('assets/sprites/ui/menu_panel.png')])).then(() => {
+      document.body.classList.toggle('gfx-panel', !!A.get('assets/sprites/ui/menu_panel.png'));
+    });
+  }
+  // key: Grafikname, label: Text-Fallback, attrs: z. B. 'data-a="new"', cls: zusätzliche Klassen
+  function B(key, label, attrs, cls) {
+    const img = key && A.get(imgSrc(key));
+    if (img) return `<button class="btn gimg ${cls || ''}" ${attrs || ''} aria-label="${esc(label)}"><img src="${imgSrc(key)}" alt="${esc(label)}" draggable="false"></button>`;
+    return `<button class="btn ${cls || ''}" ${attrs || ''}>${esc(label)}</button>`;
+  }
+
   // ---------- Titel ----------
   async function showTitle() {
     inGame = false; G.paused = true;
@@ -51,10 +66,10 @@ NN.ui = (function () {
     const latest = NN.latestSlot();
     open(`<div class="panel title">
       <div class="logo">NEON NOODLE</div><div class="sub">Der Fall der verschwundenen Nudelsuppe</div>
-      <button class="btn big primary" data-a="new">Neues Spiel</button>
-      ${latest ? '<button class="btn big" data-a="cont">Fortsetzen</button>' : ''}
-      <button class="btn big" data-a="load">Laden</button>
-      <button class="btn big" data-a="opts">Optionen</button>
+      ${B('neues_spiel', 'Neues Spiel', 'data-a="new"', 'big primary')}
+      ${latest ? B('fortsetzen', 'Fortsetzen', 'data-a="cont"', 'big') : ''}
+      ${B('laden', 'Laden', 'data-a="load"', 'big')}
+      ${B('optionen', 'Optionen', 'data-a="opts"', 'big')}
       <div class="muted small" style="margin-top:10px">Linksklick: gehen/benutzen · Rechtsklick: ansehen · Leertaste: Hotspots zeigen · Esc: Menü</div>
     </div>`, found ? 'clear title-art' : 'clear');
     on('[data-a=new]', () => { NN.audio.ensure(); playIntro(); });
@@ -112,12 +127,12 @@ NN.ui = (function () {
   function showMenu() {
     if (!inGame) return;
     open(`<div class="panel title"><h1>Menü</h1>
-      <button class="btn big primary" data-a="resume">Weiterspielen</button>
-      <button class="btn big" data-a="save">Speichern</button>
-      <button class="btn big" data-a="load">Laden</button>
-      <button class="btn big" data-a="opts">Optionen</button>
-      <button class="btn big" data-a="help">Hilfe</button>
-      <button class="btn big" data-a="main">Hauptmenü</button></div>`);
+      ${B('weiter', 'Weiterspielen', 'data-a="resume"', 'big primary')}
+      ${B('speichern', 'Speichern', 'data-a="save"', 'big')}
+      ${B('laden', 'Laden', 'data-a="load"', 'big')}
+      ${B('optionen', 'Optionen', 'data-a="opts"', 'big')}
+      ${B('hilfe', 'Hilfe', 'data-a="help"', 'big')}
+      ${B('hauptmenue', 'Hauptmenü', 'data-a="main"', 'big')}</div>`);
     on('[data-a=resume]', close);
     on('[data-a=save]', () => showSlots('save', showMenu));
     on('[data-a=load]', () => showSlots('load', showMenu));
@@ -172,10 +187,10 @@ NN.ui = (function () {
       return `<div class="row"><label>${c.label}</label><button class="btn" data-btn="${i}">${c.text}</button></div>`;
     }).join('');
     open(`<div class="panel wide"><h1>Optionen</h1>
-      <div class="tabs">${Object.keys(SCHEMA).map(t => `<button class="btn ${t === tab ? 'on' : ''}" data-tab="${t}">${TAB_NAMES[t]}</button>`).join('')}</div>
+      <div class="tabs">${Object.keys(SCHEMA).map(t => B('tab_' + t, TAB_NAMES[t], `data-tab="${t}"`, t === tab ? 'on' : '')).join('')}</div>
       ${rows}
       ${tab === 'text' ? '<h2>Vorschau</h2><div class="tpreview" id="tpv"><div class="tptext"></div><div class="who">So sieht der Text im Spiel aus (Hintergrund: Imbiss)</div></div><button class="btn" data-a="replay">Vorschau neu starten</button>' : ''}
-      <div style="margin-top:14px"><button class="btn primary" data-a="back">Zurück</button><button class="btn" data-a="reset">Standard wiederherstellen</button></div></div>`);
+      <div style="margin-top:14px">${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<button class="btn" data-a="reset">Standard wiederherstellen</button></div></div>`);
     on('[data-tab]', el => showOptions(el.dataset.tab, back));
     if (tab === 'text') { on('[data-a=replay]', startPreview); startPreview(); }
     on('[data-a=back]', () => (back ? back() : close()));
@@ -209,7 +224,7 @@ NN.ui = (function () {
         <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>⭱</button></div></div>`);
     }
     open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>${items.join('')}
-      <button class="btn primary" data-a="back">Zurück</button><input type="file" id="importfile" accept=".neonsave,.json" hidden></div>`);
+      ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<input type="file" id="importfile" accept=".neonsave,.json" hidden></div>`);
     on('[data-a=back]', () => (back ? back() : close()));
     on('[data-save]', el => {
       const slot = +el.dataset.save;
@@ -240,7 +255,7 @@ NN.ui = (function () {
     const S = NN.S;
     const open_ = NN.hints.filter(h => !h.done(S));
     const cur = open_[0];
-    if (!cur) { open('<div class="panel"><h1>Hilfe</h1><p>Alles erledigt! Keine offenen Rätsel.</p><button class="btn primary" data-a="back">Zurück</button></div>'); on('[data-a=back]', close); return; }
+    if (!cur) { open(`<div class="panel"><h1>Hilfe</h1><p>Alles erledigt! Keine offenen Rätsel.</p>${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}</div>`); on('[data-a=back]', close); return; }
     const tier = S.hintTier[cur.id] || 0;
     const labels = ['Hinweis zeigen', 'Ansatz zeigen', 'Lösung zeigen'];
     const shown = cur.tiers.slice(0, tier).map((t, i) => `<div class="hint"><b>${['Hinweis', 'Ansatz', 'Lösung'][i]}:</b> ${esc(t)}</div>`).join('');
@@ -250,7 +265,7 @@ NN.ui = (function () {
       ${shown}
       ${tier < 3 ? `<button class="btn primary" data-a="more">${labels[tier]}</button>` : ''}
       <button class="btn" data-a="spots">Hotspots zeigen</button>
-      <button class="btn" data-a="back">Zurück</button></div>`);
+      ${B('zurueck', 'Zurück', 'data-a="back"')}</div>`);
     on('[data-a=more]', () => { S.hintTier[cur.id] = tier + 1; showHelp(); });
     on('[data-a=spots]', () => { G.hintFlash = 5; close(); });
     on('[data-a=back]', () => (inGame ? close() : showTitle()));
@@ -272,7 +287,7 @@ NN.ui = (function () {
         ${locs.map(l => `<button class="pin ${cur && cur.scene === l.scene ? 'here' : ''} ${travel || (cur && cur.scene === l.scene) ? '' : 'locked'}" data-scene="${l.scene}" style="left:${l.x * 100}%;top:${l.y * 100}%">${esc(l.name)}</button>`).join('')}
       </div>
       <p class="muted small">${locs.length ? 'Orte erscheinen, sobald du sie besucht hast.' : 'Hier warst du noch nie.'} ${travel ? 'Klicke einen Ort, um dorthin zu reisen.' : 'Schnellreise ist noch nicht freigeschaltet. Krümel braucht erst wieder Strom.'}</p>
-      <button class="btn primary" data-a="back">Zurück</button></div>`);
+      ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}</div>`);
     const cv = overlay.querySelector('.map canvas');
     cv.width = 900; cv.height = 506;
     const c2 = cv.getContext('2d');
@@ -290,11 +305,11 @@ NN.ui = (function () {
 
   function showActEnd(title, text, done) {
     open(`<div class="panel title"><h1>${esc(title)}</h1><p>${esc(text)}</p>
-      <button class="btn big primary" data-a="ok">Weiter</button></div>`);
+      ${B('weiter', 'Weiter', 'data-a="ok"', 'big primary')}</div>`);
     on('[data-a=ok]', () => { close(); if (done) done(); });
   }
 
   G.onMenu = showMenu; G.onHelp = showHelp; G.onMap = showMap;
 
-  return { showTitle, showMenu, showOptions, showSlots, showHelp, showMap, showActEnd, close, open };
+  return { preload, showTitle, showMenu, showOptions, showSlots, showHelp, showMap, showActEnd, close, open };
 })();

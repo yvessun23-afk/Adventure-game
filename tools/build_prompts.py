@@ -432,7 +432,7 @@ SHEETS = [
     npc_sheet("NPC-Sheet Akt 2 (12 Figuren, je ruhig und sprechend)", "assets/raw/sheet_npc_akt2.png",
               "ref_01_pixel_turnaround.png, sheet_npc_akt1.png", npc2),
     npc_sheet("NPC-Sheet Akt 3 (12 Figuren, je ruhig und sprechend)", "assets/raw/sheet_npc_akt3.png",
-              "sheet_npc_akt1.png, ende_03.png, ende_01.png (zuletzt anhängen: Kleo und Teddy-Bot)", npc3),
+              "sheet_npc_akt1.png, ende_01.png, ende_03.png", npc3),
     sheet_items("Item-Sheet Akt 2 (20 Gegenstände)", "assets/raw/sheet_items_akt2.png", items2, 5, 4),
     sheet_items("Item-Sheet Akt 3 (9 Gegenstände)", "assets/raw/sheet_items_akt3.png", items3, 3, 3),
     sheet_props("Props Akt 2 (18 Szenen-Objekte)", "assets/raw/sheet_props_akt2.png", props2, "sheet_props_akt1.png, bg_13_plaza.png"),
@@ -486,6 +486,96 @@ def write_missing():
     print(f"{len(allp)} fehlende Prompts nach {path.relative_to(ROOT)} geschrieben.")
 
 
+# ---------- Menü-Grafiken ----------
+MENU_LABELS = ["NEUES SPIEL", "FORTSETZEN", "LADEN", "SPEICHERN", "OPTIONEN", "HILFE", "HAUPTMENÜ", "WEITER", "ZURÜCK", "GRAFIK", "SOUND", "TEXT"]
+MENU = [
+    dict(title="Menü-Buttons (12 Schilder mit Text)", path="assets/raw/sheet_menu_buttons.png", fmt=FORMAT_SHEET,
+         refs="titel.png, sheet_ui.png",
+         prompt=(SHEET_HEAD.format(cols=3, rows=4, n=12).replace("one item", "one wide menu button plate").replace("Same scale for all items.", "All plates have exactly the same size, shape and proportions (a wide rounded rectangle about four times wider than tall).") +
+                 " Each plate is a glowing neon sign mounted on a dark metal board with a thick dark outline, chunky rounded neon-tube letters in white-hot cyan, magenta or amber with a soft inner glow that stays INSIDE the plate. "
+                 "The text is centered, large and perfectly readable, in capital letters, spelled exactly as given, with correct umlauts. No glow or halo outside the plate outline. Plates in order, with the exact text on each: " +
+                 ", ".join(f"{i + 1} \"{t}\"" for i, t in enumerate(MENU_LABELS)) +
+                 ". Plates 1 to 9 are main menu buttons with a magenta frame; plates 10 to 12 are slightly smaller tab buttons with a cyan frame.\n\n" + STIL)),
+    dict(title="Menü-Rahmen (Fenster für Optionen, Speichern, Pause)", path="assets/raw/menu_panel.png", fmt="1:1 (square), highest resolution (2K)",
+         refs="titel.png, sheet_ui.png",
+         prompt=("One single ornate rectangular window frame for a game menu, drawn on a perfectly flat solid pure green (#00FF00) background, centered, filling about 90 percent of the image, perfectly symmetrical left to right and top to bottom. "
+                 "The frame is a dark metal border with a glowing neon tube line (cyan outer line, magenta inner line), riveted corners with small cyberpunk decorations (cables, tiny lights, little noodle-bowl emblem in each corner), and a thick dark outline. "
+                 "The straight edges between the corners are plain and uniform so they can be stretched. The inside of the frame is a flat, calm, dark violet surface (#1a1030) with only a very subtle painterly texture and no pattern, no text, no icons, so that menu text can be placed on top. "
+                 "No green anywhere inside the frame, no glow or halo outside the outer outline, no shadow, no text.\n\n" + STIL)),
+]
+
+ROLES = {
+    "ref_01_pixel_turnaround.png": "the main character PIXEL (copy her look exactly)",
+    "ref_02_kruemel.png": "the flying toaster drone KRÜMEL (copy his look exactly)",
+    "ref_03_stil_nudelgasse.png": "the overall art style, color palette, line weight and level of detail",
+    "bg_01_zhangs_imbiss.png": "the interior style, lighting and the look of Zhang's noodle shop",
+    "bg_02_nudelgasse.png": "the street and building style of the game world",
+    "bg_13_plaza.png": "the style of the Mid-Heights environment (match it)",
+    "bg_26_promenade.png": "the style of the Upper-Heights environment (match it)",
+    "sheet_pixel.png": "Pixel's proportions and poses (match the style and scale)",
+    "sheet_npc_akt1.png": "the style, proportions and scale of the non-player characters",
+    "sheet_items_akt1.png": "the style of the inventory item icons",
+    "sheet_props_akt1.png": "the style and scale of scene objects",
+    "sheet_ui.png": "the style of the game's user interface elements",
+    "map_unterstadt.png": "the exact map style, border, parchment look and compass rose",
+    "intro_02.png": "the style and mood of the city illustrations",
+    "titel.png": "the title artwork: neon colors, letter style and mood",
+    "ende_01.png": "the exact design of KLEO (hologram girl with pigtails, headphones, dark NC hoodie) and TEDDY-BOT (patched plush teddy robot)",
+    "ende_03.png": "the exact designs of Pixel, Krümel, Oma Zhang, Kleo and Teddy-Bot in the final scene",
+}
+
+def parse_refs(refs):
+    import re
+    out = []
+    for part in refs.split(","):
+        name = re.sub(r"\(.*?\)", "", part).strip().replace(" oder intro_02.png", "")
+        if name:
+            out.append(name)
+    return out
+
+def with_refs(a):
+    files = parse_refs(a["refs"])
+    lines = [f"Image {i + 1} ({f}): use it for {ROLES.get(f, 'the art style')}." for i, f in enumerate(files)]
+    head = "ATTACHED REFERENCE IMAGES (attach them in exactly this order):\n" + "\n".join(lines) + "\nFollow the references closely. Now create the following image.\n\n"
+    return a, files, head + a["prompt"]
+
+def write_missing_v2():
+    allp = (MISSING + MENU + ACT2 + MAPS[:1] + SHEETS[:1] + SHEETS[2:3] + SHEETS[4:5] + SHEETS[6:7] +
+            ACT3 + MAPS[1:] + SHEETS[1:2] + SHEETS[3:4] + SHEETS[5:6] + SHEETS[7:8])
+    out = [INTRO_NOTE_V2]
+    for i, a in enumerate(allp, start=1):
+        _, files, full = with_refs(a)
+        out.append(f"## {i}. {a['title']}\n")
+        out.append(f"- **Speichern als:** `{a['path']}`")
+        out.append(f"- **Format:** {a['fmt']}")
+        out.append("- **Referenzbilder (in dieser Reihenfolge anhängen):** " + (", ".join(f"`{f}`" for f in files) if files else "keine") + "\n")
+        out.append("```\n" + full + "\n```\n")
+    path = ROOT / "docs" / "prompts-fehlend.md"
+    path.write_text("\n".join(out), encoding="utf-8")
+    print(f"{len(allp)} fehlende Prompts nach {path.relative_to(ROOT)} geschrieben.")
+
+INTRO_NOTE_V2 = """\\
+# Bild-Prompts: alles, was noch fehlt
+
+**Jeder Block ist komplett.** Der Text enthält vorne schon die Liste der Referenzbilder („Image 1 = …“). Du kopierst den ganzen Block und hängst die Bilder in der genannten Reihenfolge an.
+
+Fertig sind: `ref_01` bis `ref_03`, `bg_01` bis `bg_12`, Sheets für Pixel, Krümel, NPC Akt 1, Items Akt 1, Props Akt 1 und UI, Karte Unter-Heights, `titel`, `intro_02`, `intro_07`, `ende_01` bis `ende_03`.
+
+**Reihenfolge-Empfehlung**
+1. Intro-Bilder 01, 03 bis 06 und die Menü-Grafiken (klein, schnell, sofort im Spiel sichtbar).
+2. Akt 2: Hintergründe, Karte, danach die Sheets (Props zuletzt, erst nach den Hintergründen).
+3. Akt 3 genauso.
+
+**Regeln**
+- Neuer Chat pro Bild, 16:9, höchste Auflösung (außer es steht ein anderes Format dabei).
+- Speichere nur den Namen ohne `.png`, wenn dein System die Endung ergänzt.
+- Schilder: kurze deutsche Wörter in Großbuchstaben klappen meist. Bei Fehlern im selben Chat korrigieren („Change the sign to read …“).
+- Bei Sheets hält die KI das Raster nicht immer ein. Das ist okay, ich erkenne die Figuren automatisch.
+
+---
+
+"""
+
 def main():
     out = [ORDER_NOTE]
     for i, a in enumerate(ASSETS, start=1):
@@ -497,7 +587,7 @@ def main():
     path = ROOT / "docs" / "prompts-akt1.md"
     path.write_text("\n".join(out), encoding="utf-8")
     print(f"{len(ASSETS)} Prompts nach {path.relative_to(ROOT)} geschrieben.")
-    write_missing()
+    write_missing_v2()
 
 
 if __name__ == "__main__":
