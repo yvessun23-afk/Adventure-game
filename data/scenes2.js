@@ -419,7 +419,10 @@
     walk: [[200, 768], [1376, 768], [1376, 690], [1150, 620], [900, 592], [700, 582], [500, 602], [380, 682]],
     depth: D(590, 768, 0.65, 1.0),
     spawns: { default: [700, 700], schrottplatz: [700, 700], pumpe: [830, 700] },
-    props: [{ if: S => S.flags.kanal_offen, draw: () => NN.drawProp('kanaldeckel_offen', 828, 668, 330) }],
+    props: [
+      { draw: () => NN.drawProp('kanalgitter_zu', 500, 512, 390) }, // verschlossenes Gitter vor dem Rohr (erst nach Erzeugen des Bildes sichtbar)
+      { if: S => S.flags.kanal_offen, draw: () => NN.drawProp('kanaldeckel_offen', 828, 668, 330) }
+    ],
     exits: [
       bottom('Schrottplatz', 'schrottplatz', 'kanal', 700),
       { id: 'ex_pumpe', name: 'In den Pumpenraum', if: S => S.flags.kanal_offen, poly: R(690, 560, 970, 665), walkTo: [830, 660], to: 'pumpenraum', spawn: 'kanal', arrow: 'down' }
