@@ -143,7 +143,7 @@
     bgStates: [
       { if: S => true, tiers: 'bg_15_kantine_sauber' }
     ],
-    walk: [[0, 768], [700, 768], [650, 725], [540, 620], [430, 530], [340, 450], [230, 425], [0, 425]],
+    walk: [[0, 768], [700, 768], [650, 725], [540, 665], [400, 645], [0, 640]],
     depth: D(425, 768, 0.45, 0.95),
     spawns: { default: [400, 700], plaza: [400, 700] },
     actors: [{ id: 'kloss', name: 'Chef Kloß', x: 500, y: 650, sprite: 'kloss', flip: true, h: 230 }],
@@ -212,7 +212,7 @@
   NN.scenes.bueros = {
     id: 'bueros', name: 'Großraumbüro', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_16_bueros' }, music: 'mus_konzern',
-    walk: [[0, 768], [380, 768], [420, 710], [370, 620], [320, 540], [260, 470], [150, 430], [0, 445]],
+    walk: [[0, 768], [380, 768], [420, 710], [360, 650], [250, 600], [0, 590]],
     depth: D(430, 768, 0.45, 0.95),
     spawns: { default: [220, 700], lobby: [220, 700] },
     exits: [bottom('Zurück zum Fahrstuhl', 'lobby', 'bueros', 200)],

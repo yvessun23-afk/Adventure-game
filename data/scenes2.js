@@ -96,14 +96,14 @@
     bgStates: [
       { if: S => S.flags.hinterzimmer_offen, tiers: 'bg_04_bar_tuer_offen' }
     ],
-    walk: [[40, 768], [1376, 768], [1376, 690], [1290, 625], [1100, 612], [300, 622], [120, 690]],
+    walk: [[40, 768], [1376, 768], [1376, 700], [1290, 668], [1100, 658], [300, 664], [120, 705]],
     depth: D(610, 768, 0.72, 1.05),
-    spawns: { default: [1030, 730], nudelgasse: [1030, 730], hinterzimmer: [1190, 660] },
+    spawns: { default: [1030, 730], nudelgasse: [1030, 730], hinterzimmer: [1190, 690] },
     actors: [{ id: 'bit', name: 'Bit', x: 640, y: 600, drawY: 503, clipPoly: [[0, 0], [1376, 0], [1376, 501], [0, 497]], sprite: 'bit', h: 244, after: bitAfter }],
     exits: [bottom('Nudelgasse', 'nudelgasse', 'bar', 1030)],
     hotspots: [
       {
-        id: 'bit', name: 'Bit', poly: R(560, 290, 730, 515), walkTo: [640, 660], facing: 'up',
+        id: 'bit', name: 'Bit', poly: R(560, 290, 730, 515), walkTo: [640, 690], facing: 'up',
         look: 'Bit, der Barkeeper. Sein Eimer-Kopf blinkt. Er nimmt alles wörtlich.',
         use: async g => {
           if (g.get('bit_wartet')) return g.say('pixel', 'Bit lädt noch. 61 %. Besser nicht stören.');
@@ -133,7 +133,7 @@
         useWith: { _default: async g => g.say('bit', 'Danke für das Geschenk! Ich stelle es neben die anderen Dinge, die ich nicht verstehe.') }
       },
       {
-        id: 'personal', name: 'Tür „Personal“', poly: R(1120, 330, 1265, 615), walkTo: [1190, 660], facing: 'up',
+        id: 'personal', name: 'Tür „Personal“', poly: R(1120, 330, 1265, 615), walkTo: [1190, 690], facing: 'up',
         look: 'Eine schwere Metalltür mit der Aufschrift „PERSONAL“. Dahinter kann nur Wichtiges liegen. Oder Wäsche.',
         use: async g => {
           if (!g.get('hinterzimmer_offen')) return g.say('pixel', 'Zu. Und Bit guckt mich an. Ich muss ihn irgendwie loswerden.');
