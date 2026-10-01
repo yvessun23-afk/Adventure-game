@@ -127,7 +127,7 @@ window.NN = window.NN || {};
   }
 
   G.loading = false;
-  G.enterScene = async function (id, spawn) {
+  G.enterScene = async function (id, spawn, defer) {
     const def = NN.scenes[id];
     if (!def) throw new Error('Unbekannte Szene: ' + id);
     cancelWalk(); G.speech = null; G.choices = null; G.hover = null;
@@ -145,8 +145,9 @@ window.NN = window.NN || {};
     G.tok++;
     G.lastLoadMs = Math.round(performance.now() - t0);
     setTimeout(() => { warmNeighbors(def); warmAll(); }, 400);
-    if (def.onEnter && !G.loadedFromSave) { G.busy = true; try { await def.onEnter(api); } catch (e) { console.error(e); } G.busy = false; }
-    G.loadedFromSave = false;
+    const run = async () => { if (def.onEnter && !G.loadedFromSave) { G.busy = true; try { await def.onEnter(api); } catch (e) { console.error(e); } G.busy = false; } G.loadedFromSave = false; };
+    if (defer) return run;
+    await run();
   };
 
   G.reloadBg = async function () {
@@ -158,10 +159,11 @@ window.NN = window.NN || {};
   G.changeScene = async function (id, spawn) {
     G.busy = true; NN.audio.whoosh();
     await fade(1, 0.16);
-    await G.enterScene(id, spawn);
-    G.busy = false;
+    const run = await G.enterScene(id, spawn, true);
     await fade(0, 0.2);
     NN.saveGame(0, null);
+    await run();
+    G.busy = false;
   };
 
   const fade = (to, sec) => new Promise(res => {
@@ -670,13 +672,22 @@ window.NN = window.NN || {};
       ctx.fillStyle = '#ffd27a'; ctx.textBaseline = 'middle'; ctx.fillText(G.toast.text, W / 2, 55);
       ctx.restore();
     }
+    // Ausgewähltes Item als Mauszeiger
+    if (G.selected && G.selected !== 'kruemel' && G.mouse.y < H) {
+      const img = A.get('assets/sprites/items/' + G.selected + '.png');
+      if (img) {
+        const k = Math.min(110 / img.width, 110 / img.height), w = img.width * k, h = img.height * k;
+        ctx.save(); ctx.shadowColor = NEON.amber; ctx.shadowBlur = 18; ctx.globalAlpha = 0.95;
+        ctx.drawImage(img, G.mouse.x - w / 2, G.mouse.y - h / 2, w, h); ctx.restore();
+      }
+    }
     // Label unter dem Mauszeiger
     if (G.hover && G.mouse.y < VH && !G.choices) {
       let label = G.hover.obj.name;
       if (G.selected) label = 'Benutze ' + (G.selected === 'kruemel' ? 'Krümel' : NN.items[G.selected].name) + ' mit ' + label;
       else if (G.hover.kind === 'exit') label = '→ ' + label;
       ctx.save(); ctx.font = font(34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const w = ctx.measureText(label).width + 36, x = U.clamp(G.mouse.x, w / 2 + 10, W - w / 2 - 10), y = Math.max(40, G.mouse.y - 50);
+      const w = ctx.measureText(label).width + 36, x = U.clamp(G.mouse.x, w / 2 + 10, W - w / 2 - 10), y = Math.max(40, G.mouse.y - (G.selected ? 90 : 50));
       ctx.fillStyle = 'rgba(12,6,28,0.85)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 26, w, 52, 12); ctx.fill();
       ctx.fillStyle = '#fff'; ctx.fillText(label, x, y); ctx.restore();
     } else if (!G.hover && G.selected && G.mouse.y < VH) {
@@ -753,6 +764,7 @@ window.NN = window.NN || {};
     }
     G.hover = G.mouse.y < VH && !G.choices ? hitTest(...toScene(G.mouse.x, G.mouse.y)) : null;
     canvas.classList.toggle('cur-hot', !!G.hover || (G.mouse.y >= VH));
+    canvas.classList.toggle('cur-item', !!G.selected && G.selected !== 'kruemel' && !!A.get('assets/sprites/items/' + G.selected + '.png'));
   });
 
   canvas.addEventListener('contextmenu', e => e.preventDefault());

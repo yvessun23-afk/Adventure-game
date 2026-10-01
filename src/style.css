@@ -15,6 +15,7 @@ body.size-s { --fs: .85; } body.size-m { --fs: 1; } body.size-l { --fs: 1.2; } b
 #game { background: #000; image-rendering: auto; cursor: default; }
 #game.pixelated { image-rendering: pixelated; }
 #game.cur-hot { cursor: pointer; }
+#game.cur-item { cursor: none; }
 body.fx-neon #game { filter: saturate(1.3) contrast(1.06) brightness(1.03); }
 body.fx-crt #game { filter: saturate(1.15) contrast(1.05); }
 #crt { position: absolute; pointer-events: none; display: none; }
