@@ -180,7 +180,7 @@ NN.sceneHelpers = {
         }
       },
       {
-        id: 'bello', name: 'Bello-5000', poly: R(690, 540, 810, 650), walkTo: [660, 700], facing: 'right',
+        id: 'bello', name: 'Bello-5000', if: S => !S.flags.bello_weg, poly: R(690, 540, 810, 650), walkTo: [660, 700], facing: 'right',
         look: 'Bello-5000, Wachhund der Schrottplatz-Mafia. Sein Schwanz wedelt so heftig, dass er Strom erzeugt.',
         use: async g => { await g.say('bello', 'Wuff! (Übersetzung: Spiel mit mir oder verschwinde.)'); await g.say('pixel', 'Ich brauche etwas zum Werfen. Stöckchen, Stab, irgendwas Langes.'); },
         useWith: {
