@@ -210,7 +210,7 @@ window.NN = window.NN || {};
   function blockers() {
     return (G.def.actors || []).filter(a => a.sprite && a.solid !== false && (!a.hide || !a.hide(NN.S))).map(a => {
       const ds = depthScale(a.y) * (a.scale || 1), w = (a.h ? a.h * 0.8 : 200) * ds;
-      return { x: a.x, y: a.y, rx: Math.max(34, w * 0.34), ry: Math.max(14, 20 * ds) };
+      return { x: a.x, y: a.drawY ?? a.y, rx: Math.max(34, w * 0.34), ry: Math.max(14, 20 * ds) };
     });
   }
   function steer(px, py, nx, ny, tx) {
@@ -268,7 +268,7 @@ window.NN = window.NN || {};
     if (who === 'pixel') { const [x, y] = L(pixel.x, pixel.y); return { x, top: y - pixel.lastH - 10 }; }
     if (who === 'kruemel') return { x: kru.x, top: kru.y - (kru.h || 100) * 0.5 - 20 };
     const a = (G.def.actors || []).find(o => o.id === who);
-    if (a) { const [x, y] = L(a.x, a.y); return { x, top: y - (a.h || 180) * depthScale(a.y) * G.view.fy - 14 }; }
+    if (a) { const [x, y] = L(a.x, a.drawY ?? a.y); return { x, top: y - (a.h || 180) * depthScale(a.y) * (a.scale || 1) * G.view.fy - 14 }; }
     return { x: W / 2, top: 220 };
   }
 
@@ -645,7 +645,7 @@ window.NN = window.NN || {};
   }
 
   function drawNpc(a) {
-    const [lx, ly] = L(a.x, a.y);
+    const [lx, ly] = L(a.x, a.drawY ?? a.y);
     const sc = depthScale(a.y) * G.view.fy * (a.scale || 1);
     if (!a.sprite) { a.draw(ctx, lx, ly, sc); return; }
     const base = typeof a.sprite === 'function' ? a.sprite(NN.S) : a.sprite;
@@ -665,7 +665,8 @@ window.NN = window.NN || {};
     if (!img) return;
     a.h = img.height * (a.scale || 1);
     ctx.save();
-    if (a.clipY) { ctx.beginPath(); ctx.rect(0, 0, W, L(0, a.clipY)[1]); ctx.clip(); }
+    if (a.clipPoly) { ctx.beginPath(); a.clipPoly.forEach((q, i) => { const [cx, cy] = L(q[0], q[1]); i ? ctx.lineTo(cx, cy) : ctx.moveTo(cx, cy); }); ctx.closePath(); ctx.clip(); }
+    else if (a.clipY) { ctx.beginPath(); ctx.rect(0, 0, W, L(0, a.clipY)[1]); ctx.clip(); }
     // Sprech- und Ruhebild an den Füßen ausrichten und auf gleiche Körpergröße bringen (kein Springen)
     const speaking = G.speech && G.speech.who === a.id, t = G.time, ph = [...String(a.id)].reduce((q, ch) => q + ch.charCodeAt(0), 0);
     if (!NN.opts.reduceAnim) { // dezente Bewegung: Atmen und Wiegen, beim Sprechen lebhafter
@@ -674,7 +675,7 @@ window.NN = window.NN || {};
       ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br - amp * 0.008, 1 + 0.011 * br + amp * 0.014); ctx.translate(-lx, -ly);
     }
     const fitKey = suffix === '_talk' ? base : base + suffix, fit = suffix !== '_idle' && NN.npcFit && NN.npcFit[fitKey] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[fitKey] : 1;
-    drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY, true);
+    drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY && !a.clipPoly, true);
     ctx.restore();
     if (a.after) a.after(ctx, lx, ly - img.height * sc, sc, NN.S);
   }
@@ -701,7 +702,7 @@ window.NN = window.NN || {};
     });
     // Figuren nach Tiefe sortiert
     const list = [{ y: pixel.y, draw: drawPixel }, { y: pixel.y - 0.5, draw: drawKruemel }]; // Krümel direkt hinter Pixel
-    (def.actors || []).forEach(a => { if (!a.hide || !a.hide(NN.S)) list.push({ y: a.y, draw: () => drawNpc(a) }); });
+    (def.actors || []).forEach(a => { if (!a.hide || !a.hide(NN.S)) list.push({ y: a.drawY ?? a.y, draw: () => drawNpc(a) }); });
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
     if (G.scan > 0 && !A.get(KRU + 'scan_a.png')) {
       const a = Math.min(1, G.scan);

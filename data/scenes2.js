@@ -99,7 +99,7 @@
     walk: [[40, 768], [1376, 768], [1376, 690], [1290, 625], [1100, 612], [300, 622], [120, 690]],
     depth: D(610, 768, 0.72, 1.05),
     spawns: { default: [1030, 730], nudelgasse: [1030, 730], hinterzimmer: [1190, 660] },
-    actors: [{ id: 'bit', name: 'Bit', x: 640, y: 600, clipY: 512, sprite: 'bit', h: 244, after: bitAfter }],
+    actors: [{ id: 'bit', name: 'Bit', x: 640, y: 600, drawY: 503, clipPoly: [[0, 0], [1376, 0], [1376, 501], [0, 497]], sprite: 'bit', h: 244, after: bitAfter }],
     exits: [bottom('Nudelgasse', 'nudelgasse', 'bar', 1030)],
     hotspots: [
       {
@@ -217,7 +217,7 @@
     walk: [[120, 768], [1376, 768], [1376, 660], [1230, 600], [950, 590], [560, 572], [330, 602], [180, 680]],
     depth: D(570, 768, 0.6, 1.0),
     spawns: { default: [700, 700], nudelgasse: [700, 700], bahnhof: [1220, 610] },
-    actors: [{ id: 'hugo', name: 'Hehler-Hugo', x: 735, y: 600, clipY: 482, sprite: 'hugo', h: 241 }],
+    actors: [{ id: 'hugo', name: 'Hehler-Hugo', x: 735, y: 600, scale: 0.78, drawY: 480, clipPoly: [[0, 0], [1376, 0], [1376, 474], [860, 474], [570, 476], [0, 476]], sprite: 'hugo', h: 241 }],
     exits: [
       bottom('Nudelgasse', 'nudelgasse', 'basar', 700),
       { id: 'ex_bahn', name: 'Magnetbahn-Station', poly: R(1110, 250, 1330, 540), walkTo: [1220, 610], to: 'bahnhof', spawn: 'basar', arrow: 'right' }
@@ -328,7 +328,7 @@
     walk: [[100, 768], [1376, 768], [1376, 690], [1200, 650], [900, 612], [650, 592], [450, 602], [300, 642], [120, 722]],
     depth: D(590, 768, 0.65, 1.0),
     spawns: { default: [650, 700], nudelgasse: [650, 700] },
-    actors: [{ id: 'brezel', name: 'Brezel', x: 1000, y: 600, clipY: 497, sprite: 'brezel', h: 245 }],
+    actors: [{ id: 'brezel', name: 'Brezel', x: 1000, y: 600, drawY: 474, clipPoly: [[0, 0], [1376, 0], [1376, 474], [1090, 474], [1000, 468], [900, 467], [780, 482], [0, 482]], sprite: 'brezel', h: 245 }],
     exits: [bottom('Nudelgasse', 'nudelgasse', 'baeckerei', 650)],
     hotspots: [
       {

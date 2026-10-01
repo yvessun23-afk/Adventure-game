@@ -98,7 +98,7 @@
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 640], [980, 590], [720, 560], [500, 565], [330, 600], [180, 640], [0, 680]],
     depth: D(560, 768, 0.45, 0.85),
     spawns: { default: [450, 690], plaza: [450, 690], bueros: [1230, 650] },
-    actors: [{ id: 'ablage', name: 'Frau Ablage', x: 690, y: 505, clipY: 500, sprite: 'ablage', scale: 0.8, h: 170 }],
+    actors: [{ id: 'ablage', name: 'Frau Ablage', x: 690, y: 505, drawY: 388, clipPoly: [[0, 0], [1376, 0], [1376, 379], [0, 379]], sprite: 'ablage', scale: 0.8, h: 170 }],
     exits: [
       { id: 'ex_plaza', name: 'Zurück zur Plaza', poly: R(40, 130, 290, 580), walkTo: [200, 650], to: 'plaza', spawn: 'lobby', arrow: 'left' },
       { id: 'ex_fahrstuhl', name: 'Fahrstuhl zu den Büros', if: S => S.flags.lobby_frei, poly: R(1140, 90, 1345, 580), walkTo: [1230, 655], to: 'bueros', spawn: 'lobby', arrow: 'up' }
@@ -680,7 +680,7 @@
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 660], [1000, 640], [800, 630], [600, 650], [350, 700], [150, 740], [0, 750]],
     depth: D(625, 768, 0.6, 1.0),
     spawns: { default: [700, 710], plaza: [700, 710] },
-    actors: [{ id: 'stefan', name: 'Stempel-Stefan', x: 470, y: 480, clipY: 470, sprite: 'stefan', scale: 0.85, h: 190 }],
+    actors: [{ id: 'stefan', name: 'Stempel-Stefan', x: 470, y: 480, drawY: 426, clipPoly: [[0, 0], [1376, 0], [1376, 398], [700, 398], [450, 418], [300, 445], [0, 445]], sprite: 'stefan', scale: 0.85, h: 190 }],
     exits: [bottom('Zur Plaza', 'plaza', 'revier', 700)],
     hotspots: [
       {
