@@ -426,7 +426,7 @@
     depth: D(590, 768, 0.65, 1.0),
     spawns: { default: [700, 700], schrottplatz: [700, 700], pumpe: [830, 700] },
     props: [
-      { draw: () => NN.drawProp('kanalgitter_zu', 500, 512, 390) }, // verschlossenes Gitter vor dem Rohr (erst nach Erzeugen des Bildes sichtbar)
+      { draw: () => NN.drawProp('kanalgitter_zu', 500, 535, 340) }, // verschlossenes Gitter vor dem Rohr (erst nach Erzeugen des Bildes sichtbar)
       { if: S => S.flags.kanal_offen, draw: () => NN.drawProp('kanaldeckel_offen', 828, 668, 330) }
     ],
     exits: [
