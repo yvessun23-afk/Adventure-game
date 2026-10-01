@@ -1,0 +1,2 @@
+// erzeugt von tools/make_npcfit.py
+NN.npcFit = {"baron": 0.9663, "bello": 0.9779, "bit": 1.0463, "brezel": 1.0225, "flughans": 1.1795, "hugo": 1.009, "jackpot": 1.0216, "katze": 0.9574, "klaus": 0.9419, "kleo": 0.9912, "kurt": 1.0048, "oma": 0.9567, "ratten": 0.9225, "rosi": 1.0, "schaffner": 1.0, "schicht": 1.088, "schnipp": 1.0134, "sebastian": 0.9654, "teddy_sensor": 1.0045, "teddy": 1.0045, "wuschel_defekt": 0.9274, "wuschel_repariert": 0.864, "zen": 0.9833};

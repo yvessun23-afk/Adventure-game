@@ -550,12 +550,12 @@ window.NN = window.NN || {};
     return f;
   }
 
-  function drawSprite(img, lx, ly, scale, flip, shadow) {
+  function drawSprite(img, lx, ly, scale, flip, shadow, alignFeet) {
     const w = img.width * scale, h = img.height * scale, f = footInfo(img);
     const groundY = ly; // hier stehen die Fußsohlen
     ly += f.gap * h;    // leeren Rand unter dem Bild ausgleichen
     if (shadow) {
-      const fx = lx + (flip ? -1 : 1) * (f.cx - 0.5) * w, rx = Math.max(28, f.w * w * 0.85), ry = Math.max(9, rx * 0.24);
+      const fx = alignFeet ? lx : lx + (flip ? -1 : 1) * (f.cx - 0.5) * w, rx = Math.max(28, f.w * w * 0.85), ry = Math.max(9, rx * 0.24);
       ctx.save(); ctx.translate(fx, groundY - ry * 0.35); ctx.scale(1, ry / rx);
       const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
       g.addColorStop(0, 'rgba(0,0,0,0.85)'); g.addColorStop(0.6, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -563,7 +563,7 @@ window.NN = window.NN || {};
     }
     ctx.save(); ctx.translate(lx, ly);
     if (flip) ctx.scale(-1, 1);
-    ctx.drawImage(img, -w / 2, -h, w, h);
+    ctx.drawImage(img, -w / 2 + (alignFeet ? (0.5 - f.cx) * w : 0), -h, w, h);
     ctx.restore();
     return h;
   }
@@ -608,7 +608,9 @@ window.NN = window.NN || {};
     a.h = img.height * (a.scale || 1);
     ctx.save();
     if (a.clipY) { ctx.beginPath(); ctx.rect(0, 0, W, L(0, a.clipY)[1]); ctx.clip(); }
-    drawSprite(img, lx, ly, sc, !!a.flip, !a.clipY);
+    // Sprech- und Ruhebild an den Füßen ausrichten und auf gleiche Körpergröße bringen (kein Springen)
+    const fit = talking && NN.npcFit && NN.npcFit[base] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[base] : 1;
+    drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY, true);
     ctx.restore();
     if (a.after) a.after(ctx, lx, ly - img.height * sc, sc, NN.S);
   }
