@@ -187,7 +187,12 @@ NN.ui = (function () {
       { k: 'subtitles', t: 'check', label: 'Text über den Figuren anzeigen' },
       { k: 'textSpeed', t: 'range', label: 'Textgeschwindigkeit (links langsamer)', min: 0.3, max: 2, step: 0.05 },
       { k: 'autoAdvance', t: 'select', label: 'Text weiterschalten', opts: [['true', 'Automatisch'], ['false', 'Erst nach Klick']] },
-      { k: 'textBg', t: 'range', label: 'Textbox-Hintergrund', min: 0, max: 0.85, step: 0.05 }
+      { k: 'textBg', t: 'range', label: 'Textbox-Hintergrund', min: 0, max: 0.85, step: 0.05 },
+      { k: 'tShadow', t: 'check', label: 'Textschatten' },
+      { k: 'tShadowColor', t: 'select', label: 'Schattenfarbe', opts: [['#000000', 'Schwarz'], ['#2a0f55', 'Dunkelviolett'], ['#ff3cc8', 'Neon-Pink'], ['#27e6ff', 'Neon-Cyan'], ['#ffb347', 'Neon-Orange'], ['#ffffff', 'Weiß']] },
+      { k: 'tShadowDist', t: 'range', label: 'Schatten: Abstand', min: 0, max: 12, step: 0.5 },
+      { k: 'tShadowBlur', t: 'range', label: 'Schatten: Weichzeichnung', min: 0, max: 20, step: 1 },
+      { k: 'tShadowOpacity', t: 'range', label: 'Schatten: Stärke', min: 0.1, max: 1, step: 0.05 }
     ]
   };
   const TAB_NAMES = { grafik: 'Grafik', sound: 'Sound', text: 'Text' };

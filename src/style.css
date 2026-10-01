@@ -119,8 +119,13 @@ body.gfx-panel #overlay.title-art .panel.title { border-width: 30px; border-imag
 
 .panel.title { min-width: 0; width: min(330px, 84vw); }
 body:not(.gfx-panel) .panel.title { width: min(460px, 90vw); }
-.tpreview { height: 150px; margin: 8px 0 6px; }
+.tpreview { height: 140px; margin: 8px 0 6px; }
 .tptext { top: 14px; }
 .row { margin: 6px 0; }
 
 .tptext, .intro .txt { text-align: left; }
+
+.tptext, .intro .txt { text-shadow: var(--tshadow, none); }
+.tptext { -webkit-text-stroke: 5px #120a22; }
+.panel .row { margin: 3px 0; }
+.tpreview { height: 110px; }

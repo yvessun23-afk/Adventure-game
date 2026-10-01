@@ -6,7 +6,7 @@ NN.VERSION = 1;
 NN.defaults = {
   quality: 'hi', fullscreen: false, smoothing: true, filter: 'none', fps: 60, reduceAnim: false, hotspotHints: true, highContrast: false,
   vMaster: 0.8, vMusic: 0.6, vSfx: 0.8, vBlips: 0.6, muteAll: false, muteBlur: true,
-  lang: 'de', textSize: 'm', font: 'comic', subtitles: true, textSpeed: 0.7, autoAdvance: true, textBg: 0.35, optV: 2
+  lang: 'de', textSize: 'm', font: 'comic', subtitles: true, textSpeed: 0.7, autoAdvance: true, textBg: 0.35, tShadow: true, tShadowColor: '#000000', tShadowDist: 4, tShadowBlur: 6, tShadowOpacity: 0.8, optV: 2
 };
 
 NN.opts = Object.assign({}, NN.defaults);
@@ -64,4 +64,11 @@ NN.latestSlot = function () {
 NN.formatTime = function (sec) {
   const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
   return h + ':' + String(m).padStart(2, '0') + ' h';
+};
+
+// Schattenfarbe mit Stärke als rgba()
+NN.shadowRGBA = function () {
+  const h = (NN.opts.tShadowColor || '#000000').replace('#', '');
+  const n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${NN.opts.tShadowOpacity})`;
 };

@@ -52,6 +52,7 @@ window.NN = window.NN || {};
     canvas.width = Math.round(W * rs); canvas.height = Math.round(H * rs);
     canvas.classList.toggle('pixelated', !NN.opts.smoothing);
     document.documentElement.style.setProperty('--tb', String(NN.opts.textBg));
+    document.documentElement.style.setProperty('--tshadow', NN.opts.tShadow ? `${NN.opts.tShadowDist * 0.8}px ${NN.opts.tShadowDist * 0.8}px ${NN.opts.tShadowBlur * 0.8}px ${NN.shadowRGBA()}` : 'none');
     document.body.classList.toggle('fx-neon', NN.opts.filter === 'neon');
     document.body.classList.toggle('fx-crt', NN.opts.filter === 'crt');
     document.body.classList.remove('size-s', 'size-m', 'size-l', 'size-xl', 'font-comic', 'font-readable', 'font-dyslexic');
@@ -627,7 +628,14 @@ window.NN = window.NN || {};
     lines.forEach((line, i) => {
       const part = line.slice(0, Math.max(0, Math.min(line.length, shown))); shown -= line.length + 1;
       const x = cx - widest / 2, y = y0 + i * lh; // Block ist fertig platziert, Text wächst von links nach rechts
-      ctx.strokeText(part, x, y); ctx.fillStyle = speaker(s.who).color; ctx.fillText(part, x, y);
+      ctx.save();
+      if (NN.opts.tShadow) { // Textschatten (Farbe, Abstand, Weichheit, Stärke einstellbar)
+        const d = NN.opts.tShadowDist * 1.4;
+        ctx.shadowColor = NN.shadowRGBA(); ctx.shadowBlur = NN.opts.tShadowBlur * 1.4; ctx.shadowOffsetX = d; ctx.shadowOffsetY = d;
+      }
+      ctx.strokeText(part, x, y);
+      ctx.restore();
+      ctx.fillStyle = speaker(s.who).color; ctx.fillText(part, x, y);
     });
     if (!NN.opts.autoAdvance && speechDone(s) && Math.floor(G.time * 2) % 2 === 0) {
       const last = lines[lines.length - 1], lx = cx + ctx.measureText(last).width / 2 + 22, ly = y0 + (lines.length - 1) * lh - 10;
