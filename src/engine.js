@@ -140,7 +140,7 @@ window.NN = window.NN || {};
     G.bgImg = found ? found.img : null;
     const p = Array.isArray(spawn) ? spawn : (def.spawns[spawn] || def.spawns.default);
     pixel.x = p[0]; pixel.y = p[1]; pixel.dir = 'right'; pixel.anim = null;
-    kru.x = pixel.x - 90 * G.view.fx; kru.y = pixel.y - 140 * G.view.fy;
+    { const lp = L(pixel.x, pixel.y); kru.x = lp[0] - 135 * G.view.fx; kru.y = lp[1] - 240 * G.view.fy; }
     if (def.music) NN.audio.playMusic(def.music);
     G.tok++;
     G.lastLoadMs = Math.round(performance.now() - t0);
@@ -203,12 +203,17 @@ window.NN = window.NN || {};
   }
 
   function updateKruemel(dt) {
-    const [px, py] = L(pixel.x, pixel.y);
-    const side = pixel.dir === 'left' ? 1 : -1;
-    const tx = px + side * 60 * depthScale(pixel.y), ty = py - (pixel.lastH || 300) * 0.78;
-    const k = 1 - Math.pow(0.001, dt);
-    kru.x += (tx - kru.x) * k * 0.6; kru.y += (ty - kru.y) * k * 0.6;
-    kru.bob += dt * 3; kru.spin += dt * 40;
+    const [px, py] = L(pixel.x, pixel.y), ds = depthScale(pixel.y) * G.view.fx;
+    if (pixel.dir === 'left') kru.side = 1; else if (pixel.dir === 'right') kru.side = -1; else if (!kru.side) kru.side = -1;
+    const moving = !!pixel.moving, calm = NN.opts.reduceAnim;
+    kru.t = (kru.t || 0) + dt;
+    // beim Laufen langsam hinter Pixel hin und her schweben, im Stand mit Abstand sanft wiegen
+    const sway = calm ? 0 : moving ? Math.sin(kru.t * 1.6) * 55 * ds : Math.sin(kru.t * 0.8) * 8 * ds;
+    const dist = (moving ? 150 : 135) * ds;
+    const tx = px + kru.side * dist + sway, ty = py - (pixel.lastH || 300) * (moving ? 0.74 : 0.8) + (calm ? 0 : Math.sin(kru.t * 1.1) * (moving ? 12 : 7));
+    const k = 1 - Math.pow(0.05, dt);
+    kru.x += (tx - kru.x) * k; kru.y += (ty - kru.y) * k;
+    kru.bob += dt * 2; kru.spin += dt * 40;
   }
 
   // ---------- Sprechen ----------
@@ -407,10 +412,10 @@ window.NN = window.NN || {};
 
   function drawKruemel() {
     const sad = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen;
-    const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 6;
+    const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 4;
     const img = A.get(KRU + kruemelSpriteName() + '.png') || A.get(KRU + 'hover_1.png');
     if (!img) { drawKruemelShape(kru.x, kru.y + bob, 0.85 * Math.max(0.7, depthScale(pixel.y))); kru.h = 100; return; }
-    const sc = 0.5 * depthScale(pixel.y) * G.view.fy;
+    const sc = 0.42 * depthScale(pixel.y) * G.view.fy;
     const h = img.height * sc, w = img.width * sc;
     ctx.save(); ctx.translate(kru.x, kru.y + bob + (sad ? 28 : 0) + h / 2);
     if (pixel.dir === 'left') ctx.scale(-1, 1);
