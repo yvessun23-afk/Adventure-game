@@ -1,0 +1,12 @@
+klaus_talk
+sebastian_talk
+baron_talk
+zen_talk
+flughans_talk
+kabel_talk
+schicht_talk
+streikposten_talk
+kraken_talk
+kleo_talk
+teddy_talk
+teddy_sensor_talk

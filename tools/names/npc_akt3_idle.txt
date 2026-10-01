@@ -1,0 +1,12 @@
+klaus_idle
+sebastian_idle
+baron_idle
+zen_idle
+flughans_idle
+kabel_idle
+schicht_idle
+streikposten_idle
+kraken_idle
+kleo_idle
+teddy_idle
+teddy_sensor_idle
