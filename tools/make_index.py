@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 
 r = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/"
-idx = {d: sorted(f for f in os.listdir(r + "assets/sprites/" + d) if f.endswith(".png")) for d in ("props", "items")}
+idx = {d: sorted(f for f in os.listdir(r + "assets/sprites/" + d) if f.endswith(".png")) for d in ("props", "items", "npcs")}
 music = sorted({os.path.splitext(f)[0] for f in os.listdir(r + "assets/audio/music") if f.endswith((".ogg", ".mp3"))})
 
 # Fußposition: Anteil leerer Zeilen unten (gap), Mitte (cx) und Breite (w) der untersten Pixelzeilen, jeweils relativ zur Bildgröße

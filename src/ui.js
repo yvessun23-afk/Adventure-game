@@ -70,7 +70,7 @@ NN.ui = (function () {
       ${latest ? B('fortsetzen', 'Fortsetzen', 'data-a="cont"', 'big') : ''}
       ${B('laden', 'Laden', 'data-a="load"', 'big')}
       ${B('optionen', 'Optionen', 'data-a="opts"', 'big')}
-      <div class="muted small" style="margin-top:10px">Linksklick: gehen/benutzen · Rechtsklick: ansehen · Leertaste: Hotspots zeigen · Esc: Menü</div>
+      <div class="muted small" style="margin-top:10px">Linksklick: gehen/benutzen · Rechtsklick: ansehen · H oder Leertaste: Hotspots zeigen · Esc: Menü</div>
     </div>`, found ? 'clear title-art' : 'clear');
     on('[data-a=new]', () => { NN.audio.ensure(); playIntro(); });
     on('[data-a=cont]', () => startFromSave(latest.data));
@@ -173,7 +173,8 @@ NN.ui = (function () {
       { k: 'filter', t: 'select', label: 'Bildfilter', opts: [['none', 'Keiner'], ['neon', 'Neon-Glühen'], ['crt', 'Röhrenmonitor (Scanlines)']] },
       { k: 'fps', t: 'select', label: 'Bildrate', opts: [[60, '60 FPS'], [30, '30 FPS']] },
       { k: 'reduceAnim', t: 'check', label: 'Animationen reduzieren' },
-      { k: 'hotspotHints', t: 'check', label: 'Hotspots beim Start kurz zeigen' },
+      { k: 'hotspotHints', t: 'check', label: 'Hotspots beim Spielstart kurz zeigen' },
+      { k: 'hotspotTime', t: 'range', label: 'Hotspots (Taste H): Anzeigedauer in Sekunden', min: 1, max: 10, step: 0.5 },
       { k: 'highContrast', t: 'check', label: 'Hoher Kontrast bei Markierungen' },
     ],
     sound: [
@@ -296,7 +297,7 @@ NN.ui = (function () {
       <button class="btn" data-a="spots">Hotspots zeigen</button>
       ${B('zurueck', 'Zurück', 'data-a="back"')}</div>`);
     on('[data-a=more]', () => { S.hintTier[cur.id] = tier + 1; showHelp(); });
-    on('[data-a=spots]', () => { G.hintFlash = 5; close(); });
+    on('[data-a=spots]', () => { G.hintFlash = NN.opts.hotspotTime || 3; close(); });
     on('[data-a=back]', () => (inGame ? close() : showTitle()));
   }
 

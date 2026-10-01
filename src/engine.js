@@ -90,12 +90,17 @@ window.NN = window.NN || {};
 
   // ---------- Vorladen ----------
   const SPR = 'assets/sprites/';
+  // Optionale Zusatz-Animationsbilder je NPC (<name>_a.png / <name>_b.png), nur wenn vorhanden
+  const npcExtras = n => ['_a.png', '_b.png'].map(x => n + x).filter(f => NN.assetIndex && NN.assetIndex.npcs && NN.assetIndex.npcs.includes(f));
   function actorFiles(def) {
     const out = [];
     (def.actors || []).forEach(a => {
       if (!a.sprite) return;
       const names = typeof a.sprite === 'function' ? ['wuschel_defekt', 'wuschel_repariert', 'teddy', 'teddy_sensor'].filter(n => n.length) : [a.sprite];
-      names.forEach(n => out.push(SPR + 'npcs/' + n + '_idle.png', SPR + 'npcs/' + n + '_talk.png'));
+      names.forEach(n => {
+        out.push(SPR + 'npcs/' + n + '_idle.png', SPR + 'npcs/' + n + '_talk.png');
+        npcExtras(n).forEach(f => out.push(SPR + 'npcs/' + f));
+      });
     });
     return out;
   }
@@ -628,7 +633,17 @@ window.NN = window.NN || {};
     const base = typeof a.sprite === 'function' ? a.sprite(NN.S) : a.sprite;
     const talking = G.speech && G.speech.who === a.id && Math.floor(G.time * 6) % 2;
     const dir = 'assets/sprites/npcs/';
-    const img = A.get(dir + base + (talking ? '_talk' : '_idle') + '.png') || A.get(dir + base + '_idle.png');
+    let suffix = talking ? '_talk' : '_idle';
+    // Individuelle Animation: ab und zu spielt der NPC seine Aktion (a, b, a, b …), nicht während er spricht
+    if (!NN.opts.reduceAnim && npcExtras(base).length === 2) {
+      const st = a._an || (a._an = { next: G.time + 2 + (String(a.id).length * 1.7) % 5, start: -1 });
+      if (G.speech && G.speech.who === a.id) st.start = -1;
+      else if (st.start >= 0) {
+        const k = Math.floor((G.time - st.start) * 2.6);
+        if (k >= 6) { st.start = -1; st.next = G.time + 5 + Math.random() * 7; } else suffix = k % 2 ? '_b' : '_a';
+      } else if (G.time >= st.next) st.start = G.time;
+    }
+    const img = A.get(dir + base + suffix + '.png') || A.get(dir + base + '_idle.png');
     if (!img) return;
     a.h = img.height * (a.scale || 1);
     ctx.save();
@@ -640,7 +655,7 @@ window.NN = window.NN || {};
       const bounce = amp * Math.abs(Math.sin(t * 7.5)) * 4 * sc, tilt = sw * 0.007 + amp * Math.sin(t * 5.2) * 0.022;
       ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br - amp * 0.008, 1 + 0.011 * br + amp * 0.014); ctx.translate(-lx, -ly);
     }
-    const fit = talking && NN.npcFit && NN.npcFit[base] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[base] : 1;
+    const fitKey = suffix === '_talk' ? base : base + suffix, fit = suffix !== '_idle' && NN.npcFit && NN.npcFit[fitKey] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[fitKey] : 1;
     drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY, true);
     ctx.restore();
     if (a.after) a.after(ctx, lx, ly - img.height * sc, sc, NN.S);
@@ -680,8 +695,10 @@ window.NN = window.NN || {};
   }
 
   function drawHotspotHints() {
-    if (!(G.keys[' '] || (NN.opts.hotspotHints && G.hintFlash > 0))) return;
+    if (!(G.keys[' '] || G.hintFlash > 0)) return;
     ctx.save(); ctx.lineWidth = NN.opts.highContrast ? 5 : 3;
+    const fadeOut = G.keys[' '] ? 1 : Math.min(1, G.hintFlash / 0.5);
+    ctx.globalAlpha = fadeOut;
     const pulse = 0.55 + Math.sin(G.time * 6) * 0.25;
     (G.def.hotspots || []).forEach(h => {
       if (h.if && !h.if(NN.S)) return;
@@ -980,7 +997,7 @@ window.NN = window.NN || {};
       G.toast = { text: 'Punkte kopiert (' + G.editPts.length + ')', t: 2 };
     }
     if (e.key.toLowerCase() === 'm') G.onMap && G.onMap();
-    if (e.key.toLowerCase() === 'h') G.onHelp && G.onHelp();
+    if (e.key.toLowerCase() === 'h') G.hintFlash = NN.opts.hotspotTime || 3;
     if (G.choices && /^[1-9]$/.test(e.key)) {
       const i = +e.key - 1, c = G.choices;
       if (i < c.options.length) { const r = c.res; G.choices = null; r(i); }
@@ -997,7 +1014,7 @@ window.NN = window.NN || {};
     G.loadedFromSave = !!fromSave;
     const spawn = fromSave && state.pos ? state.pos : 'default';
     await G.enterScene(state.scene || 'imbiss', spawn);
-    G.hintFlash = 3;
+    G.hintFlash = NN.opts.hotspotHints ? (NN.opts.hotspotTime || 3) : 0;
   };
 
   G.thumbnail = function () {
