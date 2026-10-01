@@ -151,6 +151,9 @@ NN.sceneHelpers = {
   NN.scenes.nudelgasse = {
     id: 'nudelgasse', name: 'Nudelgasse', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_02_nudelgasse' }, music: 'mus_unterstadt',
+    bgStates: [
+      { if: S => true, tiers: 'bg_02_nudelgasse_sauber' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1300, 660], [1100, 640], [870, 585], [700, 575], [560, 640], [300, 645], [150, 700], [0, 745]],
     depth: { y0: 575, y1: 768, s0: 0.55, s1: 1.0 },
     spawns: { default: [200, 730], imbiss: [200, 730], waschsalon: [360, 720], baeckerei: [560, 720], schrottplatz: [740, 650], bar: [1030, 730], basar: [1290, 730] },

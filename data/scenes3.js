@@ -8,6 +8,10 @@
   NN.scenes.plaza = {
     id: 'plaza', name: 'Megablock-Plaza', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_13_plaza' }, music: 'mus_mittelstadt',
+    bgStates: [
+      { if: S => true, tiers: 'bg_13_plaza_sauber' },
+      { if: S => S.flags.kantine_offen, tiers: 'bg_13_plaza_kantine_offen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 735], [1230, 695], [1100, 645], [920, 612], [780, 592], [560, 586], [420, 600], [300, 640], [180, 695], [0, 722]],
     depth: D(586, 768, 0.34, 0.8),
     spawns: { default: [700, 720], bahnhof: [700, 740], lobby: [700, 620], kantine: [940, 625], werbe: [1065, 650], friseur: [300, 655], revier: [140, 715], park: [1175, 660], gondel: [1290, 735] },
@@ -88,6 +92,9 @@
   NN.scenes.lobby = {
     id: 'lobby', name: 'NoodleCorp-Lobby', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_14_lobby' }, music: 'mus_konzern',
+    bgStates: [
+      { if: S => S.flags.lobby_frei, tiers: 'bg_14_lobby_aufzug_offen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 640], [980, 590], [720, 560], [500, 565], [330, 600], [180, 640], [0, 680]],
     depth: D(560, 768, 0.45, 0.85),
     spawns: { default: [450, 690], plaza: [450, 690], bueros: [1230, 650] },
@@ -133,6 +140,9 @@
   NN.scenes.kantine = {
     id: 'kantine', name: 'Konzern-Kantine', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_15_kantine' }, music: 'mus_konzern',
+    bgStates: [
+      { if: S => true, tiers: 'bg_15_kantine_sauber' }
+    ],
     walk: [[0, 768], [700, 768], [650, 725], [540, 620], [430, 530], [340, 450], [230, 425], [0, 425]],
     depth: D(425, 768, 0.45, 0.95),
     spawns: { default: [400, 700], plaza: [400, 700] },
@@ -255,6 +265,9 @@
   NN.scenes.werbefabrik = {
     id: 'werbefabrik', name: 'Hologramm-Werbefabrik', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_17_werbefabrik' }, music: 'mus_konzern',
+    bgStates: [
+      { if: S => S.flags.gab_holo_siegel, tiers: 'bg_17_werbefabrik_drucker_an' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1230, 640], [1050, 600], [800, 590], [560, 610], [380, 680], [200, 730], [0, 745]],
     depth: D(585, 768, 0.5, 0.95),
     spawns: { default: [1100, 700], plaza: [1100, 700] },
@@ -363,6 +376,9 @@
   NN.scenes.casino = {
     id: 'casino', name: 'Casino „Golden Byte“', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_19_casino' }, music: 'mus_casino',
+    bgStates: [
+      { if: S => S.flags.jackpot_alarm, tiers: 'bg_19_casino_tresor_offen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 720], [1150, 690], [980, 640], [820, 590], [600, 585], [420, 620], [260, 680], [100, 730], [0, 745]],
     depth: D(585, 768, 0.6, 1.0),
     spawns: { default: [250, 700], friseur: [250, 700], tresor: [910, 600] },
@@ -416,6 +432,9 @@
   NN.scenes.tresor = {
     id: 'tresor', name: 'Casino-Tresorraum', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_20_tresor' }, music: 'mus_casino',
+    bgStates: [
+      { if: S => true, tiers: 'bg_20_tresor_sauber' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1100, 650], [800, 640], [600, 630], [350, 650], [150, 700], [0, 730]],
     depth: D(630, 768, 0.65, 1.0),
     spawns: { default: [500, 700], casino: [500, 700] },
@@ -580,6 +599,9 @@
   NN.scenes.museum = {
     id: 'museum', name: 'Museum der analogen Dinge', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_23_museum' }, music: 'mus_klinik',
+    bgStates: [
+      { if: S => S.flags.kurator_weg, tiers: 'bg_23_museum_alarm' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 650], [1000, 620], [750, 600], [560, 610], [380, 660], [200, 710], [0, 735]],
     depth: D(595, 768, 0.55, 1.0),
     spawns: { default: [700, 700], park: [700, 700] },
@@ -652,6 +674,9 @@
   NN.scenes.revier = {
     id: 'revier', name: 'Polizeirevier 404', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_24_revier' }, music: 'mus_mittelstadt',
+    bgStates: [
+      { if: S => S.flags.gab_platin_pass, tiers: 'bg_24_revier_pass_weg' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 660], [1000, 640], [800, 630], [600, 650], [350, 700], [150, 740], [0, 750]],
     depth: D(625, 768, 0.6, 1.0),
     spawns: { default: [700, 710], plaza: [700, 710] },
@@ -721,6 +746,9 @@
   NN.scenes.gondel = {
     id: 'gondel', name: 'Gondel-Station „Himmelfahrt“', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_25_gondel' }, music: 'mus_oberstadt',
+    bgStates: [
+      { if: S => S.flags.gondel_frei, tiers: 'bg_25_gondel_frei' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1150, 650], [900, 625], [700, 640], [520, 690], [300, 700], [120, 730], [0, 745]],
     depth: D(625, 768, 0.65, 1.0),
     spawns: { default: [500, 710], plaza: [500, 710], promenade: [800, 640] },

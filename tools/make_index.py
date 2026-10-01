@@ -7,6 +7,7 @@ from PIL import Image
 
 r = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/"
 idx = {d: sorted(f for f in os.listdir(r + "assets/sprites/" + d) if f.endswith(".png")) for d in ("props", "items", "npcs")}
+idx["bgs"] = sorted(f for f in os.listdir(r + "assets/backgrounds/hi") if f.endswith(".webp"))
 music = sorted({os.path.splitext(f)[0] for f in os.listdir(r + "assets/audio/music") if f.endswith((".ogg", ".mp3"))})
 
 # Fußposition: Anteil leerer Zeilen unten (gap), Mitte (cx) und Breite (w) der untersten Pixelzeilen, jeweils relativ zur Bildgröße

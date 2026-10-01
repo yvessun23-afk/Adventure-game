@@ -82,10 +82,28 @@ window.NN = window.NN || {};
   window.addEventListener('resize', G.resize);
 
   // ---------- Szene betreten ----------
+  // Hintergrund-Zustände: def.bgStates = [{ if: S => …, tiers: 'bg_xx_name_zustand' }], der letzte passende (und vorhandene) gewinnt
+  function bgName(def) {
+    let name = def.bg.tiers;
+    const have = (NN.assetIndex && NN.assetIndex.bgs) || [];
+    (def.bgStates || []).forEach(v => { if (v.if(NN.S) && have.includes(v.tiers + '.webp')) name = v.tiers; });
+    return name;
+  }
   function bgCandidates(def) {
     if (def.bg.file) return [def.bg.file];
+    const name = bgName(def);
     const tiers = { hi: ['hi', 'mid', 'low'], mid: ['mid', 'low', 'hi'], low: ['low', 'mid', 'hi'] }[NN.opts.quality] || ['hi'];
-    return tiers.map(t => `assets/backgrounds/${t}/${def.bg.tiers}.webp`).concat([`assets/raw/${def.bg.tiers}.png`]);
+    return tiers.map(t => `assets/backgrounds/${t}/${name}.webp`).concat([`assets/raw/${name}.png`]);
+  }
+  // nach jeder Aktion prüfen, ob sich das Hintergrundbild ändern muss (Tür offen, Gegenstand weg …)
+  G.bgName = '';
+  async function syncBg() {
+    if (!G.def || !G.def.bgStates) return;
+    const n = bgName(G.def);
+    if (n === G.bgName) return;
+    G.bgName = n;
+    const found = await A.loadFirst(bgCandidates(G.def));
+    if (found && G.bgName === n) G.bgImg = found.img;
   }
 
   // ---------- Vorladen ----------
@@ -142,7 +160,7 @@ window.NN = window.NN || {};
     const showTimer = setTimeout(() => { G.loading = true; }, 250);
     const [found] = await Promise.all([A.loadFirst(bgCandidates(def)), A.preload(sceneFiles(def), 8)]);
     clearTimeout(showTimer); G.loading = false;
-    G.bgImg = found ? found.img : null;
+    G.bgImg = found ? found.img : null; G.bgName = bgName(def);
     const p = Array.isArray(spawn) ? spawn : (def.spawns[spawn] || def.spawns.default);
     pixel.x = p[0]; pixel.y = p[1]; pixel.dir = 'right'; pixel.anim = null;
     { const lp = L(pixel.x, pixel.y); kru.x = lp[0] - 95 * G.view.fx; kru.y = lp[1] - 240 * G.view.fy; }
@@ -333,7 +351,7 @@ window.NN = window.NN || {};
       if (typeof handler === 'string') await say('pixel', handler);
       else await handler(api);
     } catch (e) { console.error(e); }
-    G.busy = false;
+    G.busy = false; syncBg();
   }
 
   async function approach(obj) {
@@ -374,7 +392,7 @@ window.NN = window.NN || {};
     get S() { return NN.S; },
     say, choose,
     get: k => !!NN.S.flags[k],
-    flag: (k, v) => { NN.S.flags[k] = v === undefined ? true : v; },
+    flag: (k, v) => { NN.S.flags[k] = v === undefined ? true : v; syncBg(); },
     has: id => NN.S.inv.includes(id),
     give(id) {
       if (!NN.S.inv.includes(id)) NN.S.inv.push(id);

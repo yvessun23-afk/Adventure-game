@@ -98,6 +98,10 @@
   NN.scenes.spa = {
     id: 'spa', name: 'Sky-Spa & Golfdome', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_28_spa_golfdome' }, music: 'mus_oberstadt',
+    bgStates: [
+      { if: S => S.flags.turbine_aus, tiers: 'bg_28_spa_golfdome_turbine_aus' },
+      { if: S => S.flags.turbine_aus && S.flags.gab_goldener_golfball, tiers: 'bg_28_spa_golfdome_turbine_aus_ohne_ball' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 705], [1100, 660], [900, 640], [760, 648], [560, 690], [440, 715], [240, 725], [0, 745]],
     depth: D(640, 768, 0.6, 1.0),
     spawns: { default: [760, 710], promenade: [760, 710] },
@@ -234,6 +238,9 @@
   NN.scenes.hyperhub = {
     id: 'hyperhub', name: 'Hyper-Hub Andockring', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_30_hyperhub' }, music: 'mus_raumhafen',
+    bgStates: [
+      { if: S => S.flags.streik_vorbei, tiers: 'bg_30_hyperhub_streik_vorbei' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 660], [980, 625], [760, 600], [540, 600], [330, 640], [150, 700], [0, 735]],
     depth: D(595, 768, 0.55, 1.0),
     spawns: { default: [700, 690], raumhafen: [700, 690], garten: [380, 720], bruecke: [1100, 680], mond: [850, 620] },
@@ -316,6 +323,9 @@
   NN.scenes.orbitalgarten = {
     id: 'orbitalgarten', name: 'Orbital-Garten', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_31_orbitalgarten' }, music: 'mus_orbit',
+    bgStates: [
+      { if: S => S.flags.gab_kaffeebohnen, tiers: 'bg_31_orbitalgarten_ohne_bohnen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 705], [1150, 665], [900, 635], [700, 622], [500, 630], [300, 665], [130, 710], [0, 740]],
     depth: D(620, 768, 0.55, 1.0),
     spawns: { default: [700, 710], hyperhub: [700, 710] },
@@ -403,6 +413,9 @@
   NN.scenes.mond_eingang = {
     id: 'mond_eingang', name: 'Mondminen-Eingang', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_33_mond_eingang' }, music: 'mus_mond',
+    bgStates: [
+      { if: S => S.flags.schleuse_offen, tiers: 'bg_33_mond_eingang_schleuse_offen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1130, 640], [900, 600], [700, 590], [480, 620], [300, 670], [120, 710], [0, 740]],
     depth: D(585, 768, 0.55, 1.0),
     spawns: { default: [800, 680], hyperhub: [800, 680], tiefe: [980, 620] },
@@ -448,6 +461,9 @@
   NN.scenes.mond_tiefe = {
     id: 'mond_tiefe', name: 'Mondmine-Tiefe', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_34_mond_tiefe' }, music: 'mus_mond',
+    bgStates: [
+      { if: S => S.flags.schlucht_ueber, tiers: 'bg_34_mond_tiefe_ueber' }
+    ],
     walk: [[0, 768], [740, 768], [740, 660], [640, 585], [540, 545], [430, 510], [300, 490], [150, 495], [0, 510]],
     depth: D(490, 768, 0.55, 1.0),
     spawns: { default: [300, 620], eingang: [300, 620] },
@@ -501,6 +517,9 @@
   NN.scenes.serverkern = {
     id: 'serverkern', name: 'Kleos Serverkern', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_35_serverkern' }, music: 'mus_kleo',
+    bgStates: [
+      { if: S => S.flags.firewall_offen, tiers: 'bg_35_serverkern_firewall_offen' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 700], [1150, 660], [980, 635], [760, 618], [560, 625], [380, 650], [200, 700], [0, 740]],
     depth: D(615, 768, 0.55, 1.0),
     spawns: { default: [300, 700], mine: [300, 700], kinderzimmer: [900, 640] },

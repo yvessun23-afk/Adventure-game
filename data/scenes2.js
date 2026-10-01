@@ -93,6 +93,9 @@
   NN.scenes.bar = {
     id: 'bar', name: 'Hacker-Bar „Null Pointer“', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_04_bar' }, music: 'mus_bar',
+    bgStates: [
+      { if: S => S.flags.hinterzimmer_offen, tiers: 'bg_04_bar_tuer_offen' }
+    ],
     walk: [[40, 768], [1376, 768], [1376, 690], [1290, 625], [1100, 612], [300, 622], [120, 690]],
     depth: D(610, 768, 0.72, 1.05),
     spawns: { default: [1030, 730], nudelgasse: [1030, 730], hinterzimmer: [1190, 660] },
@@ -154,6 +157,9 @@
   NN.scenes.bar_hinterzimmer = {
     id: 'bar_hinterzimmer', name: 'Bar-Hinterzimmer', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_05_bar_hinterzimmer' }, music: 'mus_bar',
+    bgStates: [
+      { if: S => S.flags.terminal_log, tiers: 'bg_05_bar_hinterzimmer_terminal_an' }
+    ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1200, 615], [1000, 622], [660, 605], [560, 650], [250, 690], [0, 730]],
     depth: D(600, 768, 0.65, 1.0),
     spawns: { default: [900, 700], bar: [900, 700] },
