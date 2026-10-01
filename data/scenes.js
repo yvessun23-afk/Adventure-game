@@ -27,6 +27,12 @@ NN.sceneHelpers = {
     props: [{ if: S => !S.flags.foto_genommen, draw: () => NN.drawProp('foto_rahmen', 962, 333, 92) }],
     actors: [{ id: 'oma', name: 'Oma Zhang', x: 600, y: 636, sprite: 'oma', flip: true, h: 218 }],
     exits: [{ id: 'ex_gasse', name: 'Nudelgasse', poly: R(180, 738, 1376, 768), walkTo: [700, 766], to: 'nudelgasse', spawn: 'imbiss', arrow: 'down' }],
+    pickups: [
+      { item: 'sojasosse', hot: 'regal', x: 165, y: 242, w: 38 },
+      { item: 'nudelsieb', hot: 'regal', x: 255, y: 302, w: 62 },
+      { item: 'essstaebchen', hot: 'theke', x: 470, y: 437, w: 78 },
+      { item: 'graue_paste', hot: 'paste', x: 600, y: 420, w: 48 }
+    ],
     hotspots: [
       {
         id: 'oma', name: 'Oma Zhang', poly: R(548, 440, 660, 640), walkTo: [700, 650], facing: 'left',
@@ -160,6 +166,7 @@ NN.sceneHelpers = {
       { id: 'ex_bar', name: 'Bar „Null Pointer“', poly: R(970, 385, 1095, 625), walkTo: [1030, 720], to: 'bar', spawn: 'nudelgasse' },
       { id: 'ex_basar', name: 'Schwarzer Basar', poly: R(1185, 250, 1376, 650), walkTo: [1290, 725], to: 'basar', spawn: 'nudelgasse', arrow: 'right' }
     ],
+    pickups: [{ item: 'neonroehre', hot: 'tonne', x: 540, y: 566, w: 80 }],
     hotspots: [
       {
         id: 'gate', name: 'Schrottplatz', poly: R(625, 385, 855, 555), walkTo: [740, 650], facing: 'up',

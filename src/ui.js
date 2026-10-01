@@ -166,6 +166,7 @@ NN.ui = (function () {
   // ---------- Optionen ----------
   const SCHEMA = {
     grafik: [
+      { k: 'controlMode', t: 'select', label: 'Steuerung', opts: [['auto', 'Automatik (Klick = passende Aktion)'], ['scumm', 'SCUMM (Verben wählen)']] },
       { k: 'quality', t: 'select', label: 'Grafikqualität', opts: [['hi', 'Hoch'], ['mid', 'Mittel'], ['low', 'Niedrig (schneller)']] },
       { k: 'fullscreen', t: 'check', label: 'Vollbild (auch mit Taste F)' },
       { k: 'smoothing', t: 'check', label: 'Bildglättung' },

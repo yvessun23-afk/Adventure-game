@@ -211,14 +211,14 @@
     walk: [[120, 768], [1376, 768], [1376, 660], [1230, 600], [950, 590], [560, 572], [330, 602], [180, 680]],
     depth: D(570, 768, 0.6, 1.0),
     spawns: { default: [700, 700], nudelgasse: [700, 700], bahnhof: [1220, 610] },
-    actors: [{ id: 'hugo', name: 'Hehler-Hugo', x: 735, y: 600, clipY: 500, sprite: 'hugo', h: 241 }],
+    actors: [{ id: 'hugo', name: 'Hehler-Hugo', x: 735, y: 600, clipY: 482, sprite: 'hugo', h: 241 }],
     exits: [
       bottom('Nudelgasse', 'nudelgasse', 'basar', 700),
       { id: 'ex_bahn', name: 'Magnetbahn-Station', poly: R(1110, 250, 1330, 540), walkTo: [1220, 610], to: 'bahnhof', spawn: 'basar', arrow: 'right' }
     ],
     hotspots: [
       {
-        id: 'hugo', name: 'Hehler-Hugo', poly: R(630, 240, 850, 500), walkTo: [740, 650], facing: 'up',
+        id: 'hugo', name: 'Hehler-Hugo', poly: R(630, 240, 850, 500), walkTo: [560, 668], facing: 'right',
         look: 'Hehler-Hugo. Vier Arme, tausend Taschen. Er verkauft alles, nur nicht sein Lächeln.',
         use: async g => {
           if (!g.get('hugo_gesprochen')) { g.flag('hugo_gesprochen', true); await g.say('hugo', 'Psst! Suchst du was Besonderes? Ich hab alles. Auch das, was es nicht mehr gibt.'); }
@@ -272,6 +272,7 @@
       bottom('Nudelgasse', 'nudelgasse', 'waschsalon', 700),
       { id: 'ex_treppe', name: 'Treppe zum Dachgarten', poly: R(1125, 330, 1350, 600), walkTo: [1230, 650], to: 'dachgarten', spawn: 'waschsalon', arrow: 'up' }
     ],
+    pickups: [{ item: 'speicherstick', hot: 'korb', x: 250, y: 505, w: 64 }],
     hotspots: [
       {
         id: 'sicherung', name: 'Sicherungskasten', poly: R(55, 135, 245, 405), walkTo: [170, 650], facing: 'up',

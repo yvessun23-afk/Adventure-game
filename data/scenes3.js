@@ -21,6 +21,7 @@
       { id: 'ex_park', name: 'Kunstrasen-Park', poly: R(1130, 330, 1225, 640), walkTo: [1175, 668], to: 'park', spawn: 'plaza' },
       { id: 'ex_gondel', name: 'Gondel-Station „Himmelfahrt“', poly: R(1235, 330, 1376, 740), walkTo: [1290, 742], to: 'gondel', spawn: 'plaza', arrow: 'right' }
     ],
+    pickups: [{ item: 'zeitung', hot: 'zeitungsstand', x: 828, y: 566, w: 62 }],
     hotspots: [
       {
         id: 'casino_tuer', name: 'Casino „Golden Byte“', poly: R(380, 340, 505, 605), walkTo: [440, 618], facing: 'up',
@@ -137,6 +138,10 @@
     spawns: { default: [400, 700], plaza: [400, 700] },
     actors: [{ id: 'kloss', name: 'Chef Kloß', x: 500, y: 650, sprite: 'kloss', flip: true, h: 230 }],
     exits: [bottom('Zur Plaza (Hintertür)', 'plaza', 'kantine', 400)],
+    pickups: [
+      { item: 'tablett', hot: 'tabletts', x: 935, y: 526, w: 100 },
+      { item: 'flasche', hot: 'muell', x: 818, y: 352, w: 34 }
+    ],
     hotspots: [
       {
         id: 'kloss', name: 'Chef Kloß', poly: R(410, 410, 590, 660), walkTo: [440, 700], facing: 'right',
@@ -419,6 +424,7 @@
       { id: 'ex_casino', name: 'Zurück ins Casino', if: S => !S.flags.gitter_offen, poly: R(0, 735, 700, 768), walkTo: [400, 766], to: 'casino', spawn: 'tresor', arrow: 'down' },
       { id: 'ex_plaza', name: 'Hinterausgang zur Plaza', if: S => S.flags.gitter_offen && S.flags.gab_kleo_akte, poly: R(1000, 735, 1376, 768), walkTo: [1200, 766], to: 'plaza', spawn: 'friseur', arrow: 'down' }
     ],
+    pickups: [{ item: 'kleo_akte', hot: 'schreibtisch', x: 868, y: 497, w: 100 }],
     hotspots: [
       {
         id: 'schreibtisch', name: 'Schreibtisch mit Akten', poly: R(715, 390, 1040, 665), walkTo: [850, 720], facing: 'up',

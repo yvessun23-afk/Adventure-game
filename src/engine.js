@@ -107,7 +107,7 @@ window.NN = window.NN || {};
   const KRUEMEL = ['hover_1', 'hover_2', 'hover_3', 'hover_4', 'hover_front', 'talk_a', 'talk_b', 'scan_a', 'scan_b', 'sad'].map(n => SPR + 'characters/kruemel_' + n + '.png');
   const warmed = new Set();
   // Alles, was eine Szene sofort braucht (Hintergrund wird getrennt geladen)
-  const sceneFiles = def => actorFiles(def).concat(pixelFiles(), KRUEMEL);
+  const sceneFiles = def => actorFiles(def).concat(pixelFiles(), KRUEMEL, (def.pickups || []).map(p => SPR + 'items/' + p.item + '.png'));
   // Nachbar-Szenen im Hintergrund vorbereiten
   function warmNeighbors(def) {
     (def.exits || []).forEach(e => {
@@ -140,7 +140,7 @@ window.NN = window.NN || {};
     G.bgImg = found ? found.img : null;
     const p = Array.isArray(spawn) ? spawn : (def.spawns[spawn] || def.spawns.default);
     pixel.x = p[0]; pixel.y = p[1]; pixel.dir = 'right'; pixel.anim = null;
-    { const lp = L(pixel.x, pixel.y); kru.x = lp[0] - 135 * G.view.fx; kru.y = lp[1] - 240 * G.view.fy; }
+    { const lp = L(pixel.x, pixel.y); kru.x = lp[0] - 95 * G.view.fx; kru.y = lp[1] - 240 * G.view.fy; }
     if (def.music) NN.audio.playMusic(def.music);
     G.tok++;
     G.lastLoadMs = Math.round(performance.now() - t0);
@@ -209,8 +209,8 @@ window.NN = window.NN || {};
     kru.t = (kru.t || 0) + dt;
     // beim Laufen langsam hinter Pixel hin und her schweben, im Stand mit Abstand sanft wiegen
     const sway = calm ? 0 : moving ? Math.sin(kru.t * 1.6) * 55 * ds : Math.sin(kru.t * 0.8) * 8 * ds;
-    const dist = (moving ? 150 : 135) * ds;
-    const tx = px + kru.side * dist + sway, ty = py - (pixel.lastH || 300) * (moving ? 0.74 : 0.8) + (calm ? 0 : Math.sin(kru.t * 1.1) * (moving ? 12 : 7));
+    const dist = (moving ? 110 : 95) * ds;
+    const tx = px + kru.side * dist + sway, ty = py - (pixel.lastH || 300) * 0.7 - (kru.h || 80) / 2 + (calm ? 0 : Math.sin(kru.t * 1.1) * (moving ? 12 : 7));
     const k = 1 - Math.pow(0.05, dt);
     kru.x += (tx - kru.x) * k; kru.y += (ty - kru.y) * k;
     kru.bob += dt * 2; kru.spin += dt * 40;
@@ -261,8 +261,26 @@ window.NN = window.NN || {};
   }
 
   // ---------- Hotspots ----------
+  // Sichtbare Einsammel-Gegenstände einer Szene: {item, x, y (unten mitte), w, hot, [flag], [if]}
+  function pickupVisible(pk) {
+    return !NN.S.flags[pk.flag || ('gab_' + pk.item)] && !NN.S.inv.includes(pk.item) && (!pk.if || pk.if(NN.S));
+  }
+  function pickupHit(sx, sy) {
+    const list = G.def.pickups || [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const pk = list[i]; if (!pickupVisible(pk)) continue;
+      const img = A.get('assets/sprites/items/' + pk.item + '.png'); if (!img) continue;
+      const w = pk.w, h = w * img.height / img.width;
+      if (sx >= pk.x - w / 2 - 6 && sx <= pk.x + w / 2 + 6 && sy >= pk.y - h - 6 && sy <= pk.y + 6) {
+        const hs = (G.def.hotspots || []).find(x => x.id === pk.hot);
+        if (hs) return { kind: 'hot', obj: Object.assign({}, hs, { name: NN.items[pk.item].name }), pickup: pk };
+      }
+    }
+    return null;
+  }
   function hitTest(sx, sy) {
     const def = G.def;
+    const pk = pickupHit(sx, sy); if (pk) return pk;
     for (const e of def.exits || []) if ((!e.if || e.if(NN.S)) && U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
     const hs = def.hotspots || [];
     for (let i = hs.length - 1; i >= 0; i--) {
@@ -350,16 +368,36 @@ window.NN = window.NN || {};
   G.api = api;
 
   // ---------- Inventarleiste (Zeichnen und Treffer) ----------
-  const BAR = {
-    y: VH, h: H - VH,
-    kru: { x: 24, y: VH + 10, w: 140, h: 100 },
-    slotX: 190, slotW: 112, slotH: 100, slotGap: 8, slots: 8,
-    prev: { x: 1160, y: VH + 10, w: 46, h: 100 }, next: { x: 1212, y: VH + 10, w: 46, h: 100 },
-    map: { x: 1300, y: VH + 10, w: 170, h: 100 }, help: { x: 1484, y: VH + 10, w: 170, h: 100 }, menu: { x: 1668, y: VH + 10, w: 170, h: 100 }
-  };
+  const BAR = { y: VH, h: H - VH };
+  const VERBS = [['walk', 'Gehe zu'], ['look', 'Schau an'], ['take', 'Nimm'], ['use', 'Benutze'], ['talk', 'Sprich mit'], ['give', 'Gib']];
+  const VERB_LABEL = Object.fromEntries(VERBS);
+  let layoutMode = ''; G.verb = 'walk';
+  function applyLayout() {
+    const mode = NN.opts.controlMode === 'scumm' ? 'scumm' : 'auto';
+    if (mode === layoutMode) return; layoutMode = mode;
+    const y = VH + 10;
+    if (mode === 'scumm') {
+      Object.assign(BAR, {
+        verbs: VERBS.map(([id, label], i) => ({ id, label, x: 20 + (i % 3) * 176, y: y + Math.floor(i / 3) * 52, w: 168, h: 48 })),
+        kru: { x: 560, y, w: 110, h: 100 }, slotX: 684, slotW: 98, slotH: 100, slotGap: 6, slots: 7,
+        prev: { x: 1450, y, w: 40, h: 100 }, next: { x: 1494, y, w: 40, h: 100 },
+        map: { x: 1560, y, w: 110, h: 100 }, help: { x: 1680, y, w: 110, h: 100 }, menu: { x: 1800, y, w: 100, h: 100 }
+      });
+    } else {
+      Object.assign(BAR, {
+        verbs: null,
+        kru: { x: 24, y, w: 140, h: 100 }, slotX: 190, slotW: 112, slotH: 100, slotGap: 8, slots: 8,
+        prev: { x: 1160, y, w: 46, h: 100 }, next: { x: 1212, y, w: 46, h: 100 },
+        map: { x: 1300, y, w: 170, h: 100 }, help: { x: 1484, y, w: 170, h: 100 }, menu: { x: 1668, y, w: 170, h: 100 }
+      });
+    }
+    G.invPage = 0;
+  }
+  applyLayout();
   const inR = (r, x, y) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
 
   function barHit(x, y) {
+    if (BAR.verbs) for (const v of BAR.verbs) if (inR(v, x, y)) return { type: 'verb', id: v.id };
     if (inR(BAR.kru, x, y)) return { type: 'kru' };
     for (let i = 0; i < BAR.slots; i++) {
       const r = { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH };
@@ -464,17 +502,20 @@ window.NN = window.NN || {};
     // Leuchtlinie oben
     neonRect(x, -10, BAR.y + 2, W + 20, 0.01, 0, NEON.pink, 5, 20);
     // Krümel-Feld, Slots, Pfeile, Knöpfe
+    if (BAR.verbs) BAR.verbs.forEach(v => { neonFrame(x, v, NEON.cyan, NEON.violet); neonText(x, v.label, v.x + v.w / 2, v.y + v.h / 2, NEON.cyan, 24); });
     neonFrame(x, BAR.kru, NEON.cyan, NEON.pink);
     for (let i = 0; i < BAR.slots; i++) neonFrame(x, { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH }, NEON.pink, NEON.violet);
     [BAR.prev, BAR.next].forEach((r, i) => { neonFrame(x, r, NEON.violet, NEON.pink); neonText(x, i ? '▶' : '◀', r.x + r.w / 2, r.y + r.h / 2, NEON.cyan, 24); });
-    [[BAR.map, 'Karte'], [BAR.help, 'Hilfe'], [BAR.menu, 'Menü']].forEach(([r, t]) => { neonFrame(x, r, NEON.amber, NEON.pink); neonText(x, t, r.x + r.w / 2, r.y + r.h / 2, NEON.amber, 30); });
+    [[BAR.map, 'Karte'], [BAR.help, 'Hilfe'], [BAR.menu, 'Menü']].forEach(([r, t]) => { neonFrame(x, r, NEON.amber, NEON.pink); neonText(x, t, r.x + r.w / 2, r.y + r.h / 2, NEON.amber, BAR.verbs ? 24 : 30); });
     return c;
   }
 
   function drawBar() {
-    const key = canvas.width + '|' + NN.opts.font + '|' + NN.opts.textSize;
+    applyLayout();
+    const key = canvas.width + '|' + NN.opts.font + '|' + NN.opts.textSize + '|' + layoutMode;
     if (!barCache || barKey !== key) { barCache = buildBar(); barKey = key; }
     ctx.drawImage(barCache, 0, BAR.y, W, BAR.h);
+    if (BAR.verbs) BAR.verbs.forEach(v => { if (v.id === G.verb) neonRect(ctx, v.x - 3, v.y - 3, v.w + 6, v.h + 6, 18, NEON.amber, 5, 20); });
     // Krümel-Symbol und Akku
     if (G.selected === 'kruemel') neonRect(ctx, BAR.kru.x - 3, BAR.kru.y - 3, BAR.kru.w + 6, BAR.kru.h + 6, 18, NEON.amber, 5, 20);
     const kimg = A.get(KRU + 'hover_front.png');
@@ -493,7 +534,7 @@ window.NN = window.NN || {};
       else { ctx.fillStyle = NEON.amber; ctx.font = font(18); ctx.textAlign = 'center'; ctx.fillText(NN.items[id].name.slice(0, 10), r.x + r.w / 2, r.y + r.h / 2); }
     }
     const pages = Math.max(1, Math.ceil(NN.S.inv.length / BAR.slots));
-    ctx.fillStyle = '#a795c9'; ctx.font = font(16); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText((G.invPage + 1) + '/' + pages, 1209, BAR.y + 118);
+    ctx.fillStyle = '#a795c9'; ctx.font = font(16); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText((G.invPage + 1) + '/' + pages, (BAR.prev.x + BAR.next.x + BAR.next.w) / 2, BAR.y + 118);
   }
 
   // ---------- Zeichnen der Szene ----------
@@ -582,6 +623,16 @@ window.NN = window.NN || {};
       ctx.fillStyle = '#a795c9'; ctx.font = font(48); ctx.textAlign = 'center'; ctx.fillText('[Platzhalter] ' + def.name, W / 2, VH / 2);
     }
     (def.props || []).forEach(p => { if (!p.if || p.if(NN.S)) p.draw(ctx, L, NN.S); });
+    (def.pickups || []).forEach(pk => {
+      if (!pickupVisible(pk)) return;
+      const img = A.get('assets/sprites/items/' + pk.item + '.png'); if (!img) return;
+      const [lx, ly] = L(pk.x, pk.y), k = (pk.w * G.view.fx) / img.width;
+      const hov = G.hover && G.hover.pickup === pk;
+      ctx.save();
+      if (NN.opts.hotspotHints !== false) { const t = performance.now() / 1000; ctx.shadowColor = '#ffb347'; ctx.shadowBlur = hov ? 28 : 8 + 6 * Math.sin(t * 2.4 + pk.x); }
+      ctx.drawImage(img, lx - img.width * k / 2, ly - img.height * k, img.width * k, img.height * k);
+      ctx.restore();
+    });
     // Figuren nach Tiefe sortiert
     const list = [{ y: pixel.y, draw: drawPixel }, { y: pixel.y - 0.5, draw: drawKruemel }]; // Krümel direkt hinter Pixel
     (def.actors || []).forEach(a => { if (!a.hide || !a.hide(NN.S)) list.push({ y: a.y, draw: () => drawNpc(a) }); });
@@ -686,6 +737,14 @@ window.NN = window.NN || {};
         ctx.drawImage(img, G.mouse.x - w / 2, G.mouse.y - h / 2, w, h); ctx.restore();
       }
     }
+    if (scumm() && !G.choices) {
+      const t = scummSentence();
+      ctx.save(); ctx.font = font(34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const w = ctx.measureText(t).width + 60, x = W / 2, y = VH - 34;
+      ctx.fillStyle = 'rgba(12,6,28,0.82)'; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 26, w, 52, 14); ctx.fill();
+      neonRect(ctx, x - w / 2, y - 26, w, 52, 14, G.selected ? NEON.amber : NEON.cyan, 3, 12);
+      ctx.fillStyle = '#fff'; ctx.fillText(t, x, y); ctx.restore();
+    } else
     // Label unter dem Mauszeiger
     if (G.hover && G.mouse.y < VH && !G.choices) {
       let label = G.hover.obj.name;
@@ -797,6 +856,7 @@ window.NN = window.NN || {};
       return;
     }
     G.tok++; cancelWalk();
+    if (scumm()) return scummClick(hit, sx, sy);
     if (hit) {
       if (G.selected && hit.kind === 'hot') return interact(hit, 'item');
       return interact(hit, 'use');
@@ -805,8 +865,43 @@ window.NN = window.NN || {};
     walkPixel(sx, sy);
   });
 
+  // ---------- SCUMM-Modus (Verben wählen) ----------
+  const scumm = () => NN.opts.controlMode === 'scumm';
+  const say1 = text => run(async g => g.say('pixel', text));
+  const isNpc = h => (G.def.actors || []).some(a => a.id === h.id);
+  const isTakeable = (h, pk) => !!pk || h.take || (G.def.pickups || []).some(p => p.hot === h.id && pickupVisible(p));
+  function scummClick(hit, sx, sy) {
+    const verb = G.verb;
+    G.verb = 'walk';
+    if (G.selected) { // Gegenstand gewählt: Ziel anklicken
+      if (hit && hit.kind === 'hot') return interact(hit, 'item');
+      G.selected = null; return walkPixel(sx, sy);
+    }
+    if (verb === 'walk') { if (hit && hit.kind === 'exit') return interact(hit, 'use'); return walkPixel(sx, sy); }
+    if (verb === 'give') { NN.audio.fail(); return say1('Erst muss ich einen Gegenstand aus dem Inventar wählen.'); }
+    if (!hit) return walkPixel(sx, sy);
+    if (verb === 'look') return interact(hit, 'look');
+    if (hit.kind === 'exit') return interact(hit, 'use');
+    if (verb === 'take') {
+      if (isTakeable(hit.obj, hit.pickup)) return interact(hit, 'use');
+      NN.audio.fail(); return say1(isNpc(hit.obj) ? 'Ich kann niemanden einfach mitnehmen. Das wäre unhöflich.' : 'Das kann ich nicht mitnehmen.');
+    }
+    if (verb === 'talk') {
+      if (isNpc(hit.obj)) return interact(hit, 'use');
+      NN.audio.fail(); return say1('Mit dem Ding rede ich lieber nicht. Es antwortet sowieso nicht.');
+    }
+    return interact(hit, 'use'); // Benutze
+  }
+  function scummSentence() {
+    const nm = id => id === 'kruemel' ? 'Krümel' : NN.items[id].name;
+    let t = G.selected ? (G.verb === 'give' ? 'Gib ' + nm(G.selected) + ' an' : 'Benutze ' + nm(G.selected) + ' mit') : VERB_LABEL[G.verb];
+    if (G.hover && G.mouse.y < VH) t += ' ' + G.hover.obj.name;
+    return t;
+  }
+
   async function barClick(button, h) {
     NN.audio.click();
+    if (h.type === 'verb') { G.selected = null; G.verb = h.id; return; }
     if (h.type === 'map') return G.onMap && G.onMap();
     if (h.type === 'help') return G.onHelp && G.onHelp();
     if (h.type === 'menu') return G.onMenu && G.onMenu();
@@ -822,7 +917,9 @@ window.NN = window.NN || {};
     }
     if (h.type === 'slot') {
       const id = h.id;
-      if (button === 2) return run(async g => g.say('pixel', NN.items[id].look));
+      if (button === 2 || (scumm() && !G.selected && G.verb === 'look')) { G.verb = 'walk'; return run(async g => g.say('pixel', NN.items[id].look)); }
+      if (scumm() && !G.selected && G.verb === 'take') { G.verb = 'walk'; return say1('Das habe ich doch schon.'); }
+      if (scumm() && !G.selected && G.verb !== 'give') G.verb = 'use';
       if (!G.selected) { G.selected = id; return; }
       if (G.selected === id) { G.selected = null; const it = NN.items[id]; if (it.useSelf) return run(it.useSelf); return; }
       const a = G.selected, b = id;
@@ -863,7 +960,7 @@ window.NN = window.NN || {};
   // ---------- Start ----------
   G.start = async function (state, fromSave) {
     NN.S = state;
-    G.paused = false; G.busy = false; G.selected = null; G.invPage = 0; G.fade = 0; G.fadeAnim = null;
+    G.paused = false; G.busy = false; G.selected = null; G.verb = 'walk'; G.invPage = 0; G.fade = 0; G.fadeAnim = null;
     G.loadedFromSave = !!fromSave;
     const spawn = fromSave && state.pos ? state.pos : 'default';
     await G.enterScene(state.scene || 'imbiss', spawn);
