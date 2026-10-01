@@ -626,7 +626,7 @@ window.NN = window.NN || {};
     return h;
   }
 
-  const STRIDE = 17; // Szenen-Pixel pro Laufbild (ungefähr eine Schrittlänge geteilt durch 7 Bilder)
+  const STRIDE = 26; // Szenen-Pixel pro Laufbild (ungefähr eine Schrittlänge geteilt durch 7 Bilder)
   function pixelSpriteName() {
     const p = pixel;
     if (p.anim) return p.anim;
@@ -656,9 +656,9 @@ window.NN = window.NN || {};
         const hop = Math.abs(Math.sin(ph / 2)), land = Math.pow(1 - hop, 6);
         const dirSign = pixel.dir === 'left' ? -1 : pixel.dir === 'right' ? 1 : 0;
         ctx.save();
-        ctx.translate(lx, ly - hop * 9 * sc * G.view.fy);
+        ctx.translate(lx, ly - hop * 4 * sc * G.view.fy);
         ctx.rotate(dirSign * 0.045 + Math.sin(ph / 2) * (dirSign ? 0.02 : 0.045));
-        ctx.scale(1 + land * 0.045, 1 - land * 0.05 + hop * 0.02);
+        ctx.scale(1 + land * 0.025, 1 - land * 0.03 + hop * 0.01);
         ctx.translate(-lx, -ly);
         pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
         ctx.restore();

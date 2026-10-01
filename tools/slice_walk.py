@@ -35,14 +35,26 @@ for src, prefix in SETS:
     if len(found) != 8:
         print(src, "->", len(found), "Figuren in Reihe 1 statt 8, abgebrochen"); continue
     old = heights(prefix, 7)
-    boxes = [(f[0][3] - f[0][1]) for f in found]
-    factor = old / float(np.mean(boxes))
-    for i, (bb, lab) in enumerate(found, start=1):
+    # Alle Bilder bekommen dasselbe Fenster (gleiche Breite/Höhe, gleiche Lage zur Zelle), damit die Figur beim Wechsel nicht zittert
+    cell = img.width / 8
+    info = []
+    for bb, lab in found:
         m = labels == lab
         ys, xs = np.nonzero(m)
-        x0, x1, y0, y1 = max(xs.min() - 3, 0), xs.max() + 4, max(ys.min() - 3, 0), ys.max() + 4
+        info.append((lab, xs.min(), xs.max(), ys.min(), ys.max(), (xs.min() + xs.max()) / 2 - (len(info) + 0.5) * cell))
+    off = float(np.median([t[5] for t in info]))
+    half = max(max(abs((t[1] + t[2]) / 2 - t[1]), abs(t[2] - (t[1] + t[2]) / 2)) for t in info) + 4
+    y0 = int(min(t[3] for t in info)) - 3
+    y1 = int(max(t[4] for t in info)) + 4
+    factor = old / float(np.mean([t[4] - t[3] for t in info]))
+    for i, (lab, xa, xb, ya, yb, o) in enumerate(info, start=1):
+        m = labels == lab
+        cx = int(round((i - 0.5) * cell + off))
+        x0, x1 = cx - int(half), cx + int(half)
         arr = rgba.copy(); arr[..., 3] = np.where(m, arr[..., 3], 0)
-        sp = Image.fromarray(arr[y0:y1, x0:x1], "RGBA")
+        pad = np.zeros((img.height, img.width + 400, 4), np.uint8)
+        pad[:, 200:200 + img.width] = arr
+        sp = Image.fromarray(pad[y0:y1, x0 + 200:x1 + 200], "RGBA")
         sp = sp.resize((max(1, round(sp.width * factor)), max(1, round(sp.height * factor))), Image.LANCZOS)
         sp.save(OUT / f"{prefix}walk_{i}.png", optimize=True)
-    print(src, "ok, Faktor", round(factor, 3))
+    print(src, "ok, Faktor", round(factor, 3), "Fenster", x1 - x0, "x", y1 - y0)
