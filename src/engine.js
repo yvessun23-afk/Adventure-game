@@ -183,6 +183,25 @@ window.NN = window.NN || {};
   }
   U.dist = (a, b, c, d) => Math.hypot(c - a, d - b);
 
+  // NPCs sind Hindernisse (flache Ellipsen um die Füße); Pixel gleitet um sie herum
+  function blockers() {
+    return (G.def.actors || []).filter(a => a.sprite && a.solid !== false && (!a.hide || !a.hide(NN.S))).map(a => {
+      const ds = depthScale(a.y) * (a.scale || 1), w = (a.h ? a.h * 0.8 : 200) * ds;
+      return { x: a.x, y: a.y, rx: Math.max(34, w * 0.34), ry: Math.max(14, 20 * ds) };
+    });
+  }
+  function steer(px, py, nx, ny, tx) {
+    for (const b of blockers()) {
+      let ex = (nx - b.x) / b.rx, ey = (ny - b.y) / b.ry, e = ex * ex + ey * ey;
+      if (e >= 1) continue;
+      if (((px - b.x) / b.rx) ** 2 + ((py - b.y) / b.ry) ** 2 < 1 && e >= ((px - b.x) / b.rx) ** 2 + ((py - b.y) / b.ry) ** 2) continue; // wir stehen schon drin: hinausgehen erlauben
+      if (Math.abs(ex) < 0.2) ex = (tx !== undefined ? (tx >= b.x ? 1 : -1) : (px >= b.x ? 1 : -1)) * 0.2; // frontal: Seite wählen
+      const k = 1.02 / Math.sqrt(ex * ex + ey * ey);
+      nx = b.x + ex * k * b.rx; ny = b.y + ey * k * b.ry;
+    }
+    return [nx, ny];
+  }
+
   function updatePixel(dt) {
     const p = pixel;
     if (p.anim) { p.animT -= dt; if (p.animT <= 0) p.anim = null; }
@@ -193,13 +212,18 @@ window.NN = window.NN || {};
     p.moving = true; p.t += dt;
     if (Math.abs(dy) > Math.abs(dx) * 1.7) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }
     if (d <= step) { p.x = p.target[0]; p.y = p.target[1]; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
-    const nx = p.x + dx / d * step, ny = p.y + dy / d * step;
+    let nx = p.x + dx / d * step, ny = p.y + dy / d * step;
+    [nx, ny] = steer(p.x, p.y, nx, ny, p.target[0]);
+    const ox = p.x, oy = p.y;
     if (U.inPoly(nx, ny, G.def.walk)) { p.x = nx; p.y = ny; }
     else {
       const c = U.clampToPoly(nx, ny, G.def.walk);
-      if (U.dist(c[0], c[1], p.x, p.y) < 0.2) { p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } }
-      else { p.x = c[0]; p.y = c[1]; }
+      if (U.dist(c[0], c[1], p.x, p.y) < 0.2) { p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
+      p.x = c[0]; p.y = c[1];
     }
+    // festgesteckt (z. B. Ziel liegt hinter einem NPC): Lauf nach kurzer Zeit beenden
+    p.stuck = Math.hypot(p.x - ox, p.y - oy) < step * 0.25 ? (p.stuck || 0) + dt : 0;
+    if (p.stuck > 0.5) { p.stuck = 0; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } }
   }
 
   function updateKruemel(dt) {
@@ -477,14 +501,15 @@ window.NN = window.NN || {};
   function clamp(c, x, y) { c.save(); c.fillStyle = '#07030d'; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); c.restore(); }
   // Rahmen aus zwei Neonröhren (außen und innen), Halterungen an den Ecken
   function neonFrame(c, r, outer, inner) {
-    neonRect(c, r.x, r.y, r.w, r.h, 16, outer, 5, 16);
-    neonRect(c, r.x + 8, r.y + 8, r.w - 16, r.h - 16, 10, inner, 3, 10);
+    neonRect(c, r.x, r.y, r.w, r.h, 16, outer, 5, 11);
+    neonRect(c, r.x + 8, r.y + 8, r.w - 16, r.h - 16, 10, inner, 3, 7);
     clamp(c, r.x + 4, r.y + 4); clamp(c, r.x + r.w - 4, r.y + r.h - 4);
   }
   function neonText(c, text, cx, cy, color, size) {
     c.save(); c.font = font(size); c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.shadowColor = color; c.shadowBlur = 14; c.fillStyle = color; c.fillText(text, cx, cy); c.fillText(text, cx, cy);
-    c.shadowBlur = 0; c.fillStyle = 'rgba(255,255,255,0.85)'; c.fillText(text, cx, cy); c.restore();
+    c.lineJoin = 'round'; c.lineWidth = 5; c.strokeStyle = 'rgba(10,5,22,0.75)'; c.strokeText(text, cx, cy); // dunkle Kontur gegen Überstrahlen
+    c.shadowColor = color; c.shadowBlur = 6; c.fillStyle = color; c.fillText(text, cx, cy);
+    c.shadowBlur = 0; c.fillStyle = 'rgba(255,255,255,0.55)'; c.fillText(text, cx, cy); c.restore();
   }
 
   function buildBar() {
@@ -609,6 +634,12 @@ window.NN = window.NN || {};
     ctx.save();
     if (a.clipY) { ctx.beginPath(); ctx.rect(0, 0, W, L(0, a.clipY)[1]); ctx.clip(); }
     // Sprech- und Ruhebild an den Füßen ausrichten und auf gleiche Körpergröße bringen (kein Springen)
+    const speaking = G.speech && G.speech.who === a.id, t = G.time, ph = [...String(a.id)].reduce((q, ch) => q + ch.charCodeAt(0), 0);
+    if (!NN.opts.reduceAnim) { // dezente Bewegung: Atmen und Wiegen, beim Sprechen lebhafter
+      const amp = speaking ? 1 : 0, br = Math.sin(t * 1.9 + ph), sw = Math.sin(t * 0.9 + ph * 0.7);
+      const bounce = amp * Math.abs(Math.sin(t * 7.5)) * 4 * sc, tilt = sw * 0.007 + amp * Math.sin(t * 5.2) * 0.022;
+      ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br - amp * 0.008, 1 + 0.011 * br + amp * 0.014); ctx.translate(-lx, -ly);
+    }
     const fit = talking && NN.npcFit && NN.npcFit[base] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[base] : 1;
     drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY, true);
     ctx.restore();

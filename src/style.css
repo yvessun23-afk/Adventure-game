@@ -25,7 +25,7 @@ body.fx-crt #crt { display: block; background: repeating-linear-gradient(to bott
 #overlay.hidden { display: none; }
 #overlay.clear { background: transparent; }
 .panel { background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 3px solid var(--line); border-radius: 18px; box-shadow: 0 0 28px rgba(255,60,200,.45), inset 0 0 26px rgba(39,230,255,.12); padding: 26px 34px; max-width: min(960px, 94vw); max-height: 92vh; overflow: auto; font-size: calc(22px * var(--fs)); }
-.panel h1 { margin: 0 0 14px; font-size: calc(40px * var(--fs)); color: var(--accent); text-shadow: 0 0 14px rgba(255,179,71,.7); }
+.panel h1 { margin: 0 0 14px; font-size: calc(40px * var(--fs)); color: var(--accent); text-shadow: 0 0 6px rgba(255,179,71,.45), 0 2px 2px rgba(0,0,0,.6); }
 .panel h2 { margin: 18px 0 8px; font-size: calc(26px * var(--fs)); color: var(--line2); }
 .btn { font: inherit; font-size: calc(24px * var(--fs)); color: var(--text); background: #2b1a52; border: 2px solid var(--line2); border-radius: 12px; padding: 8px 20px; margin: 5px 6px 5px 0; cursor: pointer; }
 .btn:hover, .btn:focus-visible { background: #3d2576; box-shadow: 0 0 14px var(--line2); outline: none; }
@@ -42,7 +42,7 @@ body.fx-crt #crt { display: block; background: repeating-linear-gradient(to bott
 .slot .thumb { width: 160px; height: 90px; background: #110a22 center/cover; border-radius: 6px; border: 1px solid #44307a; flex: 0 0 auto; }
 .slot .info { flex: 1; }
 .title { text-align: center; min-width: min(560px, 90vw); }
-.title .logo { font-size: calc(72px * var(--fs)); line-height: 1; color: var(--line2); text-shadow: 0 0 10px var(--line2), 0 0 34px var(--line); letter-spacing: 4px; margin: 6px 0 4px; }
+.title .logo { font-size: calc(72px * var(--fs)); line-height: 1; color: var(--line2); text-shadow: 0 0 6px var(--line2), 0 0 18px rgba(255,60,200,.45); letter-spacing: 4px; margin: 6px 0 4px; }
 .title .sub { color: var(--accent); margin-bottom: 18px; }
 #titlebg { position: fixed; inset: 0; background: #0b0714 center/cover no-repeat; z-index: 9; }
 #titlebg.hidden { display: none; }
