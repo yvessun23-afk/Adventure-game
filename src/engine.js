@@ -202,7 +202,7 @@ window.NN = window.NN || {};
   function updateKruemel(dt) {
     const [px, py] = L(pixel.x, pixel.y);
     const side = pixel.dir === 'left' ? 1 : -1;
-    const tx = px + side * 110 * depthScale(pixel.y), ty = py - 260 * depthScale(pixel.y) * G.view.fy;
+    const tx = px + side * 60 * depthScale(pixel.y), ty = py - (pixel.lastH || 300) * 0.78;
     const k = 1 - Math.pow(0.001, dt);
     kru.x += (tx - kru.x) * k * 0.6; kru.y += (ty - kru.y) * k * 0.6;
     kru.bob += dt * 3; kru.spin += dt * 40;
@@ -407,7 +407,7 @@ window.NN = window.NN || {};
     const bob = NN.opts.reduceAnim ? 0 : Math.sin(kru.bob) * 6;
     const img = A.get(KRU + kruemelSpriteName() + '.png') || A.get(KRU + 'hover_1.png');
     if (!img) { drawKruemelShape(kru.x, kru.y + bob, 0.85 * Math.max(0.7, depthScale(pixel.y))); kru.h = 100; return; }
-    const sc = 0.7 * depthScale(pixel.y) * G.view.fy;
+    const sc = 0.5 * depthScale(pixel.y) * G.view.fy;
     const h = img.height * sc, w = img.width * sc;
     ctx.save(); ctx.translate(kru.x, kru.y + bob + (sad ? 28 : 0) + h / 2);
     if (pixel.dir === 'left') ctx.scale(-1, 1);
@@ -416,59 +416,101 @@ window.NN = window.NN || {};
     kru.h = h;
   }
 
+  // ---------- Neon-Leiste (Hintergrund wird einmal vorgezeichnet) ----------
+  let barCache = null, barKey = '';
+  const NEON = { pink: '#ff3cc8', amber: '#ffb347', cyan: '#27e6ff', violet: '#9b5cff' };
+
+  function neonRect(c, x, y, w, h, r, color, width, glow) {
+    c.save(); c.lineJoin = 'round';
+    c.shadowColor = color; c.shadowBlur = glow; c.strokeStyle = color; c.lineWidth = width;
+    c.beginPath(); c.roundRect(x, y, w, h, r); c.stroke(); c.stroke();
+    c.shadowBlur = 0; c.strokeStyle = 'rgba(255,255,255,0.75)'; c.lineWidth = Math.max(1, width * 0.32);
+    c.beginPath(); c.roundRect(x, y, w, h, r); c.stroke();
+    c.restore();
+  }
+  function clamp(c, x, y) { c.save(); c.fillStyle = '#07030d'; c.beginPath(); c.arc(x, y, 5, 0, 7); c.fill(); c.restore(); }
+  // Rahmen aus zwei Neonröhren (außen und innen), Halterungen an den Ecken
+  function neonFrame(c, r, outer, inner) {
+    neonRect(c, r.x, r.y, r.w, r.h, 16, outer, 5, 16);
+    neonRect(c, r.x + 8, r.y + 8, r.w - 16, r.h - 16, 10, inner, 3, 10);
+    clamp(c, r.x + 4, r.y + 4); clamp(c, r.x + r.w - 4, r.y + r.h - 4);
+  }
+  function neonText(c, text, cx, cy, color, size) {
+    c.save(); c.font = font(size); c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.shadowColor = color; c.shadowBlur = 14; c.fillStyle = color; c.fillText(text, cx, cy); c.fillText(text, cx, cy);
+    c.shadowBlur = 0; c.fillStyle = 'rgba(255,255,255,0.85)'; c.fillText(text, cx, cy); c.restore();
+  }
+
+  function buildBar() {
+    const rs = canvas.width / W, c = document.createElement('canvas');
+    c.width = Math.round(W * rs); c.height = Math.round(BAR.h * rs);
+    const x = c.getContext('2d'); x.scale(rs, rs); x.translate(0, -BAR.y);
+    // Backsteinwand
+    const grd = x.createLinearGradient(0, BAR.y, 0, H); grd.addColorStop(0, '#1b0d33'); grd.addColorStop(1, '#0a0514');
+    x.fillStyle = grd; x.fillRect(0, BAR.y, W, BAR.h);
+    x.strokeStyle = 'rgba(150,90,230,0.13)'; x.lineWidth = 2;
+    for (let row = 0, yy = BAR.y + 6; yy < H; row++, yy += 30) {
+      x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke();
+      for (let xx = (row % 2) * 45; xx < W; xx += 90) { x.beginPath(); x.moveTo(xx, yy); x.lineTo(xx, yy + 30); x.stroke(); }
+    }
+    // Leuchtlinie oben
+    neonRect(x, -10, BAR.y + 2, W + 20, 0.01, 0, NEON.pink, 5, 20);
+    // Krümel-Feld, Slots, Pfeile, Knöpfe
+    neonFrame(x, BAR.kru, NEON.cyan, NEON.pink);
+    for (let i = 0; i < BAR.slots; i++) neonFrame(x, { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH }, NEON.pink, NEON.violet);
+    [BAR.prev, BAR.next].forEach((r, i) => { neonFrame(x, r, NEON.violet, NEON.pink); neonText(x, i ? '▶' : '◀', r.x + r.w / 2, r.y + r.h / 2, NEON.cyan, 24); });
+    [[BAR.map, 'Karte'], [BAR.help, 'Hilfe'], [BAR.menu, 'Menü']].forEach(([r, t]) => { neonFrame(x, r, NEON.amber, NEON.pink); neonText(x, t, r.x + r.w / 2, r.y + r.h / 2, NEON.amber, 30); });
+    return c;
+  }
+
   function drawBar() {
-    ctx.save();
-    const grd = ctx.createLinearGradient(0, BAR.y, 0, H);
-    grd.addColorStop(0, '#1e0f3a'); grd.addColorStop(1, '#0d0620');
-    ctx.fillStyle = grd; ctx.fillRect(0, BAR.y, W, BAR.h);
-    ctx.fillStyle = '#ff3cc8'; ctx.fillRect(0, BAR.y, W, 4);
-    panel(BAR.kru, '', G.selected === 'kruemel');
+    const key = canvas.width + '|' + NN.opts.font + '|' + NN.opts.textSize;
+    if (!barCache || barKey !== key) { barCache = buildBar(); barKey = key; }
+    ctx.drawImage(barCache, 0, BAR.y, W, BAR.h);
+    // Krümel-Symbol und Akku
+    if (G.selected === 'kruemel') neonRect(ctx, BAR.kru.x - 3, BAR.kru.y - 3, BAR.kru.w + 6, BAR.kru.h + 6, 18, NEON.amber, 5, 20);
     const kimg = A.get(KRU + 'hover_front.png');
-    if (kimg) { const k = 84 / kimg.height; ctx.drawImage(kimg, BAR.kru.x + (BAR.kru.w - kimg.width * k) / 2, BAR.kru.y + 6, kimg.width * k, 84); }
+    if (kimg) { const k = 80 / kimg.height; ctx.drawImage(kimg, BAR.kru.x + (BAR.kru.w - kimg.width * k) / 2, BAR.kru.y + 8, kimg.width * k, 80); }
     else drawKruemelShape(BAR.kru.x + BAR.kru.w / 2, BAR.kru.y + 76, 0.75);
-    ctx.fillStyle = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? '#ff6a6a' : '#7dffb0';
-    ctx.fillRect(BAR.kru.x + 12, BAR.kru.y + BAR.kru.h - 12, (BAR.kru.w - 24) * (NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen ? 0.06 : 1), 5);
+    const low = NN.S.flags.kruemel_leer && !NN.S.flags.kruemel_geladen;
+    ctx.fillStyle = low ? '#ff6a6a' : '#7dffb0';
+    ctx.fillRect(BAR.kru.x + 22, BAR.kru.y + BAR.kru.h - 16, (BAR.kru.w - 44) * (low ? 0.06 : 1), 5);
     for (let i = 0; i < BAR.slots; i++) {
       const r = { x: BAR.slotX + i * (BAR.slotW + BAR.slotGap), y: BAR.y + 10, w: BAR.slotW, h: BAR.slotH };
       const id = NN.S.inv[G.invPage * BAR.slots + i];
-      panel(r, '', id && G.selected === id);
-      if (id) {
-        const img = A.get('assets/sprites/items/' + id + '.png');
-        if (img) { const k = Math.min(86 / img.width, 86 / img.height); ctx.drawImage(img, r.x + (r.w - img.width * k) / 2, r.y + (r.h - img.height * k) / 2, img.width * k, img.height * k); }
-        else { ctx.fillStyle = '#ffb347'; ctx.font = font(18); ctx.textAlign = 'center'; ctx.fillText(NN.items[id].name.slice(0, 10), r.x + r.w / 2, r.y + r.h / 2); }
-      }
+      if (!id) continue;
+      if (G.selected === id) neonRect(ctx, r.x - 3, r.y - 3, r.w + 6, r.h + 6, 18, NEON.amber, 5, 20);
+      const img = A.get('assets/sprites/items/' + id + '.png');
+      if (img) { const k = Math.min(70 / img.width, 70 / img.height); ctx.drawImage(img, r.x + (r.w - img.width * k) / 2, r.y + (r.h - img.height * k) / 2, img.width * k, img.height * k); }
+      else { ctx.fillStyle = NEON.amber; ctx.font = font(18); ctx.textAlign = 'center'; ctx.fillText(NN.items[id].name.slice(0, 10), r.x + r.w / 2, r.y + r.h / 2); }
     }
     const pages = Math.max(1, Math.ceil(NN.S.inv.length / BAR.slots));
-    panel(BAR.prev, '◀'); panel(BAR.next, '▶');
-    ctx.fillStyle = '#a795c9'; ctx.font = font(16); ctx.textAlign = 'center'; ctx.fillText((G.invPage + 1) + '/' + pages, 1209, BAR.y + 116);
-    panel(BAR.map, 'Karte'); panel(BAR.help, 'Hilfe'); panel(BAR.menu, 'Menü');
-    ctx.restore();
+    ctx.fillStyle = '#a795c9'; ctx.font = font(16); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText((G.invPage + 1) + '/' + pages, 1209, BAR.y + 118);
   }
 
   // ---------- Zeichnen der Szene ----------
-  // Wie viel transparenter Rand unten im Bild ist (Anteil der Höhe), damit die Füße genau auf dem Boden stehen
+  // Fußposition aus data/assets.js (vorab berechnet, funktioniert auch beim Öffnen per Doppelklick)
   const footCache = new WeakMap();
-  function footGap(img) {
-    let g = footCache.get(img);
-    if (g !== undefined) return g;
-    try {
-      const k = Math.min(1, 64 / img.width), cw = Math.max(1, Math.round(img.width * k)), ch = Math.max(1, Math.round(img.height * k));
-      const c = document.createElement('canvas'); c.width = cw; c.height = ch;
-      const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, cw, ch);
-      const d = x.getImageData(0, 0, cw, ch).data;
-      let last = ch - 1;
-      for (; last > 0; last--) { let hit = 0; for (let i = 0; i < cw; i++) if (d[(last * cw + i) * 4 + 3] > 40) hit++; if (hit >= 1) break; }
-      g = (ch - 1 - last) / ch;
-    } catch (e) { g = 0; }
-    footCache.set(img, g); return g;
+  function footInfo(img) {
+    let f = footCache.get(img);
+    if (f) return f;
+    const key = decodeURIComponent((img.src.split('assets/sprites/')[1] || '').split('?')[0]);
+    const e = NN.feet && NN.feet[key];
+    f = e ? { gap: e[0], cx: e[1], w: e[2] } : { gap: 0, cx: 0.5, w: 0.4 };
+    footCache.set(img, f);
+    return f;
   }
 
   function drawSprite(img, lx, ly, scale, flip, shadow) {
-    const w = img.width * scale, h = img.height * scale;
-    ly += footGap(img) * h; // Fußlinie = Standpunkt
+    const w = img.width * scale, h = img.height * scale, f = footInfo(img);
+    const groundY = ly; // hier stehen die Fußsohlen
+    ly += f.gap * h;    // leeren Rand unter dem Bild ausgleichen
     if (shadow) {
-      ctx.save(); ctx.fillStyle = 'rgba(0,0,0,0.32)';
-      ctx.beginPath(); ctx.ellipse(lx, ly - 4, Math.max(30, w * 0.3), Math.max(9, w * 0.06), 0, 0, 7); ctx.fill(); ctx.restore();
+      const fx = lx + (flip ? -1 : 1) * (f.cx - 0.5) * w, rx = Math.max(28, f.w * w * 0.85), ry = Math.max(9, rx * 0.24);
+      ctx.save(); ctx.translate(fx, groundY - ry * 0.35); ctx.scale(1, ry / rx);
+      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+      g.addColorStop(0, 'rgba(0,0,0,0.85)'); g.addColorStop(0.6, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
     }
     ctx.save(); ctx.translate(lx, ly);
     if (flip) ctx.scale(-1, 1);
@@ -533,11 +575,9 @@ window.NN = window.NN || {};
     }
     (def.props || []).forEach(p => { if (!p.if || p.if(NN.S)) p.draw(ctx, L, NN.S); });
     // Figuren nach Tiefe sortiert
-    const list = [{ y: pixel.y, draw: drawPixel }];
+    const list = [{ y: pixel.y, draw: drawPixel }, { y: pixel.y - 0.5, draw: drawKruemel }]; // Krümel direkt hinter Pixel
     (def.actors || []).forEach(a => { if (!a.hide || !a.hide(NN.S)) list.push({ y: a.y, draw: () => drawNpc(a) }); });
     list.sort((a, b) => a.y - b.y).forEach(o => o.draw());
-    // Krümel schwebt immer oben
-    drawKruemel();
     if (G.scan > 0 && !A.get(KRU + 'scan_a.png')) {
       const a = Math.min(1, G.scan);
       ctx.save(); ctx.globalAlpha = a * 0.6; ctx.fillStyle = '#27e6ff';
@@ -586,7 +626,7 @@ window.NN = window.NN || {};
     ctx.textAlign = 'left'; ctx.lineJoin = 'round'; ctx.lineWidth = 9; ctx.strokeStyle = '#120a22';
     lines.forEach((line, i) => {
       const part = line.slice(0, Math.max(0, Math.min(line.length, shown))); shown -= line.length + 1;
-      const x = cx - ctx.measureText(line).width / 2, y = y0 + i * lh;
+      const x = cx - widest / 2, y = y0 + i * lh; // Block ist fertig platziert, Text wächst von links nach rechts
       ctx.strokeText(part, x, y); ctx.fillStyle = speaker(s.who).color; ctx.fillText(part, x, y);
     });
     if (!NN.opts.autoAdvance && speechDone(s) && Math.floor(G.time * 2) % 2 === 0) {

@@ -122,3 +122,5 @@ body:not(.gfx-panel) .panel.title { width: min(460px, 90vw); }
 .tpreview { height: 150px; margin: 8px 0 6px; }
 .tptext { top: 14px; }
 .row { margin: 6px 0; }
+
+.tptext, .intro .txt { text-align: left; }

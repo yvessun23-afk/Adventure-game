@@ -16,12 +16,12 @@ NN.ui = (function () {
     box.style.backgroundImage = 'url(assets/backgrounds/low/bg_01_zhangs_imbiss.webp)';
     const full = 'Pixel: „Das ist eine Vorschau. So erscheint der Text später im Spiel.“';
     el.style.display = NN.opts.subtitles ? '' : 'none';
-    const words = full.split(' '); let n = 0; el.textContent = '';
+    const words = full.split(' '); let n = 0; setReveal(el, words, 0);
     previewTimer = setInterval(() => {
-      n += NN.opts.textSpeed * 3.4 * 0.12; el.textContent = words.slice(0, Math.min(words.length, Math.floor(n) + 1)).join(' ');
+      n += NN.opts.textSpeed * 3.4 * 0.12; setReveal(el, words, Math.floor(n) + 1);
       if (n >= words.length) {
         clearInterval(previewTimer);
-        el.textContent = full + (NN.opts.autoAdvance ? '' : '  ▼');
+        setReveal(el, words, 1e9); if (!NN.opts.autoAdvance) el.insertAdjacentText('beforeend', '  ▼');
         previewTimer = setTimeout(startPreview, NN.opts.autoAdvance ? 2600 : 1800);
       }
     }, 120);
@@ -92,6 +92,13 @@ NN.ui = (function () {
   }
 
   // ---------- Intro ----------
+  // Text Wort für Wort aufdecken; der noch unsichtbare Rest bleibt im Layout, dadurch wächst der Text von links nach rechts
+  function setReveal(el, words, n) {
+    const k = Math.min(words.length, n);
+    el.dataset.full = k >= words.length ? '1' : '0';
+    el.innerHTML = esc(words.slice(0, k).join(' ')) + '<span style="visibility:hidden">' + (k ? ' ' : '') + esc(words.slice(k).join(' ')) + '</span>';
+  }
+
   function playSequence(panels, onDone, skipLabel) {
     const el = document.createElement('div'); el.className = 'intro';
     el.innerHTML = `<div class="pic"></div><div class="txt"></div><button class="btn skip">${skipLabel || 'Überspringen (Esc)'}</button>`;
@@ -105,13 +112,13 @@ NN.ui = (function () {
       const found = p.img ? await A.loadFirst([`assets/intro/${p.img}.webp`, `assets/raw/${p.img}.png`]) : null;
       pic.style.opacity = 0;
       setTimeout(() => { pic.style.backgroundImage = found ? `url(${found.src})` : ''; pic.style.opacity = 1; }, 80);
-      txt.textContent = ''; clearInterval(typing);
+      setReveal(txt, p.text.split(' '), 0); clearInterval(typing);
       const words = p.text.split(' '); let n = 0;
-      typing = setInterval(() => { n++; txt.textContent = words.slice(0, n).join(' '); NN.audio.blip(1.3); if (n >= words.length) clearInterval(typing); }, 330 / NN.opts.textSpeed);
+      typing = setInterval(() => { n++; setReveal(txt, words, n); NN.audio.blip(1.3); if (n >= words.length) clearInterval(typing); }, 330 / NN.opts.textSpeed);
     }
     const next = () => {
       const p = panels[idx];
-      if (p && txt.textContent.length < p.text.length) { clearInterval(typing); txt.textContent = p.text; return; }
+      if (p && txt.dataset.full !== '1') { clearInterval(typing); setReveal(txt, p.text.split(' '), 1e9); return; }
       show(idx + 1);
     };
     const onKey = e => { if (e.key === 'Escape') { e.stopPropagation(); finish(); } else if (e.key === ' ' || e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); next(); } };
