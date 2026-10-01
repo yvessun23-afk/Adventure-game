@@ -35,3 +35,22 @@ python3 tools/slice_sheet.py <sheet.png> <ausgabeordner> --cols 5 --rows 4 --nam
 1. Stil-Referenzbilder und je einen Test-Hintergrund und ein Test-Sheet erzeugen, in `assets/raw/` ablegen.
 2. Engine-Kern mit Platzhalter-Grafik bauen (M1 in `docs/engine-spec.md`).
 3. Grafiken einbinden, Hotspots und Laufflächen einzeichnen.
+
+## Ordner im Überblick
+
+| Ordner | Inhalt |
+|---|---|
+| `index.html`, `src/` | Spiel-Engine (Szenen, Laufen, Dialoge, Inventar, Menüs, Audio) |
+| `data/` | Spieldaten: Szenen (`scenes*.js`), Gegenstände, Hilfetexte, Karte, Intro |
+| `assets/` | Bilder und Sprites (Originale in `assets/raw`, daraus erzeugt: `backgrounds`, `sprites`, `intro`, `map`) |
+| `tools/` | Werkzeuge: Sheets ausschneiden, Hintergründe optimieren, Prompt-Dateien erzeugen |
+| `docs/` | Story, Rätselgraph, Bild-Prompts, Spezifikation |
+
+## Online stellen (GitHub Pages)
+
+Im Repository unter *Settings → Pages* den Branch auswählen und den Ordner `/ (root)` wählen. Das Spiel läuft danach unter der angezeigten Adresse. Es braucht keinen Build und keinen Server.
+
+## Tipps
+
+- **F2** schaltet den Editor-Modus ein: Laufflächen (grün), Hotspots (pink) und Ausgänge (blau) werden angezeigt, per Klick kann man Punkte setzen und mit Enter kopieren.
+- Fehlende Musikdateien sind kein Problem: Die Musik wird im Browser erzeugt. Legst du Dateien in `assets/audio/music/` ab (z. B. `mus_imbiss.ogg`), werden sie stattdessen gespielt.

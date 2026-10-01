@@ -299,7 +299,7 @@ NN.ui = (function () {
       <div class="tabs">${levels.map(l => `<button class="btn ${l.id === lvl.id ? 'on' : ''}" data-lvl="${l.id}">${l.name}</button>`).join('')}</div>
       <div class="map" style="${found ? `background-image:url(${found.src})` : 'background-image:linear-gradient(135deg,#10203c,#2a1650)'}">
         <canvas></canvas>
-        ${locs.map(l => `<button class="pin ${cur && cur.scene === l.scene ? 'here' : ''} ${travel || (cur && cur.scene === l.scene) ? '' : 'locked'}" data-scene="${l.scene}" style="left:${l.x * 100}%;top:${l.y * 100}%">${esc(l.name)}</button>`).join('')}
+        ${locs.map(l => `<button class="pin ${cur && cur.scene === l.scene ? 'here' : ''} ${travel || (cur && cur.scene === l.scene) ? '' : 'locked'}" data-scene="${l.scene}" style="left:${l.x * 100}%;top:${l.y * 100}%" title="${esc(l.name)}">${esc(l.short || l.name)}</button>`).join('')}
       </div>
       <p class="muted small">${locs.length ? 'Orte erscheinen, sobald du sie besucht hast.' : 'Hier warst du noch nie.'} ${travel ? 'Klicke einen Ort, um dorthin zu reisen.' : 'Schnellreise ist noch nicht freigeschaltet. Krümel braucht erst wieder Strom.'}</p>
       ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}</div>`);
@@ -308,7 +308,7 @@ NN.ui = (function () {
     const c2 = cv.getContext('2d');
     c2.fillStyle = 'rgba(6,3,16,0.93)'; c2.fillRect(0, 0, 900, 506);
     c2.globalCompositeOperation = 'destination-out';
-    locs.forEach(l => { const g = c2.createRadialGradient(l.x * 900, l.y * 506, 20, l.x * 900, l.y * 506, 150); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c2.fillStyle = g; c2.fillRect(0, 0, 900, 506); });
+    locs.forEach(l => { const g = c2.createRadialGradient(l.x * 900, l.y * 506, 40, l.x * 900, l.y * 506, 260); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); c2.fillStyle = g; c2.fillRect(0, 0, 900, 506); });
     on('[data-lvl]', el => showMap(el.dataset.lvl));
     on('[data-a=back]', close);
     on('[data-scene]', el => {

@@ -94,8 +94,8 @@ Optionen werden getrennt vom Spielstand gespeichert.
 
 1. **M0** Design-Dokumente, Ordner und Werkzeuge (erledigt).
 2. **M1** Engine-Kern mit Platzhalter-Grafik (erledigt: Imbiss spielbar, Menüs, Optionen, Speichern/Laden, Karte, Hilfe).
-3. **M2** Intro, Akt 1 komplett in Daten, Speichern/Laden, Optionen, Karte.
-4. **M3** Echte Grafiken einbinden (Hintergründe, Sprites), Hotspots und Laufflächen einzeichnen.
-5. **M4** Akt 2.
-6. **M5** Akt 3 und Finale.
+3. **M2** Intro, Akt 1 komplett in Daten, Speichern/Laden, Optionen, Karte. (erledigt)
+4. **M3** Echte Grafiken einbinden (Hintergründe, Sprites), Hotspots und Laufflächen einzeichnen. (erledigt)
+5. **M4** Akt 2. (erledigt)
+6. **M5** Akt 3 und Finale. (erledigt)
 7. **M6** Musik, Soundeffekte, Feinschliff, Hilfe-Texte, Lösbarkeits-Test.

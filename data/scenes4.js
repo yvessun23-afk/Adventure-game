@@ -239,7 +239,7 @@
     spawns: { default: [700, 690], raumhafen: [700, 690], garten: [380, 720], bruecke: [1100, 680], mond: [850, 620] },
     actors: [
       { id: 'schicht', name: 'Schicht', x: 700, y: 625, sprite: 'schicht', h: 270 },
-      { id: 'streikposten', name: 'Streikposten', x: 1070, y: 640, sprite: 'streikposten', h: 235, flip: true }
+      { id: 'streikposten', name: 'Streikposten', x: 1070, y: 640, sprite: 'streikposten', h: 235 }
     ],
     exits: [
       { id: 'ex_garten', name: 'Orbital-Garten', poly: R(235, 590, 520, 715), walkTo: [380, 725], to: 'orbitalgarten', spawn: 'hyperhub', arrow: 'left' },
