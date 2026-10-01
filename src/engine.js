@@ -335,8 +335,26 @@ window.NN = window.NN || {};
     }
     return null;
   }
+  // Figuren haben Vorrang: Klick auf das sichtbare Bild der Figur trifft ihren Hotspot, egal welche anderen Flächen darüber liegen
+  function actorHit(sx, sy) {
+    const def = G.def, list = (def.actors || []).filter(a => a.sprite && (!a.hide || !a.hide(NN.S)));
+    list.sort((a, b) => (b.drawY ?? b.y) - (a.drawY ?? a.y));
+    for (const a of list) {
+      const hs = (def.hotspots || []).find(h => h.id === a.id && (!h.if || h.if(NN.S)));
+      if (!hs || !a.h) continue;
+      const base = typeof a.sprite === 'function' ? a.sprite(NN.S) : a.sprite;
+      const img = A.get('assets/sprites/npcs/' + base + '_idle.png'); if (!img) continue;
+      const y = a.drawY ?? a.y, ds = depthScale(a.y) * (a.scale || 1);
+      const w = img.width * ds, h = img.height * ds;
+      if (Math.abs(sx - a.x) > w * 0.45 || sy > y || sy < y - h) continue;
+      if (a.clipPoly && !U.inPoly(sx, sy, a.clipPoly)) continue;
+      return { kind: 'hot', obj: hs };
+    }
+    return null;
+  }
   function hitTest(sx, sy) {
     const def = G.def;
+    const ah = actorHit(sx, sy); if (ah) return ah;
     const pk = pickupHit(sx, sy); if (pk) return pk;
     for (const e of def.exits || []) if ((!e.if || e.if(NN.S)) && U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
     const hs = def.hotspots || [];
