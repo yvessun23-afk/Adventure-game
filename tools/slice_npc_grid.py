@@ -23,8 +23,12 @@ import slice_sheet as ss  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "sprites" / "npcs"
+GAP = 4
 POSES = ["idle", "talk", "a", "b"]
 BATCHES = json.loads((ROOT / "tools" / "npc_batches.json").read_text())
+SKIP = {"12": ["kleo", "teddy", "teddy_sensor"]}  # Kleo ist abgeschnitten, Teddy existiert schon
+MAPF = ROOT / "tools" / "npc_batch_map.json"
+MAP = json.loads(MAPF.read_text()) if MAPF.exists() else {}  # {"05": {"ablage": [0, 3, 2, 4]}} = Spaltenindex (ab 0) für ruhig, sprechend, A, B
 
 
 def split_rows(items, n_rows):
@@ -54,7 +58,7 @@ def process(idx, dry):
     near_green = (rgb[..., 1] - np.maximum(rgb[..., 0], rgb[..., 2])) > 60
     fg = fg & ~near_green
     fg = ndi.binary_opening(fg, iterations=1)
-    lab, n = ndi.label(ndi.binary_dilation(fg, iterations=10))
+    lab, n = ndi.label(ndi.binary_dilation(fg, iterations=GAP))
     groups = []
     for i, sl in enumerate(ndi.find_objects(lab), start=1):
         m = (lab == i) & fg
@@ -82,7 +86,7 @@ def process(idx, dry):
     report = []
     for r, row in enumerate(rows):
         name = keys[r] if r < len(keys) else "?"
-        if len(row) != 4:
+        if len(row) != 4 and not (MAP.get(idx, {}).get(name) and len(row) > max(MAP[idx][name])):
             ok = False
             report.append(f"  Zeile {r + 1} ({name}): {len(row)} Figuren statt 4")
     print(f"Batch {idx}: {len(figs)} Figuren, {dropped} Reste verworfen" + ("" if ok else " -> PROBLEME"))
@@ -96,9 +100,9 @@ def process(idx, dry):
     for r, row in enumerate(rows):
         for c, g in enumerate(row):
             d.rectangle((g["x0"], g["y0"], g["x1"], g["y1"]), outline=(255, 0, 0), width=3)
-            d.text((g["x0"] + 4, g["y0"] + 4), f"{r + 1}.{c + 1}", fill=(255, 255, 0))
-    if not dry:
-        chk.save(ROOT / "assets" / "raw" / "refs_npc" / f"check_{idx}.png")
+            d.text((g["x0"] + 4, g["y0"] + 4), f"{c}", fill=(255, 255, 0))
+            d.text((g["x0"] + 5, g["y0"] + 5), f"{c}", fill=(0, 0, 0))
+    chk.save(ROOT / "assets" / "raw" / "refs_npc" / f"check_{idx}.png")
     if not ok:
         return False
     if dry:
@@ -106,14 +110,30 @@ def process(idx, dry):
     OUT.mkdir(parents=True, exist_ok=True)
     # Fußlinie je Zeile gemeinsam, Maßstab bleibt wie gezeichnet
     for r, row in enumerate(rows):
-        for c, g in enumerate(row):
+        if SKIP.get(idx) and keys[r] in SKIP[idx]:
+            continue
+        pick = MAP.get(idx, {}).get(keys[r]) or [0, 1, 2, 3]
+        # Maßstab: Ruhebild soll so hoch sein wie das bisherige Spielsprite (sonst ändert sich die Figurengröße im Spiel)
+        factor = 1.0
+        old = OUT / f"{keys[r]}_idle.png"
+        gi = row[pick[0]]
+        if old.exists():
+            oa = np.asarray(Image.open(old).convert("RGBA"))[..., 3] > 40
+            oh = np.nonzero(oa.any(axis=1))[0]
+            if len(oh):
+                factor = (oh.max() - oh.min() + 1) / max(1, gi["y1"] - gi["y0"])
+        for pc, c in enumerate(pick):
+            g = row[c]
             m = (lab == g["id"]) & fg
             m = ndi.binary_dilation(m, iterations=2) & (lab == g["id"])
             ys, xs = np.nonzero(m)
             x0, x1, y0, y1 = max(xs.min() - 4, 0), xs.max() + 5, max(ys.min() - 4, 0), ys.max() + 5
             arr = rgba.copy()
             arr[..., 3] = np.where(m, arr[..., 3], 0)
-            Image.fromarray(arr[y0:y1, x0:x1], "RGBA").save(OUT / f"{keys[r]}_{POSES[c]}.png", optimize=True)
+            sp = Image.fromarray(arr[y0:y1, x0:x1], "RGBA")
+            if abs(factor - 1) > 0.01:
+                sp = sp.resize((max(1, round(sp.width * factor)), max(1, round(sp.height * factor))), Image.LANCZOS)
+            sp.save(OUT / f"{keys[r]}_{POSES[pc]}.png", optimize=True)
     return True
 
 
