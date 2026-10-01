@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Erzeugt docs/prompts-npc-akt3-neu.md: NPC-Sheet Akt 3 in zwei kleineren Sheets (ruhig / sprechend), 4 Spalten x 3 Reihen.
+"""Erzeugt docs/prompts-npc-akt3-einzeln.md: jede Figur von Akt 3 als eigenes Bild (links ruhig, rechts sprechend).
   python3 tools/build_npc3_prompts.py
 """
 import sys
@@ -8,63 +8,69 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_prompts as bp  # noqa: E402
 
 ROOT = bp.ROOT
-FIX = {
-    "Streikposten": "generic mining robot holding a plain strike sign that reads STREIK (the only text allowed on the sheet)",
-    "Ramen-Kraken": "giant noodle octopus with sad eyes and a tiny chef hat, sitting in a small flat orange puddle of broth with a pair of chopsticks beside him; the puddle is flat on the ground, no pot, no bowl, no kitchen",
-}
-LST = [(n, FIX.get(n, d)) for n, d in bp.npc3]
-HEAD = ("Sprite sheet on a perfectly flat solid pure green (#00FF00) background. Exactly 4 columns and 3 rows, 12 cells in total, reading order left to right, top to bottom. "
-        "Each cell holds exactly ONE full-body figure, fully inside its own cell, centered, with a large empty green gap between all cells (at least one third of a figure's width). "
-        "Nothing touches or overlaps, no figure is repeated, no figure is cropped. Same scale for all figures (about the same height, the octopus and the teddy slightly lower), "
-        "feet roughly on the same line in each row. All figures stand in a three-quarter view facing left (toward the player character), full body. "
-        "ABSOLUTELY NO background elements: no scenery, no buildings, no pots, no furniture, no neon signs, no blurred shapes, no floor, no cast shadows, no glow, halo or light bloom outside the outline "
-        "(the hologram girl may have a thin glowing cyan and pink edge on the figure itself, but no glow around it). Do not use green colors on any figure. Thick dark outline around every figure. "
-        "The sheet must contain exactly the 12 figures listed below, in exactly this order, none missing.")
+# (Dateiname, Name, Aussehen, Hinweis auf das Design im Referenz-Sheet, ruhig, sprechend)
+CH = [
+    ("klaus", "Türsteher Klaus", "bulky bouncer robot with a grey metal head, a burgundy velvet jacket, white shirt, dark tie, dark trousers and an earpiece",
+     "top row, first figure from the left", "standing with both arms hanging, stern neutral face", "one hand raised in a stop gesture, mouth open, stern"),
+    ("sebastian", "Sebastian.exe", "tall slim perfectionist butler robot with a monocle lens, a black tailcoat, bow tie, grey waistcoat and white gloves",
+     "top row, second figure from the left", "standing very upright, one gloved hand at his chest, calm face", "one gloved hand lifted elegantly, mouth open, chin raised"),
+    ("baron", "Baron von Chrom", "pompous chrome-plated man in silver armor with a fur-trimmed red cape, a huge curled moustache, a cane in one hand",
+     "top row, third figure from the left", "standing proudly with the cane planted, chin up", "free arm spread wide in a grand gesture, mouth open"),
+    ("zen", "Masseur Zen-3", "calm multi-armed massage robot with four arms in a white bathrobe with a yin-yang symbol, holding small towels and oil bottles",
+     "top row, fourth figure from the left", "standing relaxed, four arms holding towels and bottles, serene closed eyes", "two arms gesturing softly, mouth open, serene"),
+    ("flughans", "Flug-Hans", "cheerful ticket clerk robot with a navy pilot cap with wings badge, a navy uniform with gold stripes, holding two tickets in one hand",
+     "bottom row, first figure from the left", "standing, smiling, tickets held at his side", "tickets waved in the raised hand, mouth open, cheerful"),
+    ("kabel", "Käpt’n Kabel", "tired captain with long cable-like dreadlocks, a scruffy beard, dark circles, a worn navy captain's coat and a white captain's cap, holding an empty white mug",
+     "bottom row, second figure from the left (use only the captain himself, ignore the sign, which belongs to another character)", "slouching with the mug held low, exhausted look", "mug lifted, other hand gesturing wearily, mouth open"),
+    ("kraken", "Ramen-Kraken", "giant noodle octopus with sad eyes and a tiny chef hat, noodles on his head, sitting in a small flat orange puddle of broth with a pair of chopsticks lying beside him; no pot, no bowl, no kitchen",
+     "bottom row, the orange octopus", "sitting with drooping tentacles, big sad eyes", "two tentacles raised, mouth open, still sad"),
+    ("kleo", "Kleo", "the 12-year-old hologram girl with pigtails, big headphones and the dark NC hoodie, slightly transparent with a thin glowing cyan and pink edge on the figure",
+     "bottom row, the hologram girl (but follow Image 2 for her exact design)", "standing, hands at her sides, curious look", "hands spread, mouth open, expressive"),
+    ("schicht", "Schicht", "union leader mining robot with a yellow hard hat with a lamp, a yellow high-visibility vest and a red megaphone",
+     "bottom row, the robot with the megaphone", "standing with the megaphone lowered at his side, determined look", "megaphone raised to his mouth, other fist pumped, shouting"),
+    ("streikposten", "Streikposten", "generic mining robot, smaller and plainer than Schicht: silver-grey body, an orange hard hat, a plain wooden strike sign reading STREIK held in one hand (the only text allowed)",
+     "none, new design: a simple grey robot with an orange hard hat, thinner than the union leader", "standing with the sign resting on his shoulder", "sign raised high, mouth open, protesting"),
+    ("teddy", "Teddy-Bot", "the worn, patched plush teddy bear with button eyes and an empty open mouth socket",
+     "bottom row, fifth figure (follow Image 2 for the exact design)", "standing, arms down, sad button eyes", "one arm raised, mouth socket open"),
+    ("teddy_sensor", "Teddy-Bot mit Sensor", "the same worn, patched plush teddy bear with button eyes, now with a small chrome tongue-sensor plugged into his mouth",
+     "bottom row, last figure (follow Image 2 for the exact design)", "standing, arms down, curious button eyes", "one arm raised, the chrome sensor glowing faintly"),
+]
 
-def cells(talk):
-    out = []
-    for i, (n, d) in enumerate(LST, start=1):
-        out.append(f"{i}. {n}: {d}." + (" Now talking: mouth open, one arm gesturing (the octopus: tentacle raised and mouth open; the teddy: mouth socket open)." if talk else " Standing idle with a neutral calm pose."))
-    return "\n".join(out)
+HEAD = ("Character sheet on a perfectly flat solid pure green (#00FF00) background with EXACTLY TWO full-body figures of the SAME character and nothing else: "
+        "the first figure on the left half, the second figure on the right half, with a wide empty green gap (at least half a figure's width) between them. "
+        "Both figures have exactly the same design, colors, size and body proportions, three-quarter view facing left (toward the player character), feet on the same line. "
+        "Each figure is fully inside the image and does not touch the edges or the other figure. ABSOLUTELY NO background elements, no other characters, no scenery, no props except the ones listed, "
+        "no floor, no cast shadows, no glow, halo or light bloom outside the outline. Do not use green colors on the character. Thick dark outline.")
 
-def make(title, path, refs, body):
-    a = dict(title=title, path=path, fmt=bp.FORMAT_SHEET, refs=refs, prompt=body)
-    _, files, full = bp.with_refs(a)
-    return a, files, full
+bp.ROLES["sheet_npc_akt3_idle.png"] = "design reference only: it contains several Act-3 characters; use ONLY the figure described below for the look (colors, outfit, proportions). Ignore every other figure and any mistakes in it"
+bp.ROLES["ende_01.png"] = "the exact design of KLEO (hologram girl with pigtails, big headphones, dark NC hoodie, slightly transparent with glowing cyan and pink edges) and of TEDDY-BOT (patched plush teddy bear with button eyes and an open mouth socket)"
+bp.ROLES["sheet_npc_akt1.png"] = "the style, proportions, line weight and scale of the non-player characters"
 
-bp.ROLES["sheet_npc_akt3_idle.png"] = "the exact designs of the 12 Act-3 characters in the idle sheet (same order, copy every figure's look, colors, size and proportions exactly)"
-bp.ROLES["sheet_npc_akt1.png"] = "the style, proportions and scale of the non-player characters"
-bp.ROLES["ende_01.png"] = "the exact design of KLEO (hologram girl with pigtails, big headphones, dark NC hoodie, slightly transparent with glowing cyan and pink edges) and of TEDDY-BOT (patched plush teddy bear with button eyes)"
+out = ["""# NPC Akt 3: jede Figur als eigenes Bild
 
-idle = make("NPC-Sheet Akt 3, ruhig (12 Figuren)", "assets/raw/sheet_npc_akt3_idle.png",
-            "ref_01_pixel_turnaround.png, ref_03_stil_nudelgasse.png, sheet_npc_akt1.png, ende_01.png",
-            HEAD + "\n\nThe 12 characters, standing idle:\n" + cells(False) + "\n\n" + bp.STIL)
-talk = make("NPC-Sheet Akt 3, sprechend (12 Figuren)", "assets/raw/sheet_npc_akt3_talk.png",
-            "sheet_npc_akt3_idle.png, ref_03_stil_nudelgasse.png, ende_01.png",
-            HEAD + "\n\nThe same 12 characters in the same order and with exactly the same designs as in the first attached sheet, now talking:\n" + cells(True) + "\n\n" + bp.STIL)
-
-NOTE = """# NPC-Sheet Akt 3: neu in zwei Teilen
-
-Im letzten Versuch fehlten Figuren (Kabel, Streikposten, Kraken und weitere sprechende Posen), Schicht war doppelt, das Raster hatte 7 statt 6 Spalten und beim Kraken war Hintergrund (Topf, Gesicht, Gebäudekante) mit auf dem Bild. Deshalb jetzt **zwei Sheets mit je 12 Figuren** (4 Spalten, 3 Reihen) und eine ausdrückliche Liste „keine Hintergrundelemente“.
+Die KI schafft die 12er-Sheets nicht sauber (doppelte und fehlende Figuren, verschmolzene Figuren, Hintergrund). Deshalb jetzt **ein Bild pro Figur** mit genau zwei Posen: **links ruhig, rechts sprechend**. Das sind 12 kurze Aufträge, die Fehlerquote ist viel niedriger.
 
 **Ablauf**
-1. Zuerst das Sheet **ruhig**, speichern, prüfen: genau 12 Figuren, Reihenfolge wie in der Liste.
-2. Dann das Sheet **sprechend**. Das fertige Ruhig-Sheet wird als Image 1 angehängt, damit alle Figuren gleich aussehen.
-3. Neuer Chat pro Sheet. Sag mir Bescheid, ich schneide beide aus.
-
-**Zellen (beide Sheets gleich):** 1 Türsteher Klaus, 2 Sebastian.exe, 3 Baron von Chrom, 4 Masseur Zen-3, 5 Flug-Hans, 6 Käpt’n Kabel, 7 Schicht, 8 Streikposten, 9 Ramen-Kraken, 10 Kleo, 11 Teddy-Bot, 12 Teddy-Bot mit Sensor.
+1. Neuer Chat pro Figur, Referenzbilder in der genannten Reihenfolge anhängen. `sheet_npc_akt3_idle.png` ist dein letzter Versuch (die gelungenen Figuren darin dienen nur als Design-Vorlage).
+2. Speichern als `assets/raw/npc3_<name>.png`.
+3. Prüfen: genau zwei Figuren, nichts anderes im Bild. Bei Fehlern im selben Chat korrigieren („Only two figures, remove everything else“).
+4. Sag mir Bescheid, ich schneide alle aus (`python3 tools/slice_npc_pairs.py --all`, trennt automatisch links/rechts).
 
 ---
-"""
-out = [NOTE]
-for n, (a, files, full) in enumerate([idle, talk], start=1):
-    out.append(f"## {n}. {a['title']}\n")
+"""]
+for i, (key, name, desc, where, idle, talk) in enumerate(CH, start=1):
+    if key in ("kleo", "teddy", "teddy_sensor"):
+        refs = "ref_03_stil_nudelgasse.png, ende_01.png, sheet_npc_akt1.png"
+    else:
+        refs = "ref_03_stil_nudelgasse.png, sheet_npc_akt3_idle.png, sheet_npc_akt1.png"
+    body = (HEAD + f"\n\nCharacter: {name}: {desc}.\nFigure on the left: {idle}.\nFigure on the right: the same character, talking: {talk}.\n"
+            + (f"Design source in the attached sheet: {where}.\n" if "sheet_npc_akt3_idle" in refs else "") + "\n" + bp.STIL)
+    a = dict(title=name, path=f"assets/raw/npc3_{key}.png", fmt="16:9, highest resolution (2K or 4K)", refs=refs, prompt=body)
+    _, files, full = bp.with_refs(a)
+    out.append(f"## {i}. {name}\n")
     out.append(f"- **Speichern als:** `{a['path']}`")
     out.append(f"- **Format:** {a['fmt']}")
     out.append("- **Referenzbilder (in dieser Reihenfolge anhängen):** " + ", ".join(f"`{f}`" for f in files) + "\n")
     out.append("```\n" + full + "\n```\n")
-(ROOT / "docs" / "prompts-npc-akt3-neu.md").write_text("\n".join(out), encoding="utf-8")
-names = [("klaus"), ("sebastian"), ("baron"), ("zen"), ("flughans"), ("kabel"), ("schicht"), ("streikposten"), ("kraken"), ("kleo"), ("teddy"), ("teddy_sensor")]
-(ROOT / "tools" / "names" / "npc_akt3_idle.txt").write_text("\n".join(n + "_idle" for n in names) + "\n")
-(ROOT / "tools" / "names" / "npc_akt3_talk.txt").write_text("\n".join(n + "_talk" for n in names) + "\n")
+(ROOT / "docs" / "prompts-npc-akt3-einzeln.md").write_text("\n".join(out), encoding="utf-8")
 print("ok")
