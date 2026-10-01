@@ -158,13 +158,13 @@
     id: 'bar_hinterzimmer', name: 'Bar-Hinterzimmer', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_05_bar_hinterzimmer' }, music: 'mus_bar',
     bgStates: [
-      { if: S => S.flags.terminal_log, tiers: 'bg_05_bar_hinterzimmer_terminal_an' }
+      { if: S => S.flags.terminal_log || S.flags.kabel_angeschlossen, tiers: 'bg_05_bar_hinterzimmer_terminal_an' }
     ],
     walk: [[0, 768], [1376, 768], [1376, 690], [1200, 615], [1000, 622], [660, 605], [560, 650], [250, 690], [0, 730]],
     depth: D(600, 768, 0.65, 1.0),
     spawns: { default: [900, 700], bar: [900, 700] },
     props: [
-      { draw: (ctx, L, S) => NN.drawProp(S.flags.terminal_log ? 'terminal_an' : (S.flags.kabel_angeschlossen ? 'terminal_an' : 'terminal_aus'), 820, 382, 160) },
+      { if: S => !(S.flags.terminal_log || S.flags.kabel_angeschlossen), draw: () => NN.drawProp('terminal_aus', 820, 382, 160) }, // der eingeschaltete Zustand steckt im Variantenhintergrund
       { if: S => S.flags.kabel_angeschlossen, draw: () => NN.drawProp('kabel_verbunden', 1255, 560, 160) }
     ],
     exits: [bottom('Bar', 'bar', 'hinterzimmer', 700)],
