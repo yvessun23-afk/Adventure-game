@@ -15,7 +15,7 @@
     walk: [[0, 768], [1376, 768], [1376, 735], [1230, 695], [1100, 645], [920, 612], [780, 592], [560, 586], [420, 600], [300, 640], [180, 695], [0, 722]],
     depth: D(586, 768, 0.34, 0.8),
     spawns: { default: [700, 720], bahnhof: [700, 740], lobby: [700, 620], kantine: [940, 625], werbe: [1065, 650], friseur: [300, 655], revier: [140, 715], park: [1175, 660], gondel: [1290, 735] },
-    actors: [{ id: 'zeus', name: 'Kiosk-Zeus', x: 925, y: 700, sprite: 'zeus', h: 150, scale: 0.9 }],
+    actors: [{ id: 'zeus', name: 'Kiosk-Zeus', x: 925, y: 700, sprite: 'zeus', h: 150, scale: 1.15 }],
     exits: [
       bottom('Magnetbahn zurück nach Unter-Heights', 'bahnhof', 'plaza', 400),
       { id: 'ex_revier', name: 'Polizeirevier 404', poly: R(15, 420, 205, 700), walkTo: [150, 715], to: 'revier', spawn: 'plaza' },
@@ -271,7 +271,7 @@
     walk: [[0, 768], [1376, 768], [1376, 690], [1230, 640], [1050, 600], [800, 590], [560, 610], [380, 680], [200, 730], [0, 745]],
     depth: D(585, 768, 0.5, 0.95),
     spawns: { default: [1100, 700], plaza: [1100, 700] },
-    actors: [{ id: 'flimmer', name: 'Techniker Flimmer', x: 790, y: 590, sprite: 'flimmer', scale: 0.9, h: 150 }],
+    actors: [{ id: 'flimmer', name: 'Techniker Flimmer', x: 790, y: 590, sprite: 'flimmer', scale: 1.0, h: 150 }],
     exits: [{ id: 'ex_plaza', name: 'Zur Plaza', poly: R(1100, 150, 1376, 600), walkTo: [1230, 650], to: 'plaza', spawn: 'werbe', arrow: 'right' }],
     hotspots: [
       {
@@ -495,9 +495,9 @@
     id: 'klinik', name: 'Implantat-Klinik „Dr. Schraub“', space: [1376, 768], fit: 'stretch',
     bg: { tiers: 'bg_21_klinik' }, music: 'mus_klinik',
     walk: [[0, 768], [1376, 768], [1376, 700], [1150, 665], [900, 640], [660, 625], [440, 640], [250, 680], [100, 720], [0, 740]],
-    depth: D(620, 768, 0.55, 1.0),
+    depth: D(620, 768, 0.45, 1.0),
     spawns: { default: [650, 710], park: [650, 710] },
-    actors: [{ id: 'schraub', name: 'Dr. Schraub', x: 380, y: 690, sprite: 'schraub', h: 250 }],
+    actors: [{ id: 'schraub', name: 'Dr. Schraub', x: 380, y: 690, sprite: 'schraub', scale: 1.6, h: 250 }],
     exits: [bottom('Zum Park', 'park', 'klinik', 650)],
     hotspots: [
       {
