@@ -6,7 +6,7 @@
   --bg: #0b0714; --panel: #1a1030; --panel2: #261547; --line: #ff3cc8; --line2: #27e6ff; --text: #f4ecff; --muted: #a795c9;
   --accent: #ffb347; --font: "Patrick Hand", "Comic Sans MS", "Comic Neue", "Chalkboard SE", cursive, sans-serif; --fs: 1;
 }
-html, body { margin: 0; height: 100%; background: #000; overflow: hidden; color: var(--text); font-family: var(--font); }
+html, body { margin: 0; height: 100%; height: 100dvh; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; overscroll-behavior: none; background: #000; overflow: hidden; color: var(--text); font-family: var(--font); }
 body.font-readable { --font: "Atkinson Hyperlegible", Verdana, "Segoe UI", sans-serif; }
 body.font-dyslexic { --font: "OpenDyslexic", "Comic Sans MS", Verdana, sans-serif; }
 body.size-s { --fs: .85; } body.size-m { --fs: 1; } body.size-l { --fs: 1.2; } body.size-xl { --fs: 1.45; }
@@ -130,3 +130,4 @@ body:not(.gfx-panel) .panel.title { width: min(460px, 90vw); }
 .tptext { -webkit-text-stroke: 5px #120a22; }
 .panel .row { margin: 3px 0; }
 .tpreview { height: 110px; }
+#game { touch-action: none; }

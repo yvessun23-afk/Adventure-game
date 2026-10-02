@@ -1,6 +1,16 @@
 // Hilfsfunktionen: Geometrie, Text, Bildladen
 window.NN = window.NN || {};
 
+// Ältere Safari-Versionen (iPhone) kennen roundRect nicht
+if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    r = Math.min(Array.isArray(r) ? r[0] : (r || 0), w / 2, h / 2);
+    this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r); this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r); this.arcTo(x, y, x + w, y, r); this.closePath();
+  };
+}
+NN.isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+
 NN.util = (function () {
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;

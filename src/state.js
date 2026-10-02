@@ -22,6 +22,7 @@ function safeSet(key, val) { try { localStorage.setItem(key, val); return true; 
 NN.loadOptions = function () {
   try {
     const stored = JSON.parse(safeGet('nn.options') || '{}');
+    if (NN.isMobile && !stored.quality) NN.opts.quality = 'mid';
     if (stored.optV !== 2) { stored.textSpeed = NN.defaults.textSpeed; stored.optV = 2; } // Version 2: langsamerer Text
     Object.assign(NN.opts, stored);
   } catch (e) { /* defaults */ }

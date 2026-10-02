@@ -169,7 +169,7 @@ window.NN = window.NN || {};
     if (def.music) NN.audio.playMusic(def.music);
     G.tok++;
     G.lastLoadMs = Math.round(performance.now() - t0);
-    setTimeout(() => { warmNeighbors(def); warmAll(); }, 400);
+    setTimeout(() => { warmNeighbors(def); if (!NN.isMobile) warmAll(); }, 400);
     const run = async () => { if (def.onEnter && !G.loadedFromSave) { G.busy = true; try { await def.onEnter(api); } catch (e) { console.error(e); } G.busy = false; } G.loadedFromSave = false; };
     if (defer) return run;
     await run();
@@ -950,6 +950,25 @@ window.NN = window.NN || {};
   });
 
   canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  // Touch: Tippen = Klick, langes Drücken (0,45 s) = Rechtsklick (ansehen). Finger ziehen bewegt nur die Hover-Anzeige.
+  (function () {
+    let t0 = 0, timer = null, long = false, pt = null;
+    const fire = (type, touch, button) => canvas.dispatchEvent(new MouseEvent(type, { clientX: touch.clientX, clientY: touch.clientY, button, bubbles: true }));
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault(); NN.audio.ensure();
+      pt = e.changedTouches[0]; long = false; t0 = performance.now(); fire('mousemove', pt, 0);
+      clearTimeout(timer);
+      timer = setTimeout(() => { long = true; fire('mousedown', pt, 2); }, 450);
+    }, { passive: false });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); pt = e.changedTouches[0]; fire('mousemove', pt, 0); }, { passive: false });
+    canvas.addEventListener('touchend', e => {
+      e.preventDefault(); clearTimeout(timer);
+      if (!long) fire('mousedown', pt, 0);
+      setTimeout(() => { G.mouse = { x: -1000, y: -1000 }; G.hover = null; }, 250);
+    }, { passive: false });
+    canvas.addEventListener('touchcancel', () => clearTimeout(timer));
+  })();
 
   canvas.addEventListener('mousedown', async e => {
     NN.audio.ensure();
