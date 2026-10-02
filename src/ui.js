@@ -168,6 +168,9 @@ NN.ui = (function () {
     grafik: [
       { k: 'controlMode', t: 'select', label: 'Steuerung', opts: [['auto', 'Automatik (Klick = passende Aktion)'], ['scumm', 'SCUMM (Verben wählen)']] },
       { k: 'quality', t: 'select', label: 'Grafikqualität', opts: [['hi', 'Hoch'], ['mid', 'Mittel'], ['low', 'Niedrig (schneller)']] },
+      { k: 'screenRes', t: 'select', label: 'Auflösung der Zeichenfläche', opts: [['quality', 'Wie Grafikqualität'], ['native', 'Gerätenativ (volle Schärfe, z. B. iPhone)'], ['full', 'Voll (1920 × 1200)']] },
+      { k: 'display', t: 'select', label: 'Bildanzeige', opts: [['fit', 'Anpassen (schwarze Ränder, unverzerrt)'], ['wide', 'Breiter (15 % gestreckt, kaum sichtbar)'], ['fill', 'Füllen (ganzer Bildschirm, deutlich gestreckt)']] },
+      { t: 'btn', label: 'iPhone', text: 'Für iPhone optimieren', fn: (back, refresh) => { Object.assign(NN.opts, { screenRes: 'native', display: 'fill', textSize: 'l', filter: 'none', quality: 'mid' }); applyOptions('quality'); G.toast = { text: 'iPhone-Einstellungen gesetzt', t: 2.4 }; refresh(); } },
       { k: 'fullscreen', t: 'check', label: 'Vollbild (auch mit Taste F)' },
       { k: 'smoothing', t: 'check', label: 'Bildglättung' },
       { k: 'filter', t: 'select', label: 'Bildfilter', opts: [['none', 'Keiner'], ['neon', 'Neon-Glühen'], ['crt', 'Röhrenmonitor (Scanlines)']] },
@@ -230,7 +233,7 @@ NN.ui = (function () {
     if (tab === 'text') { on('[data-a=replay]', startPreview); startPreview(); }
     on('[data-a=back]', () => (back ? back() : close()));
     on('[data-a=reset]', () => { Object.assign(NN.opts, NN.defaults); applyOptions('quality'); showOptions(tab, back); });
-    on('[data-btn]', el => SCHEMA[tab][+el.dataset.btn].fn());
+    on('[data-btn]', el => SCHEMA[tab][+el.dataset.btn].fn(back, () => showOptions(tab, back)));
     overlay.querySelectorAll('[data-i]').forEach(el => {
       const c = SCHEMA[tab][+el.dataset.i];
       const apply = () => {

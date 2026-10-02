@@ -48,7 +48,11 @@ window.NN = window.NN || {};
   // ---------- Größe der Zeichenfläche (Grafik-Qualität, Fenster) ----------
   const RENDER_SCALE = { hi: 1, mid: 0.67, low: 0.5 };
   G.applyGraphics = function () {
-    const rs = RENDER_SCALE[NN.opts.quality] || 1;
+    let rs = RENDER_SCALE[NN.opts.quality] || 1;
+    if (NN.opts.screenRes === 'native') { // volle Gerätepixel (zum Beispiel iPhone: 3 Pixel je Punkt), höchstens 1920 breit
+      const box = displayBox(), dpr = window.devicePixelRatio || 1;
+      rs = Math.max(0.5, Math.min(1, box.w * dpr / W));
+    } else if (NN.opts.screenRes === 'full') rs = 1;
     canvas.width = Math.round(W * rs); canvas.height = Math.round(H * rs);
     canvas.classList.toggle('pixelated', !NN.opts.smoothing);
     document.documentElement.style.setProperty('--tb', String(NN.opts.textBg));
@@ -73,13 +77,32 @@ window.NN = window.NN || {};
     window.removeEventListener(ev, once);
   }, { passive: true }));
 
+  // Sichtbarer Bereich ohne Notch/Dynamic Island (iPhone): Safe-Area-Ränder lesen
+  let safeProbe = null;
+  function safeInsets() {
+    if (!safeProbe) {
+      safeProbe = document.createElement('div');
+      safeProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+      document.body.appendChild(safeProbe);
+    }
+    const cs = getComputedStyle(safeProbe);
+    return { t: parseFloat(cs.paddingTop) || 0, r: parseFloat(cs.paddingRight) || 0, b: parseFloat(cs.paddingBottom) || 0, l: parseFloat(cs.paddingLeft) || 0 };
+  }
+  function displayBox() {
+    const si = safeInsets(), vw = window.innerWidth - si.l - si.r, vh = window.innerHeight - si.t - si.b;
+    if (NN.opts.display === 'fill') return { w: vw, h: vh, x: si.l, y: si.t };
+    const s = Math.min(vw / W, vh / H);
+    if (NN.opts.display === 'wide') { const w = Math.min(vw, W * s * 1.15); return { w, h: H * s, x: si.l + (vw - w) / 2, y: si.t + (vh - H * s) / 2 }; }
+    return { w: W * s, h: H * s, x: si.l + (vw - W * s) / 2, y: si.t + (vh - H * s) / 2 };
+  }
   G.resize = function () {
-    const s = Math.min(window.innerWidth / W, window.innerHeight / H);
-    canvas.style.width = Math.floor(W * s) + 'px'; canvas.style.height = Math.floor(H * s) + 'px';
+    const box = displayBox();
+    canvas.style.width = Math.floor(box.w) + 'px'; canvas.style.height = Math.floor(box.h) + 'px';
     const crt = document.getElementById('crt');
     crt.style.width = canvas.style.width; crt.style.height = canvas.style.height;
   };
-  window.addEventListener('resize', G.resize);
+  let resizeT = null;
+  window.addEventListener('resize', () => { G.resize(); if (NN.opts.screenRes === 'native') { clearTimeout(resizeT); resizeT = setTimeout(() => G.applyGraphics(), 250); } });
 
   // ---------- Szene betreten ----------
   // Hintergrund-Zustände: def.bgStates = [{ if: S => …, tiers: 'bg_xx_name_zustand' }], der letzte passende (und vorhandene) gewinnt
