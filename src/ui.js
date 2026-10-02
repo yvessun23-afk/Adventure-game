@@ -258,8 +258,11 @@ NN.ui = (function () {
         ${s && i > 0 ? `<button class="btn small" data-del="${i}" title="Löschen">✕</button>` : ''}
         <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>⭱</button></div></div>`);
     }
-    open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>${items.join('')}
-      ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<input type="file" id="importfile" accept=".neonsave,.json" hidden></div>`);
+    open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>
+      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände als Datei sichern</button> <button class="btn" data-a="impall">⭱ Spielstände aus Datei laden</button></div>
+      <div class="muted small" style="margin-bottom:10px">Die Datei kannst du in einem anderen Browser oder auf einem anderen Gerät laden (auch iPhone).</div>
+${items.join('')}
+      ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<input type="file" id="importfile" accept=".neonsave,.json" hidden><input type="file" id="importall" accept=".neonsave,.json,application/json" hidden></div>`);
     on('[data-a=back]', () => (back ? back() : close()));
     on('[data-save]', el => {
       const slot = +el.dataset.save;
@@ -273,6 +276,21 @@ NN.ui = (function () {
       const txt = NN.exportSave(+el.dataset.export); if (!txt) return;
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' }));
       a.download = 'neon-noodle-platz' + el.dataset.export + '.neonsave'; a.click();
+    });
+    on('[data-a=expall]', () => {
+      const txt = NN.exportAll();
+      const d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' }));
+      a.download = 'neon-noodle-' + stamp + '.neonsave'; document.body.appendChild(a); a.click(); a.remove();
+      G.toast = { text: 'Spielstände gesichert', t: 2.4 };
+    });
+    const allInput = overlay.querySelector('#importall');
+    on('[data-a=impall]', () => allInput.click());
+    allInput.addEventListener('change', async () => {
+      const f = allInput.files[0]; if (!f) return;
+      try { const r = NN.importAny(await f.text()); G.toast = { text: r.slot ? 'Importiert in Platz ' + r.slot : r.count + ' Spielstände geladen', t: 2.8 }; }
+      catch (e) { alert('Datei konnte nicht gelesen werden: ' + e.message); }
+      showSlots(mode, back);
     });
     const fileInput = overlay.querySelector('#importfile');
     let importSlot = 1;
