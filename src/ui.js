@@ -259,7 +259,8 @@ NN.ui = (function () {
         <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>⭱</button></div></div>`);
     }
     open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>
-      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände als Datei sichern</button> <button class="btn" data-a="impall">⭱ Spielstände aus Datei laden</button></div>
+      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände als Datei sichern</button> <button class="btn" data-a="impall">⭱ Spielstände aus Datei laden</button> <button class="btn small" data-a="copyall" title="Falls der Download nicht klappt">Als Text kopieren</button> <button class="btn small" data-a="pasteall" title="Text aus der Zwischenablage laden">Text einfügen</button></div>
+      <div id="exportmsg" class="small" style="margin:0 0 6px;color:#7dffb0;min-height:1.2em"></div>
       <div class="muted small" style="margin-bottom:10px">Die Datei kannst du in einem anderen Browser oder auf einem anderen Gerät laden (auch iPhone).</div>
 ${items.join('')}
       ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<input type="file" id="importfile" accept=".neonsave,.json" hidden><input type="file" id="importall" accept=".neonsave,.json,application/json" hidden></div>`);
@@ -282,7 +283,19 @@ ${items.join('')}
       const d = new Date(), stamp = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' }));
       a.download = 'neon-noodle-' + stamp + '.neonsave'; document.body.appendChild(a); a.click(); a.remove();
-      G.toast = { text: 'Spielstände gesichert', t: 2.4 };
+      const msg = overlay.querySelector('#exportmsg');
+      if (msg) msg.textContent = '✔ Datei „' + a.download + '“ wurde erzeugt und liegt jetzt im Download-Ordner deines Browsers. Wenn nichts erscheint: Downloads für diese Seite erlauben oder „Als Text kopieren" nehmen.';
+    });
+    on('[data-a=copyall]', async () => {
+      const msg = overlay.querySelector('#exportmsg'), txt = NN.exportAll();
+      try { await navigator.clipboard.writeText(txt); msg.textContent = '✔ Spielstände als Text in die Zwischenablage kopiert. In einer Textdatei speichern oder im anderen Browser mit „Text einfügen" laden.'; }
+      catch (e) { msg.style.color = '#ffb347'; msg.textContent = 'Kopieren nicht erlaubt. Text zum Markieren: '; const ta = document.createElement('textarea'); ta.value = txt; ta.style.cssText = 'width:100%;height:80px'; msg.appendChild(ta); ta.select(); }
+    });
+    on('[data-a=pasteall]', () => {
+      const t = prompt('Text der Spielstand-Datei hier einfügen:');
+      if (!t) return;
+      try { const r = NN.importAny(t); G.toast = { text: r.slot ? 'Importiert in Platz ' + r.slot : r.count + ' Spielstände geladen', t: 2.8 }; showSlots(mode, back); }
+      catch (e) { alert('Das war kein gültiger Spielstand: ' + e.message); }
     });
     const allInput = overlay.querySelector('#importall');
     on('[data-a=impall]', () => allInput.click());
