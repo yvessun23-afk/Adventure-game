@@ -359,12 +359,15 @@ window.NN = window.NN || {};
     const ah = actorHit(sx, sy); if (ah) return ah;
     const pk = pickupHit(sx, sy); if (pk) return pk;
     for (const e of def.exits || []) if ((!e.if || e.if(NN.S)) && U.inPoly(sx, sy, e.poly)) return { kind: 'exit', obj: e };
-    const hs = def.hotspots || [];
-    for (let i = hs.length - 1; i >= 0; i--) {
-      const h = hs[i];
-      if (h.if && !h.if(NN.S)) continue;
-      if (U.inPoly(sx, sy, h.poly)) return { kind: 'hot', obj: h };
-    }
+    // Überlappen sich Flächen, gewinnt die kleinste (die genauere); bei gleicher Größe die später genannte
+    let best = null, bestArea = Infinity;
+    (def.hotspots || []).forEach(h => {
+      if (h.if && !h.if(NN.S)) return;
+      if (!U.inPoly(sx, sy, h.poly)) return;
+      if (h._area === undefined) { const xs = h.poly.map(q => q[0]), ys = h.poly.map(q => q[1]); h._area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys)); }
+      if (h._area <= bestArea) { best = h; bestArea = h._area; }
+    });
+    if (best) return { kind: 'hot', obj: best };
     return null;
   }
 
