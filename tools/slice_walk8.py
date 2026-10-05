@@ -14,7 +14,7 @@ import order_walk as ow  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 CH = ROOT / "assets" / "sprites" / "characters"
 RAW = ROOT / "assets" / "raw"
-W, H = 260, 300
+W, H = 520, 560
 
 
 def good(frames):
@@ -90,7 +90,7 @@ def cycle(frames, direction=None):
 
 def main():
     info = {}
-    ref_side = old_h("pixel_walk_1.png")
+    ref_side = 0.97 * old_h("pixel_idle_side.png")
     for sheet, base, flip in (("walk8_standard_rechts", "walk", False), ("walk8_standard_links", "walkl", True)):
         fr = good(ow.extract(RAW / f"{sheet}.png"))
         tour, D = cycle(fr, direction=True)
@@ -111,7 +111,7 @@ def main():
     for name, lst in (("walkfront", front), ("walkback", back)):
         tour, D = cycle(lst)
         imgs = render(lst, tour)
-        ref = old_h("pixel_walk_front.png" if name == "walkfront" else "pixel_walk_back.png")
+        ref = 0.97 * old_h("pixel_idle_front.png" if name == "walkfront" else "pixel_idle_back.png")
         f = save(imgs, name, ref)
         info[name] = len(imgs)
         print(name, len(lst), "->", len(imgs), "Faktor", round(f, 3))
