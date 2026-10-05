@@ -148,7 +148,7 @@ window.NN = window.NN || {};
   function pixelFiles() {
     const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
     const wi = (NN.walkInfo && NN.walkInfo[o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_']) || {};
-    const extra = []; for (let i = 1; i <= (wi.side || 0); i++) extra.push('walk_' + i); for (let i = 1; i <= (wi.front || 0); i++) extra.push('walkfront_' + i); for (let i = 1; i <= (wi.back || 0); i++) extra.push('walkback_' + i);
+    const extra = []; for (let i = 1; i <= (wi.left || 0); i++) extra.push('walkl_' + i); for (let i = 1; i <= (wi.side || 0); i++) extra.push('walk_' + i); for (let i = 1; i <= (wi.front || 0); i++) extra.push('walkfront_' + i); for (let i = 1; i <= (wi.back || 0); i++) extra.push('walkback_' + i);
     const poses = extra.concat(['idle_front', 'idle_side', 'idle_back', 'talk_a', 'talk_b', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_front', 'walk_back']);
     return poses.map(p => SPR + 'characters/' + pre + p + '.png');
   }
@@ -250,7 +250,18 @@ window.NN = window.NN || {};
     return [nx, ny];
   }
 
+  // Laufphase in Zyklen: ein Zyklus (Doppelschritt) = zurückgelegte Strecke, die zur Beinlänge der Figur auf dem Bildschirm passt
+  const CYCLE_K = 0.78;   // Doppelschrittlänge in Figurenhöhen
   function updatePixel(dt) {
+    const ox = pixel.x, oy = pixel.y;
+    updatePixel0(dt);
+    const moved = Math.hypot(pixel.x - ox, pixel.y - oy);
+    if (moved > 0) {
+      const cycleCanvas = CYCLE_K * 240 * depthScale(pixel.y) * G.view.fy * (pixel.vdir === 'side' ? 1 : 0.9);
+      pixel.phase = ((pixel.phase || 0) + moved * G.view.fx / cycleCanvas) % 1000;
+    }
+  }
+  function updatePixel0(dt) {
     const p = pixel;
     if (p.anim) { p.animT -= dt; if (p.animT <= 0) p.anim = null; }
     if (!p.target) { p.moving = false; return; }
@@ -678,11 +689,12 @@ window.NN = window.NN || {};
     const p = pixel;
     if (p.anim) return p.anim;
     if (p.moving) {
-      const ph = (p.dist || 0) / (STRIDE * (G.def.space[0] / 1376));
-      const wi = walkInfo();
-      if (p.vdir === 'up') return wi.back ? 'walkback_' + (1 + Math.floor(ph * 0.6) % wi.back) : (Math.floor(ph * 0.5) % 2 ? 'walk_back' : 'idle_back');
-      if (p.vdir === 'down') return wi.front ? 'walkfront_' + (1 + Math.floor(ph * 0.6) % wi.front) : (Math.floor(ph * 0.5) % 2 ? 'walk_front' : 'stand_front');
-      return 'walk_' + (1 + Math.floor(ph) % (wi.side || 8));
+      const wi = walkInfo(), ph = p.phase || 0;
+      const pick = n => 1 + Math.floor((ph % 1) * n) % n;
+      if (p.vdir === 'up') return wi.back ? 'walkback_' + pick(wi.back) : (Math.floor(ph * 2) % 2 ? 'walk_back' : 'idle_back');
+      if (p.vdir === 'down') return wi.front ? 'walkfront_' + pick(wi.front) : (Math.floor(ph * 2) % 2 ? 'walk_front' : 'stand_front');
+      if (p.dir === 'left' && wi.left) return 'walkl_' + pick(wi.left);
+      return 'walk_' + pick(wi.side || 8);
     }
     if (p.talking && G.speech) return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
     if (p.dir === 'up') return 'idle_back';
@@ -700,7 +712,7 @@ window.NN = window.NN || {};
     if (img) {
       if (pixel.moving && !pixel.anim && !NN.opts.reduceAnim) {
         // Doppelschritt = ein Zyklus: Körper hüpft bei jedem Schritt, kippt leicht nach vorn und federt beim Aufsetzen
-        const ph = (pixel.dist || 0) / (STRIDE * (G.def.space[0] / 1376)) / (walkInfo().side || 8) * Math.PI * 2 * 2;
+        const ph = (pixel.phase || 0) * Math.PI * 2 * 2;
         const hop = Math.abs(Math.sin(ph / 2)), land = Math.pow(1 - hop, 6);
         const dirSign = pixel.dir === 'left' ? -1 : pixel.dir === 'right' ? 1 : 0;
         ctx.save();
