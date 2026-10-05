@@ -78,7 +78,7 @@ NN.assets = (function () {
         if (e.img.decode) e.img.decode().then(done, done); else done(); // vorab dekodieren: kein Ruckeln beim ersten Zeichnen
       };
       e.img.onerror = () => { e.fail = true; e.waiters.splice(0).forEach(f => f(null)); };
-      e.img.src = src;
+      e.img.src = NN.buildId ? src + (src.includes('?') ? '&' : '?') + 'v=' + NN.buildId : src; // Cache-Busting: neue Bilder sofort sichtbar
       cache.set(src, e);
     }
     return e;

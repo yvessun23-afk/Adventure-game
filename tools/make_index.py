@@ -28,3 +28,6 @@ for d in ("characters", "npcs"):
 
 open(r + "data/assets.js", "w").write("// Automatisch erzeugt (tools/make_index.py)\nwindow.NN = window.NN || {};\nNN.assetIndex = " + json.dumps(idx) + ";\nNN.feet = " + json.dumps(feet, separators=(",", ":")) + ";\nNN.musicFiles = " + json.dumps(music) + ";\n")
 print("data/assets.js geschrieben:", {k: len(v) for k, v in idx.items()}, "Füße:", len(feet), "Musik:", music)
+
+import time as _t
+open(r + "data/build.js", "w").write("window.NN = window.NN || {};\nNN.buildId = '%d';\n" % int(_t.time()))

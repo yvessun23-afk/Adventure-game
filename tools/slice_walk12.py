@@ -24,7 +24,7 @@ SIDE = [("pixel_", "walk12_standard_seite", list(range(1, 19))),
         ("pixel_suit_", "walk12_raumanzug_seite", [c for c in range(1, 25) if c not in (18, 19, 20, 21)])]
 FB = [("pixel_", "walk12_standard_vorn_hinten", range(1, 7), range(7, 13)),
       ("pixel_gala_", "walk12_gala_vorn_hinten", range(1, 7), range(7, 17))]
-W, H = 260, 300
+W, H = 520, 560
 
 
 def old_height(prefix):
