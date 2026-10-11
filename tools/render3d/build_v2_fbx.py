@@ -81,10 +81,16 @@ async def render_all(port):
     out = {}
     async with async_playwright() as p:
         b = await p.chromium.launch(executable_path=CHROME, args=["--no-sandbox", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
-        pg = await b.new_page()
-        await pg.goto(f"http://localhost:{port}/fbxr.html"); await pg.wait_for_timeout(1500)
+        pg = None
+        n = 0
         for prefix, c in OUTFITS.items():
             for name, clip, opt, sid in jobs(prefix, c):
+                if pg is None or n % 5 == 0:  # die großen Modelle füllen den Speicher: Seite regelmäßig neu öffnen
+                    if pg:
+                        await pg.close()
+                    pg = await b.new_page()
+                    await pg.goto(f"http://localhost:{port}/fbxr.html"); await pg.wait_for_timeout(1200)
+                n += 1
                 r = await pg.evaluate("([m,o])=>F.render(m,m,o)", [clip, opt])
                 out[name] = (prefix, sid, Image.open(io.BytesIO(base64.b64decode(r["url"].split(",")[1]))).convert("RGBA"))
         await b.close()
