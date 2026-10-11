@@ -100,6 +100,11 @@ def walkinfo():
     s = p.read_text(encoding="utf-8")
     cur = json.loads(re.search(r"NN.walkInfo = (\{.*\});", s).group(1))
     cur["pixel_"] = {"side": side, "left": left, "front": front, "back": back}
+    cdir = V2 / "assets/sprites/characters"
+    for pre in ("pixel_gala_", "pixel_suit_"):  # 3D-Outfits (ohne eigene Links-Bilder: die Engine spiegelt)
+        n = len(list(cdir.glob(pre + "walk_[0-9]*.png")))
+        if n:
+            cur[pre] = {"side": n, "front": len(list(cdir.glob(pre + "walkfront_*.png"))), "back": len(list(cdir.glob(pre + "walkback_*.png")))}
     p.write_text("// v2: Anzahl der Laufbilder je Outfit\nwindow.NN = window.NN || {};\nNN.walkInfo = " + json.dumps(cur) + ";\n", encoding="utf-8")
 
 

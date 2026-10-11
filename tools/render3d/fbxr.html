@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8"><title>FBX Renderer</title>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script type="importmap">{"imports":{"three":"./three/build/three.module.js","three/addons/":"./three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+const cv = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0x000000, 0); renderer.outputColorSpace = THREE.SRGBColorSpace;
+const loader = new FBXLoader();
+const cache = {};
+const load = url => cache[url] || (cache[url] = new Promise((res, rej) => loader.load(url, res, undefined, rej)));
+function skinnedMeshes(root) { const a = []; root.traverse(o => { if (o.isMesh || o.isSkinnedMesh) a.push(o); }); return a; }
+function setup(root, opt) {
+  for (const m of skinnedMeshes(root)) {
+    const old = m.material, mats = Array.isArray(old) ? old : [old];
+    const nm = mats.map(o => {
+      const map = (opt.map) || o.map; if (map) map.needsUpdate = true;
+      if (map && map.colorSpace !== undefined) map.colorSpace = THREE.SRGBColorSpace;
+      return new THREE.MeshLambertMaterial({ map, color: 0xffffff, side: THREE.DoubleSide, transparent: false });
+    });
+    m.userData.orig = old; m.material = Array.isArray(old) ? nm : nm[0]; m.frustumCulled = false;
+  }
+}
+function outlineMat(t) {
+  const m = new THREE.MeshBasicMaterial({ color: 0x1a0f26, side: THREE.BackSide });
+  m.onBeforeCompile = sh => { sh.uniforms.uOut = { value: t }; sh.vertexShader = 'uniform float uOut;\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n transformed += normalize(objectNormal) * uOut;'); };
+  return m;
+}
+async function render(modelUrl, clipUrl, o) {
+  const size = o.size || 1024; renderer.setSize(size, size, false);
+  const obj = (await load(modelUrl)).clone ? null : null;
+  const base = await load(modelUrl);
+  // frisch klonen (SkeletonUtils nötig): neu laden statt klonen
+  const root = await new Promise((res, rej) => loader.load(modelUrl, res, undefined, rej));
+  let tex = null;
+  if (o.texUrl) { tex = await new Promise((res, rej) => new THREE.TextureLoader().load(o.texUrl, res, undefined, rej)); tex.flipY = !!o.flip; tex.colorSpace = THREE.SRGBColorSpace; }
+  if (o.uvFrom) { const ref = await new Promise((res, rej) => loader.load(o.uvFrom, res, undefined, rej)); let uv = null; ref.traverse(m => { if (m.isMesh && m.geometry.attributes.uv) uv = m.geometry.attributes.uv; }); root.traverse(m => { if (m.isMesh && uv && m.geometry.attributes.position.count === uv.count) m.geometry.setAttribute('uv', uv); }); }
+  const pend = []; root.traverse(m => { if (m.isMesh) (Array.isArray(m.material) ? m.material : [m.material]).forEach(x => { if (x.map && x.map.image && x.map.image.decode) pend.push(x.map.image.decode().catch(() => {})); else if (x.map && x.map.image && !x.map.image.complete) pend.push(new Promise(r => { x.map.image.onload = r; setTimeout(r, 3000); })); }); });
+  await Promise.all(pend);
+  setup(root, { map: tex });
+  const scene = new THREE.Scene(); scene.add(root);
+  scene.add(new THREE.HemisphereLight(0xcfc6e8, 0x6a5f80, 1.25)); const key = new THREE.DirectionalLight(0xfff0dc, 1.2); key.position.set(-0.45, 0.8, 0.75); scene.add(key);
+  // Pose
+  const clipRoot = clipUrl === modelUrl ? root : await load(clipUrl);
+  const clip = (clipRoot.animations && clipRoot.animations[0]) || (root.animations && root.animations[0]);
+  const mixer = new THREE.AnimationMixer(root);
+  let dur = 0;
+  if (clip) { const a = mixer.clipAction(clip); a.play(); dur = clip.duration; mixer.setTime(((o.t || 0) % dur + dur) % dur); }
+  root.rotation.y = (o.yaw || 0) * Math.PI / 180;
+  root.updateMatrixWorld(true);
+  if (o.follow) { let hips = null; root.traverse(b => { if (b.isBone && /Hips/i.test(b.name) && !hips) hips = b; }); if (hips) { const v = new THREE.Vector3(); hips.getWorldPosition(v); root.position.x -= v.x; root.position.z -= v.z; root.updateMatrixWorld(true); } }
+  // Höhe bestimmen: Box der Standpose (t=0) einmalig als Referenz
+  const box = new THREE.Box3(); root.traverse(m => { if (m.isSkinnedMesh) { m.skeleton.update(); } });
+  const bb = new THREE.Box3().setFromObject(root, true);
+  const H = o.H || (bb.max.y - bb.min.y), y0 = o.y0 !== undefined ? o.y0 : bb.min.y;
+  const ppu = (size * 0.80) / H;
+  const cam = new THREE.OrthographicCamera(-size / 2 / ppu, size / 2 / ppu, size * 0.9 / ppu, -size * 0.1 / ppu, 0.01, 1000);
+  const cx = (bb.min.x + bb.max.x) / 2;
+  cam.position.set(0, y0 + 0, 10); cam.lookAt(0, y0, 0); cam.position.set(0, y0, 10); cam.up.set(0, 1, 0);
+  // Verschieben: Fuß auf y0 -> Bild unten bei 10 %
+  cam.top = size * 0.9 / ppu; cam.bottom = -size * 0.1 / ppu; cam.updateProjectionMatrix();
+  // Kontur
+  const outs = [];
+  root.traverse(m => { if (m.isSkinnedMesh) { const om = new THREE.SkinnedMesh(m.geometry, outlineMat(H * (o.out === undefined ? 0.011 : o.out))); om.bind(m.skeleton, m.bindMatrix); om.frustumCulled = false; m.parent.add(om); om.position.copy(m.position); om.quaternion.copy(m.quaternion); om.scale.copy(m.scale); outs.push(om); } });
+  if (o.glass) root.traverse(m => { if (!m.isSkinnedMesh) return; const g = m.geometry, P = g.attributes.position, N = g.attributes.normal; g.computeBoundingBox(); const bb2 = g.boundingBox, Hg = bb2.max.y - bb2.min.y, yc = bb2.min.y + Hg * (o.glass.y || 0.89), hw = Hg * (o.glass.w || 0.075), hh = Hg * (o.glass.h || 0.05), zs = o.glass.zs || 1;
+    const ix = g.index ? g.index.array : null, n = ix ? ix.length : P.count, sel = [];
+    for (let i = 0; i < n; i += 3) { const a = ix ? ix[i] : i, b = ix ? ix[i + 1] : i + 1, c = ix ? ix[i + 2] : i + 2; const cx2 = (P.getX(a) + P.getX(b) + P.getX(c)) / 3, cy = (P.getY(a) + P.getY(b) + P.getY(c)) / 3, nz = (N.getZ(a) + N.getZ(b) + N.getZ(c)) / 3 * zs; if (Math.abs(cx2) < hw && Math.abs(cy - yc) < hh && nz > (o.glass.nz || 0.25)) sel.push(a, b, c); }
+    const gg = new THREE.BufferGeometry(); for (const k in g.attributes) gg.setAttribute(k, g.attributes[k]); gg.setIndex(sel);
+    const gm = new THREE.MeshPhongMaterial({ color: 0x8fc4ff, transparent: true, opacity: o.glass.op || 0.2, shininess: 160, specular: 0xffffff, depthWrite: false, side: THREE.FrontSide });
+    gm.onBeforeCompile = sh => { sh.uniforms.uOut = { value: H * 0.006 }; sh.vertexShader = 'uniform float uOut;\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n transformed += normalize(objectNormal) * uOut;'); };
+    const gmesh = new THREE.SkinnedMesh(gg, gm); gmesh.bind(m.skeleton, m.bindMatrix); gmesh.frustumCulled = false; gmesh.renderOrder = 5; m.parent.add(gmesh); gmesh.position.copy(m.position); gmesh.quaternion.copy(m.quaternion); gmesh.scale.copy(m.scale); window.__glassTris = sel.length / 3; });
+  renderer.render(scene, cam);
+  const url = cv.toDataURL('image/png');
+  scene.traverse(x => { if (x.geometry && !x.isSkinnedMesh) x.geometry.dispose(); });
+  return { url, H, y0, bbox: [bb.min.toArray(), bb.max.toArray()], dur, ppu };
+}
+window.F = { render, load, THREE };
+</script>
