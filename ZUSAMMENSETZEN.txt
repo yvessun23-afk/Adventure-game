@@ -1,0 +1,10 @@
+Das Verzeichnis "_neu" liegt als ein ZIP-Archiv vor, das in 17 Teile (je höchstens 19,9 MB) zerschnitten ist.
+
+Zusammensetzen (Mac / Linux, Terminal im Ordner mit den Teilen):
+    cat _neu.zip.part* > _neu.zip
+    unzip _neu.zip
+
+Windows (Eingabeaufforderung):
+    copy /b _neu.zip.part00 + _neu.zip.part01 + ... + _neu.zip.part16 _neu.zip
+
+Alle 17 Teile müssen vorhanden sein. Der Inhalt: Pixel_anim_neu, Raumanzug_anim, Gala_anim (FBX-Animationen und Referenz).
