@@ -52,7 +52,8 @@ def jobs():
     L.append(("characters", "kruemel_talk_a", K, {"yaw": -40, "clip": "idle", "t": 0}, "kruemel_talk_a"))
     L.append(("characters", "kruemel_talk_b", K, {"yaw": -28, "clip": "idle", "t": 0}, "kruemel_talk_b"))
     L.append(("characters", "kruemel_hover_front", K, {"yaw": 0, "clip": "idle", "t": 0}, "kruemel_hover_front"))
-    return L
+    # Pixel kommt jetzt aus build_v2_fbx.py (neue FBX-Animationen); das alte Modell nur mit --old-pixel
+    return [j for j in L if j[2] != "pixel" or "--old-pixel" in sys.argv]
 
 
 async def render_all(port):
@@ -61,7 +62,7 @@ async def render_all(port):
         b = await p.chromium.launch(executable_path=CHROME, args=["--no-sandbox", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"])
         pg = await b.new_page()
         await pg.goto(f"http://localhost:{port}/render.html")
-        for m in ("pixel", "oma", "kruemel"):
+        for m in sorted({j[2] for j in jobs()}):
             await pg.evaluate(f"R.loadScript('models/char_{m}.js')"); await pg.evaluate(f"R.load('{m}')")
         for folder, name, model, opt, sid in jobs():
             r = await pg.evaluate(f"R.render('{model}', {json.dumps(opt)})")
@@ -93,6 +94,7 @@ def main():
                "kruemel": body_h(ROOT / "assets/sprites/characters/kruemel_hover_1.png")}
     # Faktor je Modell: aus dem Ruhebild (Pixel: von vorn, Oma: Ruhebild, Krümel: hover_1)
     ref = {"pixel": "pixel_idle_front", "oma": "oma_idle", "kruemel": "kruemel_hover_1"}
+    ref = {m: n for m, n in ref.items() if n in res}
     factor = {}
     for m, n in ref.items():
         im = res[n][3]; bb = trim_box(im)

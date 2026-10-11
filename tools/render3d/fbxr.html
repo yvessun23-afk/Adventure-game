@@ -17,14 +17,36 @@ function setup(root, opt) {
     const nm = mats.map(o => {
       const map = (opt.map) || o.map; if (map) map.needsUpdate = true;
       if (map && map.colorSpace !== undefined) map.colorSpace = THREE.SRGBColorSpace;
-      return new THREE.MeshLambertMaterial({ map, color: 0xffffff, side: THREE.DoubleSide, transparent: false });
+      const lm = new THREE.MeshLambertMaterial({ map, color: 0xffffff, side: THREE.DoubleSide, transparent: false });
+      if (opt.mouth) { const sk = m.userData.skin || [0.8, 0.55, 0.45], dbg = !!opt.mouth.dbg, sl = 0.3*sk[0]*sk[0] + 0.59*sk[1]*sk[1] + 0.11*sk[2]*sk[2];
+        lm.onBeforeCompile = sh => { sh.vertexShader = 'attribute vec2 aMask;\nvarying float vMouth;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vMouth = aMask.y;');
+          sh.fragmentShader = 'varying float vMouth;\n' + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n float lum = dot(diffuseColor.rgb, vec3(0.3,0.59,0.11)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(' + sk.map(x => (x * x).toFixed(3)).join(',') + '), vMouth * ' + (opt.mouth.all ? '1.0' : '(1.0 - smoothstep(' + (0.62*sl).toFixed(3) + ', ' + (0.9*sl).toFixed(3) + ', lum))') + ');' + (dbg ? ' diffuseColor.rgb = mix(diffuseColor.rgb, vec3(1.,0.,0.), vMouth*0.6);' : '')); }; }
+      return lm;
     });
     m.userData.orig = old; m.material = Array.isArray(old) ? nm : nm[0]; m.frustumCulled = false;
   }
 }
+function firstMap(root) { let t = null; root.traverse(m => { if (m.isMesh && !t) { const x = Array.isArray(m.material) ? m.material[0] : m.material; if (x && x.map) t = x.map; } }); return t; }
+function maskify(root, map, o) {
+  const img = map.image, cv2 = document.createElement('canvas'); cv2.width = img.width; cv2.height = img.height; const cx = cv2.getContext('2d'); cx.drawImage(img, 0, 0); const px = cx.getImageData(0, 0, cv2.width, cv2.height).data;
+  root.traverse(m => {
+    if (!m.isSkinnedMesh) return; const g = m.geometry, P = g.attributes.position, N = g.attributes.normal, U = g.attributes.uv, n = P.count; g.computeBoundingBox(); const Hg = g.boundingBox.max.y - g.boundingBox.min.y, y0g = g.boundingBox.min.y;
+    const mask = new Float32Array(n * 2); let sk = [0, 0, 0, 0];
+    const mo = o.mouth, hy = (o.hair && o.hair.y || 0.84) * Hg + y0g;
+    for (let i = 0; i < n; i++) {
+      const u = U.getX(i), v = o.flip ? 1 - U.getY(i) : U.getY(i), ix = Math.min(img.width - 1, Math.max(0, Math.floor(u * img.width))), iy = Math.min(img.height - 1, Math.max(0, Math.floor(v * img.height))), k = (iy * img.width + ix) * 4, r = px[k], gg = px[k + 1], b = px[k + 2];
+      const y = P.getY(i);
+      if (o.hair && y > hy && gg > r * 1.25 && gg > 50 && gg >= b * 0.8) mask[i * 2] = 1;
+      if (mo && N.getZ(i) > 0.3 && Math.abs(P.getX(i)) < mo.w * Hg && Math.abs(y - (y0g + mo.y * Hg)) < mo.h * Hg) { mask[i * 2 + 1] = 1; if (r > gg && (r + gg + b) > 330) { sk[0] += r; sk[1] += gg; sk[2] += b; sk[3]++; } }
+    }
+    g.setAttribute('aMask', new THREE.BufferAttribute(mask, 2));
+    const skin = sk[3] ? [sk[0] / sk[3] / 255, sk[1] / sk[3] / 255, sk[2] / sk[3] / 255] : [0.8, 0.55, 0.45];
+    m.userData.skin = skin; m.userData.mouthDbg = !!(mo && mo.dbg);
+  });
+}
 function outlineMat(t) {
   const m = new THREE.MeshBasicMaterial({ color: 0x1a0f26, side: THREE.BackSide });
-  m.onBeforeCompile = sh => { sh.uniforms.uOut = { value: t }; sh.vertexShader = 'uniform float uOut;\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n transformed += normalize(objectNormal) * uOut;'); };
+  m.onBeforeCompile = sh => { sh.uniforms.uOut = { value: t }; sh.vertexShader = 'uniform float uOut;\nattribute vec2 aMask;\n' + sh.vertexShader.replace('#include <skinning_vertex>', '#include <skinning_vertex>\n transformed += normalize(objectNormal) * uOut * (1.0 - aMask.x);'); };
   return m;
 }
 async function render(modelUrl, clipUrl, o) {
@@ -38,7 +60,8 @@ async function render(modelUrl, clipUrl, o) {
   if (o.uvFrom) { const ref = await new Promise((res, rej) => loader.load(o.uvFrom, res, undefined, rej)); let uv = null; ref.traverse(m => { if (m.isMesh && m.geometry.attributes.uv) uv = m.geometry.attributes.uv; }); root.traverse(m => { if (m.isMesh && uv && m.geometry.attributes.position.count === uv.count) m.geometry.setAttribute('uv', uv); }); }
   const pend = []; root.traverse(m => { if (m.isMesh) (Array.isArray(m.material) ? m.material : [m.material]).forEach(x => { if (x.map && x.map.image && x.map.image.decode) pend.push(x.map.image.decode().catch(() => {})); else if (x.map && x.map.image && !x.map.image.complete) pend.push(new Promise(r => { x.map.image.onload = r; setTimeout(r, 3000); })); }); });
   await Promise.all(pend);
-  setup(root, { map: tex });
+  if (o.hair || o.mouth) maskify(root, tex || firstMap(root), o);
+  setup(root, { map: tex, mouth: o.mouth });
   const scene = new THREE.Scene(); scene.add(root);
   scene.add(new THREE.HemisphereLight(0xcfc6e8, 0x6a5f80, 1.25)); const key = new THREE.DirectionalLight(0xfff0dc, 1.2); key.position.set(-0.45, 0.8, 0.75); scene.add(key);
   // Pose
@@ -62,7 +85,7 @@ async function render(modelUrl, clipUrl, o) {
   cam.top = size * 0.9 / ppu; cam.bottom = -size * 0.1 / ppu; cam.updateProjectionMatrix();
   // Kontur
   const outs = [];
-  root.traverse(m => { if (m.isSkinnedMesh) { const om = new THREE.SkinnedMesh(m.geometry, outlineMat(H * (o.out === undefined ? 0.011 : o.out))); om.bind(m.skeleton, m.bindMatrix); om.frustumCulled = false; m.parent.add(om); om.position.copy(m.position); om.quaternion.copy(m.quaternion); om.scale.copy(m.scale); outs.push(om); } });
+  root.traverse(m => { if (m.isSkinnedMesh) { const om = new THREE.SkinnedMesh(m.geometry, outlineMat(H * (o.out === undefined ? 0.0055 : o.out))); om.bind(m.skeleton, m.bindMatrix); om.frustumCulled = false; m.parent.add(om); om.position.copy(m.position); om.quaternion.copy(m.quaternion); om.scale.copy(m.scale); outs.push(om); } });
   if (o.glass) root.traverse(m => { if (!m.isSkinnedMesh) return; const g = m.geometry, P = g.attributes.position, N = g.attributes.normal; g.computeBoundingBox(); const bb2 = g.boundingBox, Hg = bb2.max.y - bb2.min.y, yc = bb2.min.y + Hg * (o.glass.y || 0.89), hw = Hg * (o.glass.w || 0.075), hh = Hg * (o.glass.h || 0.05), zs = o.glass.zs || 1;
     const ix = g.index ? g.index.array : null, n = ix ? ix.length : P.count, sel = [];
     for (let i = 0; i < n; i += 3) { const a = ix ? ix[i] : i, b = ix ? ix[i + 1] : i + 1, c = ix ? ix[i + 2] : i + 2; const cx2 = (P.getX(a) + P.getX(b) + P.getX(c)) / 3, cy = (P.getY(a) + P.getY(b) + P.getY(c)) / 3, nz = (N.getZ(a) + N.getZ(b) + N.getZ(c)) / 3 * zs; if (Math.abs(cx2) < hw && Math.abs(cy - yc) < hh && nz > (o.glass.nz || 0.25)) sel.push(a, b, c); }

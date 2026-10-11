@@ -105,7 +105,7 @@ async function render(name, opt = {}) {
     const p = prog(c.nj, pass === 1); gl.useProgram(p);
     gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uVP'), false, vp); gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uModel'), false, model);
     gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uJ'), false, c.skin); gl.uniform1i(gl.getUniformLocation(p, 'uTex'), 0); gl.uniform1i(gl.getUniformLocation(p, 'uPass'), pass);
-    gl.uniform1f(gl.getUniformLocation(p, 'uOut'), pass === 1 ? H * (opt.out === undefined ? 0.011 : opt.out) : 0);
+    gl.uniform1f(gl.getUniformLocation(p, 'uOut'), pass === 1 ? H * (opt.out === undefined ? 0.004 : opt.out) : 0);
     gl.uniform3f(gl.getUniformLocation(p, 'uKey'), -0.45, 0.8, 0.75); gl.uniform1f(gl.getUniformLocation(p, 'uSat'), opt.sat || 1.12); gl.uniform1f(gl.getUniformLocation(p, 'uBright'), opt.bright || 1.0);
     gl.enable(gl.CULL_FACE); gl.cullFace(pass === 1 ? gl.FRONT : gl.BACK);
     if (pass === 0) gl.disable(gl.CULL_FACE);

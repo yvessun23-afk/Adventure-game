@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rendert die Mixamo-FBX-Animationen (Gala, Raumanzug) zu Sprites für Version 2 (v2/assets/sprites/characters/pixel_gala_*, pixel_suit_*).
+"""Rendert die Mixamo-FBX-Animationen (Pixel, Gala, Raumanzug) zu Sprites für Version 2 (v2/assets/sprites/characters/pixel_*, pixel_gala_*, pixel_suit_*).
 Voraussetzung: three.js (npm i three, Ordner `three/` neben fbxr.html), die entpackten FBX-Ordner (Gala_anim, Raumanzug_anim, ref/...) in FBX_DIR.
   python3 tools/render3d/build_v2_fbx.py [--fbx /pfad/zu/fbx] [--three /pfad/zu/three]
 Die Anzug-Animation hat keine UVs: sie werden aus der Referenz-FBX (Raumanzug_ref_fbx.zip) übernommen, die Textur kommt aus deren PNG.
@@ -29,10 +29,13 @@ def extract_png(fbx, dst):
     Path(dst).write_bytes(d[m:e + 8])
 
 
+# Kontur: ganz dünn (out), bei Haaren keine Kontur (hair), Mundlinie weichgezeichnet (mouth)
+FACE = {"out": 0.0035, "hair": {}, "mouth": {"y": 0.78, "w": 0.04, "h": 0.02, "all": True}}
 OUTFITS = {
-    "pixel_gala_": dict(dir="Gala_anim", idle="Breathing Idle", walk="Walking", talk="Talking", tex="tex_gala.png", flip=True, extra={}),
+    "pixel_": dict(dir="Pixel_anim_neu", idle="Idle", walk="Walking", talk="Talking", tex="tex_pixel.png", flip=True, left=True, src="Idle", extra=dict(FACE)),
+    "pixel_gala_": dict(dir="Gala_anim", idle="Breathing Idle", walk="Walking", talk="Talking", tex="tex_gala.png", flip=True, src="Breathing Idle", extra=dict(FACE)),
     "pixel_suit_": dict(dir="Raumanzug_anim", idle="Breathing Idle", walk="Walking", talk="Talking", tex=REF + ".png", flip=True,
-                        extra={"uvFrom": "fbx/" + REF + ".fbx", "glass": {}}),
+                        extra={"out": 0.0035, "uvFrom": "fbx/" + REF + ".fbx", "glass": {}}),
 }
 
 
@@ -46,6 +49,8 @@ def jobs(prefix, c):
     add("talk_a", c["talk"], 60, 0.4, "talk_a"); add("talk_b", c["talk"], 60, 1.2, "talk_b")
     for i in range(12):
         add(f"walk_{i + 1}", c["walk"], 90, WALK_DUR * i / 12, "walk")
+        if c.get("left"):
+            add(f"walkl_{i + 1}", c["walk"], -90, WALK_DUR * i / 12, "walkl")
     for i in range(8):
         add(f"walkfront_{i + 1}", c["walk"], 0, WALK_DUR * i / 8, "walkfront")
         add(f"walkback_{i + 1}", c["walk"], 180, WALK_DUR * i / 8, "walkback")
@@ -70,6 +75,7 @@ def serve():
     for n, link in (("three", THREE), ("fbx", FBX_DIR)):
         (WORK / n).symlink_to(link)
     extract_png(FBX_DIR / "Gala_anim/Breathing Idle.fbx", WORK / "tex_gala.png")
+    extract_png(FBX_DIR / "Pixel_anim_neu/Idle.fbx", WORK / "tex_pixel.png")
     handler = lambda *a, **k: http.server.SimpleHTTPRequestHandler(*a, directory=str(WORK), **k)
     socketserver.TCPServer.allow_reuse_address = True
     srv = socketserver.TCPServer(("", 0), handler)
