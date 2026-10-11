@@ -1,0 +1,117 @@
+<!doctype html><meta charset="utf-8"><title>3D → 2D Renderer</title>
+<canvas id="c" width="1024" height="1024"></canvas>
+<script>
+// Eigener kleiner Renderer für die gepackten Modelle (char_*.js): GPU-Skinning, Toon-Licht, dunkle Kontur.
+window.CHAR_DATA = window.CHAR_DATA || {};
+const cv = document.getElementById('c');
+const gl = cv.getContext('webgl2', { alpha: true, premultipliedAlpha: false, antialias: true, preserveDrawingBuffer: true });
+const b64 = s => { const r = atob(s), u = new Uint8Array(r.length); for (let i = 0; i < r.length; i++) u[i] = r.charCodeAt(i); return u; };
+const T = { P: Float32Array, N: Float32Array, UV: Float32Array, JI: Uint8Array, W: Uint8Array, IDX: Uint16Array, IBM: Float32Array, parent: Int32Array, restT: Float32Array, restR: Float32Array, restS: Float32Array, joints: Int32Array };
+const VS = (nj, outline) => `#version 300 es
+precision highp float;
+layout(location=0) in vec3 aP; layout(location=1) in vec3 aN; layout(location=2) in vec2 aUV; layout(location=3) in uvec4 aJ; layout(location=4) in vec4 aW;
+uniform mat4 uVP; uniform mat4 uModel; uniform mat4 uJ[${nj}]; uniform float uOut;
+out vec3 vN; out vec2 vUV; out vec3 vW;
+void main(){
+  mat4 S=aW.x*uJ[aJ.x]+aW.y*uJ[aJ.y]+aW.z*uJ[aJ.z]+aW.w*uJ[aJ.w];
+  vec4 p=S*vec4(aP,1.); vec3 n=mat3(S)*aN; float nl=length(n);
+  ${outline ? 'if(nl>.05) p.xyz+=n/nl*uOut;' : ''}
+  vec4 w=uModel*p; vW=w.xyz; vN=mat3(uModel)*(nl>.05?n/nl:vec3(0.,0.,1.)); vUV=aUV; gl_Position=uVP*w;
+}`;
+const FS = `#version 300 es
+precision highp float;
+in vec3 vN; in vec2 vUV; in vec3 vW; uniform sampler2D uTex; uniform int uPass; uniform vec3 uKey; uniform float uSat; uniform float uBright;
+out vec4 o;
+void main(){
+  if(uPass==1){ o=vec4(.10,.06,.15,1.); return; }
+  vec3 a=texture(uTex,vUV).rgb; vec3 n=normalize(vN); if(!gl_FrontFacing) n=-n;
+  float h=n.y*.5+.5; vec3 amb=mix(vec3(.46,.40,.55),vec3(.78,.74,.86),h);
+  float k=max(dot(n,normalize(uKey)),0.); k=smoothstep(.12,.60,k);              // weiche Toon-Stufe
+  vec3 lit=amb+vec3(1.0,.93,.82)*k*.42;
+  float rim=pow(1.-max(n.z,0.),3.)*.10;
+  vec3 col=a*lit+rim*vec3(.4,.8,1.);
+  float lum=dot(col,vec3(.3,.59,.11)); col=mix(vec3(lum),col,uSat)*uBright;
+  o=vec4(clamp(col,0.,1.),1.);
+}`;
+function compile(type, src){ const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+const progs = {};
+function prog(nj, outline){
+  const key = nj + (outline ? 'o' : '');
+  if (progs[key]) return progs[key];
+  const p = gl.createProgram(); gl.attachShader(p, compile(gl.VERTEX_SHADER, VS(nj, outline))); gl.attachShader(p, compile(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(p);
+  if(!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return progs[key] = p;
+}
+const models = {};
+async function load(name){
+  if (models[name]) return models[name];
+  const d = CHAR_DATA[name]; if (!d) throw new Error('Modell fehlt: ' + name);
+  const h = d.h, u = b64(d.b), buf = u.buffer;
+  const get = (k, Ty) => { const [o, n] = h.buf[k]; return new (Ty || T[k])(buf, o, n); };
+  const c = { h, nj: h.nj, nn: h.nodes, parent: get('parent'), restT: get('restT'), restR: get('restR'), restS: get('restS'), joints: get('joints'), ibm: get('IBM'), clips: {} };
+  for (const cn in h.clips) c.clips[cn] = Object.assign({ rn: get('c_' + cn + '_rn', Int32Array), tn: get('c_' + cn + '_tn', Int32Array), rot: get('c_' + cn + '_rot', Float32Array), tr: get('c_' + cn + '_tr', Float32Array) }, h.clips[cn]);
+  c.vao = gl.createVertexArray(); gl.bindVertexArray(c.vao);
+  const mk = (loc, arr, size, type, norm, integer) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW); gl.enableVertexAttribArray(loc); if (integer) gl.vertexAttribIPointer(loc, size, type, 0, 0); else gl.vertexAttribPointer(loc, size, type, !!norm, 0, 0); };
+  mk(0, get('P'), 3, gl.FLOAT); mk(1, get('N'), 3, gl.FLOAT); mk(2, get('UV'), 2, gl.FLOAT); mk(3, get('JI'), 4, gl.UNSIGNED_BYTE, false, true); mk(4, get('W'), 4, gl.UNSIGNED_BYTE, true);
+  const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, get('IDX'), gl.STATIC_DRAW); gl.bindVertexArray(null); c.ni = h.ni;
+  c.lt = new Float32Array(c.nn * 3); c.lr = new Float32Array(c.nn * 4); c.world = new Float32Array(c.nn * 16); c.skin = new Float32Array(c.nj * 16); c.tmp = new Float32Array(16);
+  const [jo, jn] = h.buf.jpg; const blob = new Blob([new Uint8Array(buf, jo, jn)], { type: 'image/jpeg' });
+  const img = new Image(); img.src = URL.createObjectURL(blob); await img.decode();
+  c.tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, c.tex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img); gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  return models[name] = c;
+}
+function qm(o, oo, q, qo, t, to, s, so) {
+  const x = q[qo], y = q[qo + 1], z = q[qo + 2], w = q[qo + 3], sx = s[so], sy = s[so + 1], sz = s[so + 2];
+  o[oo] = (1 - 2 * (y * y + z * z)) * sx; o[oo + 1] = 2 * (x * y + z * w) * sx; o[oo + 2] = 2 * (x * z - y * w) * sx; o[oo + 3] = 0;
+  o[oo + 4] = 2 * (x * y - z * w) * sy; o[oo + 5] = (1 - 2 * (x * x + z * z)) * sy; o[oo + 6] = 2 * (y * z + x * w) * sy; o[oo + 7] = 0;
+  o[oo + 8] = 2 * (x * z + y * w) * sz; o[oo + 9] = 2 * (y * z - x * w) * sz; o[oo + 10] = (1 - 2 * (x * x + y * y)) * sz; o[oo + 11] = 0;
+  o[oo + 12] = t[to]; o[oo + 13] = t[to + 1]; o[oo + 14] = t[to + 2]; o[oo + 15] = 1;
+}
+function mmul(o, oo, a, ao, b, bo) { for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) { let s = 0; for (let k = 0; k < 4; k++) s += a[ao + k * 4 + r] * b[bo + c * 4 + k]; o[oo + c * 4 + r] = s; } }
+function pose(c, clipName, t, loop) {
+  const cl = c.clips[clipName] || c.clips.idle || Object.values(c.clips)[0];
+  c.lt.set(c.restT); c.lr.set(c.restR);
+  let f = Math.max(0, t) * 30; const nf = cl.n; if (loop) f = f % (nf - 1); else f = Math.min(f, nf - 1);
+  const i0 = Math.floor(f), i1 = Math.min(i0 + 1, nf - 1), fr = f - i0, nr = cl.rn.length, nt = cl.tn.length, lr = c.lr, lt = c.lt;
+  for (let k = 0; k < nr; k++) { const a = (i0 * nr + k) * 4, b = (i1 * nr + k) * 4, o = cl.rn[k] * 4; let d = 0;
+    for (let m = 0; m < 4; m++) d += cl.rot[a + m] * cl.rot[b + m]; const sg = d < 0 ? -fr : fr; let l = 0;
+    for (let m = 0; m < 4; m++) { const v = cl.rot[a + m] * (1 - fr) + cl.rot[b + m] * sg; lr[o + m] = v; l += v * v; }
+    l = 1 / (Math.sqrt(l) || 1); for (let m = 0; m < 4; m++) lr[o + m] *= l; }
+  for (let k = 0; k < nt; k++) { const a = (i0 * nt + k) * 3, b = (i1 * nt + k) * 3, o = cl.tn[k] * 3; for (let m = 0; m < 3; m++) lt[o + m] = cl.tr[a + m] * (1 - fr) + cl.tr[b + m] * fr; }
+  const W = c.world, tmp = c.tmp;
+  for (let i = 0; i < c.nn; i++) { const p = c.parent[i];
+    if (p < 0) qm(W, i * 16, lr, i * 4, lt, i * 3, c.restS, i * 3); else { qm(tmp, 0, lr, i * 4, lt, i * 3, c.restS, i * 3); mmul(W, i * 16, W, p * 16, tmp, 0); } }
+  for (let j = 0; j < c.nj; j++) mmul(c.skin, j * 16, W, c.joints[j] * 16, c.ibm, j * 16);
+  return cl;
+}
+// opt: {clip,t,yaw (Grad; 0 = blickt zur Kamera),size,out (Kontur in Modell-Höhen),sat,bright,pitch}
+async function render(name, opt = {}) {
+  const c = await load(name), size = opt.size || 1024; cv.width = cv.height = size;
+  const clipName = opt.clip || 'idle', cl = pose(c, clipName, opt.t || 0, true);
+  const H = c.h.H, idle = c.clips.idle || cl, y0 = idle.y0 || 0;
+  // Ortho-Kamera: Figur auf 80 % der Bildhöhe, Standlinie bei 90 %
+  const scale = (size * 0.80) / H;                       // Pixel je Modelleinheit
+  const sx = 2 * scale / size, sy = 2 * scale / size;
+  const yaw = (opt.yaw || 0) * Math.PI / 180, cy = Math.cos(yaw), sn = Math.sin(yaw);
+  // Modell: Drehung um Y, danach Verschiebung der Füße auf y=-0.8 (Clip-Raum)
+  const model = new Float32Array([cy, 0, -sn, 0, 0, 1, 0, 0, sn, 0, cy, 0, 0, -y0, 0, 1]);
+  const vp = new Float32Array([sx, 0, 0, 0, 0, sy, 0, 0, 0, 0, -sx * 0.5, 0, 0, -0.8 + 0 * 0, 0, 1]);
+  vp[13] = -0.8;
+  gl.viewport(0, 0, size, size); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, c.tex);
+  for (const pass of [1, 0]) {
+    const p = prog(c.nj, pass === 1); gl.useProgram(p);
+    gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uVP'), false, vp); gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uModel'), false, model);
+    gl.uniformMatrix4fv(gl.getUniformLocation(p, 'uJ'), false, c.skin); gl.uniform1i(gl.getUniformLocation(p, 'uTex'), 0); gl.uniform1i(gl.getUniformLocation(p, 'uPass'), pass);
+    gl.uniform1f(gl.getUniformLocation(p, 'uOut'), pass === 1 ? H * (opt.out === undefined ? 0.011 : opt.out) : 0);
+    gl.uniform3f(gl.getUniformLocation(p, 'uKey'), -0.45, 0.8, 0.75); gl.uniform1f(gl.getUniformLocation(p, 'uSat'), opt.sat || 1.12); gl.uniform1f(gl.getUniformLocation(p, 'uBright'), opt.bright || 1.0);
+    gl.enable(gl.CULL_FACE); gl.cullFace(pass === 1 ? gl.FRONT : gl.BACK);
+    if (pass === 0) gl.disable(gl.CULL_FACE);
+    gl.bindVertexArray(c.vao); gl.drawElements(gl.TRIANGLES, c.ni, gl.UNSIGNED_SHORT, 0);
+  }
+  return { url: cv.toDataURL('image/png'), scale, size, H, clip: clipName, dur: cl.dur, n: cl.n };
+}
+window.R = { render, load, loadScript: src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }), info: name => { const c = models[name]; return c && { H: c.h.H, clips: Object.fromEntries(Object.entries(c.clips).map(([k, v]) => [k, { dur: v.dur, n: v.n }])) }; } };
+</script>
