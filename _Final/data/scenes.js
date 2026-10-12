@@ -169,7 +169,7 @@ NN.sceneHelpers = {
       { id: 'ex_bar', name: 'Bar „Null Pointer“', poly: R(970, 385, 1095, 625), walkTo: [1030, 720], to: 'bar', spawn: 'nudelgasse' },
       { id: 'ex_basar', name: 'Schwarzer Basar', poly: R(1185, 250, 1376, 650), walkTo: [1290, 725], to: 'basar', spawn: 'nudelgasse', arrow: 'right' }
     ],
-    pickups: [{ item: 'neonroehre', hot: 'tonne', x: 540, y: 566, w: 80 }],
+    pickups: [], // die Neonröhre steckt im Müll: unsichtbar, bis man die Tonne untersucht,
     hotspots: [
       {
         id: 'gate', name: 'Schrottplatz', poly: R(625, 385, 855, 555), walkTo: [740, 650], facing: 'up',

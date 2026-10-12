@@ -139,7 +139,7 @@ window.NN = window.NN || {};
       if (!a.sprite) return;
       const names = typeof a.sprite === 'function' ? ['wuschel_defekt', 'wuschel_repariert', 'teddy', 'teddy_sensor'].filter(n => n.length) : [a.sprite];
       names.forEach(n => {
-        out.push(SPR + 'npcs/' + n + '_idle.png', SPR + 'npcs/' + n + '_talk.png');
+        out.push(SPR + 'npcs/' + n + '_idle.png');
         npcExtras(n).forEach(f => out.push(SPR + 'npcs/' + f));
       });
     });
@@ -149,7 +149,7 @@ window.NN = window.NN || {};
     const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
     const wi = (NN.walkInfo && NN.walkInfo[o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_']) || {};
     const extra = []; for (let i = 1; i <= (wi.left || 0); i++) extra.push('walkl_' + i); for (let i = 1; i <= (wi.side || 0); i++) extra.push('walk_' + i); for (let i = 1; i <= (wi.front || 0); i++) extra.push('walkfront_' + i); for (let i = 1; i <= (wi.back || 0); i++) extra.push('walkback_' + i);
-    const poses = extra.concat(['idle_front', 'idle_side', 'idle_back', 'talk_a', 'talk_b', 'walk_1', 'walk_2', 'walk_3', 'walk_4']);
+    const poses = extra.concat(['idle_front', 'idle_side', 'idle_back', 'walk_1', 'walk_2', 'walk_3', 'walk_4']);
     return poses.map(p => SPR + 'characters/' + pre + p + '.png');
   }
   const KRUEMEL = ['hover_1', 'hover_2', 'hover_3', 'hover_4', 'hover_front', 'talk_a', 'talk_b', 'scan_a', 'scan_b', 'sad'].map(n => SPR + 'characters/kruemel_' + n + '.png');
@@ -696,7 +696,6 @@ window.NN = window.NN || {};
       if (p.dir === 'left' && wi.left) return 'walkl_' + pick(wi.left);
       return 'walk_' + pick(wi.side || 8);
     }
-    if (p.talking && G.speech) return Math.floor(G.time * 6) % 2 ? 'talk_a' : 'talk_b';
     if (p.dir === 'up') return 'idle_back';
     if (p.dir === 'down') return 'idle_front';
     return 'idle_side';
@@ -722,7 +721,12 @@ window.NN = window.NN || {};
         ctx.translate(-lx, -ly);
         pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
         ctx.restore();
-      } else pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
+      } else {
+        const sp = pixel.talking && G.speech && !NN.opts.reduceAnim;
+        if (sp) { ctx.save(); ctx.translate(lx, ly); ctx.scale(1, 1 + Math.sin(G.time * 8) * 0.005); ctx.translate(-lx, -ly); }
+        pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
+        if (sp) ctx.restore();
+      }
     } else {
       ctx.fillStyle = '#ffb347'; ctx.fillRect(lx - 30, ly - 200 * sc, 60, 200 * sc); pixel.lastH = 200 * sc;
     }
@@ -733,9 +737,8 @@ window.NN = window.NN || {};
     const sc = depthScale(a.y) * G.view.fy * (a.scale || 1);
     if (!a.sprite) { a.draw(ctx, lx, ly, sc); return; }
     const base = typeof a.sprite === 'function' ? a.sprite(NN.S) : a.sprite;
-    const talking = G.speech && G.speech.who === a.id && Math.floor(G.time * 6) % 2;
     const dir = 'assets/sprites/npcs/';
-    let suffix = talking ? '_talk' : '_idle';
+    let suffix = '_idle'; // Sprechen: kein Bildwechsel (Arme bewegen sich nicht)
     // Individuelle Animation: ab und zu spielt der NPC seine Aktion (a, b, a, b …), nicht während er spricht
     if (!NN.opts.reduceAnim && npcExtras(base).length === 2) {
       const st = a._an || (a._an = { next: G.time + 2 + (String(a.id).length * 1.7) % 5, start: -1 });
@@ -755,8 +758,8 @@ window.NN = window.NN || {};
     const speaking = G.speech && G.speech.who === a.id, t = G.time, ph = [...String(a.id)].reduce((q, ch) => q + ch.charCodeAt(0), 0);
     if (!NN.opts.reduceAnim) { // dezente Bewegung: Atmen und Wiegen, beim Sprechen lebhafter
       const amp = speaking ? 1 : 0, br = Math.sin(t * 1.9 + ph), sw = Math.sin(t * 0.9 + ph * 0.7);
-      const bounce = amp * Math.abs(Math.sin(t * 7.5)) * 4 * sc, tilt = sw * 0.007 + amp * Math.sin(t * 5.2) * 0.022;
-      ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br - amp * 0.008, 1 + 0.011 * br + amp * 0.014); ctx.translate(-lx, -ly);
+      const bounce = 0, tilt = sw * 0.007, pulse = amp * Math.sin(t * 8) * 0.005;
+      ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br, 1 + 0.011 * br + pulse); ctx.translate(-lx, -ly);
     }
     const fitKey = suffix === '_talk' ? base : base + suffix, fit = suffix !== '_idle' && NN.npcFit && NN.npcFit[fitKey] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[fitKey] : 1;
     drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY && !a.clipPoly, true);

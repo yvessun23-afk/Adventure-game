@@ -283,7 +283,7 @@
       bottom('Nudelgasse', 'nudelgasse', 'waschsalon', 700),
       { id: 'ex_treppe', name: 'Treppe zum Dachgarten', poly: R(1125, 330, 1350, 600), walkTo: [1230, 650], to: 'dachgarten', spawn: 'waschsalon', arrow: 'up' }
     ],
-    pickups: [{ item: 'speicherstick', hot: 'korb', x: 250, y: 505, w: 64 }],
+    pickups: [], // der Speicherstick steckt in der Socke: unsichtbar, bis man den Korb untersucht
     hotspots: [
       {
         id: 'sicherung', name: 'Sicherungskasten', poly: R(55, 135, 245, 405), walkTo: [170, 650], facing: 'up',
