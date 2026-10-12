@@ -257,12 +257,12 @@ NN.ui = (function () {
       items.push(`<div class="slot"><div class="thumb" style="${s && s.meta.thumb ? `background-image:url(${s.meta.thumb})` : ''}"></div>
         <div class="info"><b>${i === 0 ? 'Autosave' : 'Platz ' + i}</b><br>${s ? `${esc(name)}<br><span class="muted small">${date} · ${NN.formatTime(s.meta.playtime)}</span>` : '<span class="muted">leer</span>'}</div>
         <div>${mode === 'save' ? `<button class="btn" data-save="${i}">Speichern</button>` : `<button class="btn" data-load="${i}" ${s ? '' : 'disabled'}>Laden</button>`}
-        ${s ? `<button class="btn small" data-export="${i}" title="Als Datei sichern">⭳</button>` : ''}
+        ${s ? `<button class="btn small" data-export="${i}" title="Als Datei sichern">💾</button>` : ''}
         ${s && i > 0 ? `<button class="btn small" data-del="${i}" title="Löschen">✕</button>` : ''}
-        <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>⭱</button></div></div>`);
+        <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>📂</button></div></div>`);
     }
     open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>
-      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände und Einstellungen als Datei sichern</button> <button class="btn" data-a="impall">⭱ Aus Datei laden (Spielstand und/oder Einstellungen)</button> <button class="btn small" data-a="copyall" title="Falls der Download nicht klappt">Als Text kopieren</button> <button class="btn small" data-a="pasteall" title="Text aus der Zwischenablage laden">Text einfügen</button></div>
+      <div style="margin:0 0 4px"><button class="btn" data-a="expall">💾 Alle Spielstände und Einstellungen als Datei sichern</button> <button class="btn" data-a="impall">📂 Aus Datei laden (Spielstand und/oder Einstellungen)</button> <button class="btn small" data-a="copyall" title="Falls der Download nicht klappt">Als Text kopieren</button> <button class="btn small" data-a="pasteall" title="Text aus der Zwischenablage laden">Text einfügen</button></div>
       <div id="exportmsg" class="small" style="margin:0 0 6px;color:#7dffb0;min-height:1.2em"></div>
       <div class="muted small" style="margin-bottom:10px">Jede Datei enthält auch deine Einstellungen. Beim Laden wählst du, ob du Spielstand und/oder Einstellungen übernimmst. Die Datei funktioniert auch in einem anderen Browser oder auf einem anderen Gerät (auch iPhone).</div>
 ${items.join('')}
