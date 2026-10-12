@@ -40,6 +40,9 @@ def feet_for(path):
 
 
 def main():
+    import sys
+    if OUT.exists() and "--force" not in sys.argv:
+        raise SystemExit("_Final existiert und wird jetzt von Hand weiterentwickelt (Positionen, Korrekturen). Zum kompletten Neubau (überschreibt alle Änderungen!): python3 tools/make_final.py --force")
     if OUT.exists():
         shutil.rmtree(OUT)
     # Spielcode und Daten aus dem Hauptordner

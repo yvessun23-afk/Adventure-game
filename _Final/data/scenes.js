@@ -25,17 +25,17 @@ NN.sceneHelpers = {
     depth: { y0: 548, y1: 768, s0: 0.6, s1: 1.0 },
     spawns: { default: [880, 690], nudelgasse: [700, 740] },
     props: [{ if: S => !S.flags.foto_genommen, draw: () => NN.drawProp('foto_rahmen', 962, 333, 92) }],
-    actors: [{ id: 'oma', name: 'Oma Zhang', x: 600, y: 636, sprite: 'oma', flip: true, h: 218 }],
+    actors: [{ id: 'oma', name: 'Oma Zhang', x: 520, y: 716, sprite: 'oma', flip: true, h: 218 }],
     exits: [{ id: 'ex_gasse', name: 'Nudelgasse', poly: R(180, 738, 1376, 768), walkTo: [700, 766], to: 'nudelgasse', spawn: 'imbiss', arrow: 'down' }],
     pickups: [
-      { item: 'sojasosse', hot: 'regal', x: 165, y: 242, w: 38 },
-      { item: 'nudelsieb', hot: 'regal', x: 255, y: 302, w: 62 },
-      { item: 'essstaebchen', hot: 'theke', x: 470, y: 437, w: 78 },
+      { item: 'sojasosse', hot: 'regal', x: 165, y: 246, w: 38 },
+      { item: 'nudelsieb', hot: 'regal', x: 255, y: 313, w: 62 },
+      { item: 'essstaebchen', hot: 'theke', x: 360, y: 494, w: 78 },
       { item: 'graue_paste', hot: 'paste', x: 600, y: 420, w: 48 }
     ],
     hotspots: [
       {
-        id: 'oma', name: 'Oma Zhang', poly: R(548, 440, 660, 640), walkTo: [700, 650], facing: 'left',
+        id: 'oma', name: 'Oma Zhang', poly: R(468, 515, 578, 722), walkTo: [640, 722], facing: 'left',
         look: 'Oma Zhang. 87 Jahre alt, früher Hackerlegende, heute Suppenchefin. Und gerade ziemlich sauer.',
         use: async g => {
           if (!g.get('oma_gesprochen')) { g.flag('oma_gesprochen', true); await g.say('oma', 'Pixel! Mein Kristall ist weg! Ohne ihn schmeckt die Stadt nach Bürokleber!'); }
