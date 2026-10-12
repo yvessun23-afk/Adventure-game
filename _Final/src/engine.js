@@ -149,6 +149,8 @@ window.NN = window.NN || {};
     const o = NN.S.flags.outfit, pre = o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_';
     const wi = (NN.walkInfo && NN.walkInfo[o === 'gala' ? 'pixel_gala_' : o === 'suit' ? 'pixel_suit_' : 'pixel_']) || {};
     const extra = []; for (let i = 1; i <= (wi.left || 0); i++) extra.push('walkl_' + i); for (let i = 1; i <= (wi.side || 0); i++) extra.push('walk_' + i); for (let i = 1; i <= (wi.front || 0); i++) extra.push('walkfront_' + i); for (let i = 1; i <= (wi.back || 0); i++) extra.push('walkback_' + i);
+    for (let i = 1; i <= (wi.idle || 0); i++) extra.push('idle_front_' + i, 'idle_side_' + i, 'idle_back_' + i);
+    for (let i = 1; i <= (wi.talk || 0); i++) extra.push('talk_' + i);
     const poses = extra.concat(['idle_front', 'idle_side', 'idle_back', 'walk_1', 'walk_2', 'walk_3', 'walk_4']);
     return poses.map(p => SPR + 'characters/' + pre + p + '.png');
   }
@@ -281,7 +283,7 @@ window.NN = window.NN || {};
     const speed = 330 * (depthScale(p.y) / (G.def.charScale || 1) / CHAR) * (G.def.space[0] / 1376);
     const step = speed * dt;
     p.moving = true; p.t += dt; p.dist = (p.dist || 0) + step;
-    if (Math.abs(dy) > Math.abs(dx) * 1.7) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }
+    if (Math.abs(dy) > Math.abs(dx) * 0.6) { p.vdir = dy < 0 ? 'up' : 'down'; p.dir = p.vdir; } else { p.vdir = 'side'; p.dir = dx < 0 ? 'left' : 'right'; }
     if (d <= step) { p.x = p.target[0]; p.y = p.target[1]; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
     let nx = p.x + dx / d * step, ny = p.y + dy / d * step;
     [nx, ny] = steer(p.x, p.y, nx, ny, p.target[0]);
@@ -710,9 +712,11 @@ window.NN = window.NN || {};
       if (p.dir === 'left' && wi.left) return 'walkl_' + pick(wi.left);
       return 'walk_' + pick(wi.side || 8);
     }
-    if (p.dir === 'up') return 'idle_back';
-    if (p.dir === 'down') return 'idle_front';
-    return 'idle_side';
+    // Stehen und Sprechen: alle Bilder der Reihe nach abspielen (Atmen ~3,5 Bilder/s, Sprechen 8 Bilder/s)
+    const wi = walkInfo(), ni = wi.idle || 0, nt = wi.talk || 0, view = p.dir === 'up' ? 'back' : p.dir === 'down' ? 'front' : 'side';
+    if (nt && p.talking && G.speech && view === 'side') { const t = G.speech.t || 0; return 'talk_' + (1 + Math.floor(t * 8) % nt); }
+    if (ni && !NN.opts.reduceAnim) return 'idle_' + view + '_' + (1 + Math.floor(G.time * 3.5) % ni);
+    return 'idle_' + view;
   }
 
   function drawPixel() {
@@ -736,7 +740,7 @@ window.NN = window.NN || {};
         pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
         ctx.restore();
       } else {
-        const sp = pixel.talking && G.speech && !NN.opts.reduceAnim;
+        const sp = pixel.talking && G.speech && !NN.opts.reduceAnim && !(walkInfo().talk);
         if (sp) { ctx.save(); ctx.translate(lx, ly); ctx.scale(1, 1 + Math.sin(G.time * 8) * 0.005); ctx.translate(-lx, -ly); }
         pixel.lastH = drawSprite(img, lx, ly, sc, pixel.dir === 'left', true);
         if (sp) ctx.restore();
