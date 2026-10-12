@@ -680,11 +680,11 @@
     walk: [[0, 768], [1376, 768], [1376, 700], [1180, 660], [1000, 640], [800, 630], [600, 650], [350, 700], [150, 740], [0, 750]],
     depth: D(625, 768, 0.6, 1.0),
     spawns: { default: [700, 710], plaza: [700, 710] },
-    actors: [{ id: 'stefan', name: 'Stempel-Stefan', x: 555, y: 480, drawY: 468, clipPoly: [[0, 0], [1376, 0], [1376, 421], [0, 421]], sprite: 'stefan', scale: 1.15, h: 190 }],
+    actors: [{ id: 'stefan', name: 'Stempel-Stefan', x: 560, y: 705, sprite: 'stefan', scale: 1.0, h: 190 }],
     exits: [bottom('Zur Plaza', 'plaza', 'revier', 700)],
     hotspots: [
       {
-        id: 'stefan', name: 'Stempel-Stefan', poly: R(470, 300, 640, 425), walkTo: [560, 650], facing: 'up',
+        id: 'stefan', name: 'Stempel-Stefan', poly: R(480, 520, 640, 710), walkTo: [740, 735], facing: 'left',
         look: 'Stempel-Stefan, Beamter. Er stempelt, wenn er atmet, und atmet, wenn er stempelt.',
         use: async g => {
           if (g.get('gab_platin_pass')) return g.say('stefan', 'Der Pass gehört Ihnen. Viel Spaß in der Oberstadt. Und: Bitte stempeln Sie auch dort.');
