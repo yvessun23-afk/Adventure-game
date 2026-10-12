@@ -28,6 +28,8 @@ RULES = """RULES FOR THE WHOLE IMAGE:
 - Identity: the same character, face, hair, clothes, colors and proportions in all cells, copied from Image 2 (Image 2 has priority over Image 3 for the design). Only the pose changes between cells.
 - Style: convert the soft 3D render into hand-painted 2D point-and-click adventure game art exactly like the style image (Image 1): chunky wobbly dark outlines of equal thickness (thin, not heavy: about 3 pixels at the figure's size, never thicker around hair or mouth, no outline line drawn across the mouth), saturated colors, painterly gouache texture. NOT 3D, NOT a render, NOT flat vector, NOT pixel art. Never use green on the character."""
 
+SHORT = {"standard": "Pixel in her normal outfit", "gala": "Pixel in the gala outfit", "raumanzug": "Pixel in the space suit"}
+
 SHEETS = [
     ("walk_side", "Walk seitlich", 12, 4, 3, "walk side view, facing RIGHT",
      "Image 2 shows one complete walk cycle of two steps in 12 frames (4 columns x 3 rows) in pure side view, the character facing RIGHT. Redraw all 12 frames. The legs and arms must keep the wide, clear stride of Image 2: the NEAR leg (closer to the camera) and the FAR leg (behind, slightly darker) stay clearly separate with a gap of green between them wherever they are apart. Frame 12 flows back into frame 1 (seamless loop). Every frame is different from the others."),
@@ -55,7 +57,7 @@ Image 2 ({grid_ref}): the 3D POSE SHEET. {n} frames of the character on a light 
 Image 3 (assets/raw/refs_walk/{ref2d}): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly {n} full-body figures of {desc.split(',')[0]} ({what}), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of {cols} columns and {rows} rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly {n} full-body figures of {SHORT[oid]} ({what}), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of {cols} columns and {rows} rows.
 
 {RULES.format(cols=cols, rows=rows, n=n)}
 

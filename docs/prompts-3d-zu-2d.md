@@ -59,7 +59,7 @@ Image 2 (assets/raw/refs_3d2d/standard_walk_side.png): the 3D POSE SHEET. 12 fra
 Image 3 (assets/raw/refs_walk/ref_walk_standard.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in her normal outfit (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -88,7 +88,7 @@ Image 2 (assets/raw/refs_3d2d/standard_walk_front.png): the 3D POSE SHEET. 8 fra
 Image 3 (assets/raw/refs_walk/ref_walk_standard.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in her normal outfit (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -117,7 +117,7 @@ Image 2 (assets/raw/refs_3d2d/standard_walk_back.png): the 3D POSE SHEET. 8 fram
 Image 3 (assets/raw/refs_walk/ref_walk_standard.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in her normal outfit (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -146,7 +146,7 @@ Image 2 (assets/raw/refs_3d2d/standard_idle.png): the 3D POSE SHEET. 12 frames o
 Image 3 (assets/raw/refs_walk/ref_walk_standard.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in her normal outfit (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -175,7 +175,7 @@ Image 2 (assets/raw/refs_3d2d/standard_talk.png): the 3D POSE SHEET. 8 frames of
 Image 3 (assets/raw/refs_walk/ref_walk_standard.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in her normal outfit (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -204,7 +204,7 @@ Image 2 (assets/raw/refs_3d2d/gala_walk_side.png): the 3D POSE SHEET. 12 frames 
 Image 3 (assets/raw/refs_walk/ref_walk_gala.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the gala outfit: sparkling teal tailcoat jacket with dark lapels and a teal bow tie over a white shirt (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the gala outfit (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -233,7 +233,7 @@ Image 2 (assets/raw/refs_3d2d/gala_walk_front.png): the 3D POSE SHEET. 8 frames 
 Image 3 (assets/raw/refs_walk/ref_walk_gala.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit: sparkling teal tailcoat jacket with dark lapels and a teal bow tie over a white shirt (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -262,7 +262,7 @@ Image 2 (assets/raw/refs_3d2d/gala_walk_back.png): the 3D POSE SHEET. 8 frames o
 Image 3 (assets/raw/refs_walk/ref_walk_gala.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit: sparkling teal tailcoat jacket with dark lapels and a teal bow tie over a white shirt (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -291,7 +291,7 @@ Image 2 (assets/raw/refs_3d2d/gala_idle.png): the 3D POSE SHEET. 12 frames of th
 Image 3 (assets/raw/refs_walk/ref_walk_gala.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the gala outfit: sparkling teal tailcoat jacket with dark lapels and a teal bow tie over a white shirt (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the gala outfit (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -320,7 +320,7 @@ Image 2 (assets/raw/refs_3d2d/gala_talk.png): the 3D POSE SHEET. 8 frames of the
 Image 3 (assets/raw/refs_walk/ref_walk_gala.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit: sparkling teal tailcoat jacket with dark lapels and a teal bow tie over a white shirt (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the gala outfit (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -349,7 +349,7 @@ Image 2 (assets/raw/refs_3d2d/raumanzug_walk_side.png): the 3D POSE SHEET. 12 fr
 Image 3 (assets/raw/refs_walk/ref_walk_raumanzug.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the space suit: silver-grey space suit with red-pink hoses and a chest control panel (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the space suit (walk side view, facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -378,7 +378,7 @@ Image 2 (assets/raw/refs_3d2d/raumanzug_walk_front.png): the 3D POSE SHEET. 8 fr
 Image 3 (assets/raw/refs_walk/ref_walk_raumanzug.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit: silver-grey space suit with red-pink hoses and a chest control panel (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit (walk toward the camera (front view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -407,7 +407,7 @@ Image 2 (assets/raw/refs_3d2d/raumanzug_walk_back.png): the 3D POSE SHEET. 8 fra
 Image 3 (assets/raw/refs_walk/ref_walk_raumanzug.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit: silver-grey space suit with red-pink hoses and a chest control panel (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit (walk away from the camera (back view)), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -436,7 +436,7 @@ Image 2 (assets/raw/refs_3d2d/raumanzug_idle.png): the 3D POSE SHEET. 12 frames 
 Image 3 (assets/raw/refs_walk/ref_walk_raumanzug.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the space suit: silver-grey space suit with red-pink hoses and a chest control panel (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 12 full-body figures of Pixel in the space suit (idle standing, three views with a subtle breathing loop), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 3 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
@@ -465,7 +465,7 @@ Image 2 (assets/raw/refs_3d2d/raumanzug_talk.png): the 3D POSE SHEET. 8 frames o
 Image 3 (assets/raw/refs_walk/ref_walk_raumanzug.png): the same character drawn as a 2D game sprite on a light grey background (front, side facing right, back). Use it only to see how this character looks in the hand-painted 2D style (face shapes, line weight). If Image 2 and Image 3 differ in small details, follow Image 2.
 Follow the references closely. Now create the following image.
 
-Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit: silver-grey space suit with red-pink hoses and a chest control panel (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
+Character animation sheet on a perfectly flat solid pure green (#00FF00) background: exactly 8 full-body figures of Pixel in the space suit (talking, three-quarter view facing RIGHT), redrawn from Image 2 as hand-painted 2D game sprites, in a strict grid of 4 columns and 2 rows.
 
 RULES FOR THE WHOLE IMAGE:
 - Background: ONE perfectly uniform flat pure green (#00FF00) over the ENTIRE image up to every edge and corner. No gradient, no vignette, no texture, no noise, no floor line, no horizon.
