@@ -5,13 +5,14 @@
 - erzeugt v2/data/v2files.js (Liste der v2-Bilder), v2/data/assets.js (Fußpunkte) und v2/data/walkinfo.js / npcfit.js für die neuen Bilder.
   python3 tools/make_v2.py
 """
-import json, re, shutil
+import json, re, shutil, sys
 from pathlib import Path
 import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
-V2 = ROOT / "v2"
+VER = sys.argv[1] if len(sys.argv) > 1 else "v2"  # "v2" oder "v3" (v3 enthält zusätzlich alle NPCs als 3D-Sprites)
+V2 = ROOT / VER
 
 
 def sub(path, old, new, count=1):
@@ -45,7 +46,7 @@ NN.resolve = function (src) {
     sub(V2 / "src" / "ui.js", "url(assets/backgrounds/low/bg_01_zhangs_imbiss.webp)", "url(../assets/backgrounds/low/bg_01_zhangs_imbiss.webp)")
     sub(V2 / "src" / "ui.js", "const imgSrc = k => 'assets/sprites/ui/menu_' + k + '.png';", "const imgSrc = k => NN.resolve('assets/sprites/ui/menu_' + k + '.png');")
     s = (V2 / "index.html").read_text(encoding="utf-8")
-    s = s.replace("<title>Neon Noodle</title>", "<title>Neon Noodle 2 (Probeversion)</title>")
+    s = s.replace("<title>Neon Noodle</title>", "<title>Neon Noodle %s (Probeversion)</title>" % VER[1:])
     s = s.replace('<script src="data/assets.js"></script>', '<script src="data/v2files.js"></script>\n<script src="data/assets.js"></script>')
     # Cache-Busting: neue Build-Nummer bei jedem Bau, auch an Skripten/Stil (sonst zeigt der Browser alte Figuren)
     import time, re as _re
@@ -93,6 +94,11 @@ def patch_assets(files):
         parts = f.split("/")
         if parts[2] == "npcs" and parts[3] not in idx["npcs"]:
             idx["npcs"].append(parts[3])
+    have = {Path(f).name for f in files if "/npcs/" in f}
+    for n in list(idx["npcs"]):
+        m = re.match(r"(.+)_(a|b)\.png$", n)
+        if m and (m.group(1) + "_idle.png") in have and n not in have:
+            idx["npcs"].remove(n)  # 3D-NPC ohne eigene Animation: keine 2D-Aktionsbilder mischen
     s = s[:m2.start(1)] + json.dumps(idx) + s[m2.end(1):]
     p.write_text(s, encoding="utf-8")
 
@@ -123,7 +129,7 @@ def npcfit():
         r = np.nonzero(a.any(axis=1))[0]
         return int(r.max() - r.min() + 1)
     base = V2 / "assets/sprites/npcs"
-    for npc in ("oma",):
+    for npc in sorted({p.name.rsplit("_idle", 1)[0] for p in base.glob("*_idle.png")}):
         idle = h(base / f"{npc}_idle.png")
         for suf, key in (("talk", npc), ("a", npc + "_a"), ("b", npc + "_b")):
             f = base / f"{npc}_{suf}.png"

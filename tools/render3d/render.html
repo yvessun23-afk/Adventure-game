@@ -92,7 +92,7 @@ async function render(name, opt = {}) {
   const clipName = opt.clip || 'idle', cl = pose(c, clipName, opt.t || 0, true);
   const H = c.h.H, idle = c.clips.idle || cl, y0 = idle.y0 || 0;
   // Ortho-Kamera: Figur auf 80 % der Bildhöhe, Standlinie bei 90 %
-  const scale = (size * 0.80) / H;                       // Pixel je Modelleinheit
+  const scale = (size * 0.80) / H * (opt.zoom || 1);                       // Pixel je Modelleinheit
   const sx = 2 * scale / size, sy = 2 * scale / size;
   const yaw = (opt.yaw || 0) * Math.PI / 180, cy = Math.cos(yaw), sn = Math.sin(yaw);
   // Modell: Drehung um Y, danach Verschiebung der Füße auf y=-0.8 (Clip-Raum)
