@@ -47,10 +47,10 @@ def jobs():
     L.append(("npcs", "oma_a", O, {"yaw": -40, "clip": "cook", "t": 2.0}, "oma_a"))
     L.append(("npcs", "oma_b", O, {"yaw": -40, "clip": "cook", "t": 3.1}, "oma_b"))
     K = "kruemel"
-    for i, y in enumerate((-40, -34, -40, -46)):
+    for i, y in enumerate((40, 34, 40, 46)):
         L.append(("characters", f"kruemel_hover_{i + 1}", K, {"yaw": y, "clip": "idle", "t": 0}, f"kruemel_hover_{i + 1}"))
-    L.append(("characters", "kruemel_talk_a", K, {"yaw": -40, "clip": "idle", "t": 0}, "kruemel_talk_a"))
-    L.append(("characters", "kruemel_talk_b", K, {"yaw": -28, "clip": "idle", "t": 0}, "kruemel_talk_b"))
+    L.append(("characters", "kruemel_talk_a", K, {"yaw": 40, "clip": "idle", "t": 0}, "kruemel_talk_a"))
+    L.append(("characters", "kruemel_talk_b", K, {"yaw": 28, "clip": "idle", "t": 0}, "kruemel_talk_b"))
     L.append(("characters", "kruemel_hover_front", K, {"yaw": 0, "clip": "idle", "t": 0}, "kruemel_hover_front"))
     # Pixel kommt jetzt aus build_v2_fbx.py (neue FBX-Animationen); das alte Modell nur mit --old-pixel
     return [j for j in L if j[2] != "pixel" or "--old-pixel" in sys.argv]

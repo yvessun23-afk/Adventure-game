@@ -32,7 +32,7 @@ def extract_png(fbx, dst):
 # Kontur: ganz dünn (out), bei Haaren keine Kontur (hair), Mundlinie weichgezeichnet (mouth)
 FACE = {"out": 0.0035, "hair": {}, "mouth": {"y": 0.78, "w": 0.04, "h": 0.02, "all": True}}
 OUTFITS = {
-    "pixel_": dict(dir="Pixel_anim_neu", idle="Idle", walk="Walking", talk="Talking", tex="tex_pixel.png", flip=True, left=True, src="Idle", extra=dict(FACE)),
+    "pixel_": dict(dir="Pixel_anim_neu", idle="Idle", walk="Walking", talk="Talking", tex="tex_pixel.png", flip=True, src="Idle", extra=dict(FACE)),
     "pixel_gala_": dict(dir="Gala_anim", idle="Breathing Idle", walk="Walking", talk="Talking", tex="tex_gala.png", flip=True, src="Breathing Idle", extra=dict(FACE)),
     "pixel_suit_": dict(dir="Raumanzug_anim", idle="Breathing Idle", walk="Walking", talk="Talking", tex=REF + ".png", flip=True,
                         extra={"out": 0.0035, "uvFrom": "fbx/" + REF + ".fbx", "glass": {}}),
