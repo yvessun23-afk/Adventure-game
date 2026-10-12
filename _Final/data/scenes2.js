@@ -332,12 +332,12 @@
     bg: { tiers: 'bg_08_baeckerei' }, music: 'mus_unterstadt',
     walk: [[100, 768], [1376, 768], [1376, 690], [1200, 650], [900, 612], [650, 592], [450, 602], [300, 642], [120, 722]],
     depth: D(590, 768, 0.65, 1.0),
-    spawns: { default: [650, 700], nudelgasse: [650, 700] },
-    actors: [{ id: 'brezel', name: 'Brezel', x: 1000, y: 600, drawY: 540, clipPoly: [[0, 0], [1376, 0], [1376, 474], [1090, 474], [1000, 468], [900, 467], [780, 482], [0, 482]], sprite: 'brezel', h: 245 }],
+    spawns: { default: [540, 730], nudelgasse: [540, 730] },
+    actors: [{ id: 'brezel', name: 'Brezel', x: 760, y: 694, sprite: 'brezel', flip: true, h: 245 }], // steht vor der Theke, nicht mehr dahinter
     exits: [bottom('Nudelgasse', 'nudelgasse', 'baeckerei', 650)],
     hotspots: [
       {
-        id: 'brezel', name: 'Brezel', poly: R(900, 300, 1110, 497), walkTo: [1000, 660], facing: 'up',
+        id: 'brezel', name: 'Brezel', poly: R(680, 480, 840, 700), walkTo: [900, 705], facing: 'left',
         look: 'Bäcker Brezel. Ein Roboter in Brezelform mit Mehl im Gesicht. Er liebt Brot mehr als Menschen.',
         use: async g => {
           if (!g.get('brezel_gesprochen')) { g.flag('brezel_gesprochen', true); await g.say('brezel', 'Willkommen im knusprigen Byte! Bei uns bekommst du echtes Brot. Verbotenes Brot. Das Beste.'); }

@@ -437,6 +437,7 @@ window.NN = window.NN || {};
       return G.changeScene(e.to, e.spawn);
     }
     const h = hit.obj;
+    if (h && h.id) G.faceNpc = { id: h.id, until: G.time + 10 }; // dieser NPC dreht sich zu Pixel, solange das Gespräch läuft
     if (mode === 'look') {
       if (!(await approach(h))) return;
       return run(h.look || 'Nichts Besonderes.');
@@ -762,7 +763,14 @@ window.NN = window.NN || {};
       ctx.translate(lx, ly - bounce); ctx.rotate(tilt); ctx.scale(1 - 0.005 * br, 1 + 0.011 * br + pulse); ctx.translate(-lx, -ly);
     }
     const fitKey = suffix === '_talk' ? base : base + suffix, fit = suffix !== '_idle' && NN.npcFit && NN.npcFit[fitKey] && img !== A.get(dir + base + '_idle.png') ? NN.npcFit[fitKey] : 1;
-    drawSprite(img, lx, ly, sc * fit, !!a.flip, !a.clipY && !a.clipPoly, true);
+    let flipNow = !!a.flip;
+    const fn = G.faceNpc, talkingNow = G.speech && G.speech.who === a.id;
+    if (G.speech && fn && fn.id === a.id) fn.until = Math.max(fn.until, G.time + 2.5);
+    if (talkingNow || (fn && fn.id === a.id && G.time < fn.until)) { // zu Pixel drehen
+      const nat = (NN.npcNative && (NN.npcNative[base] || NN.npcNative[String(base).split('_')[0]])) || 'left';
+      flipNow = (pixel.x < a.x ? 'left' : 'right') !== nat;
+    }
+    drawSprite(img, lx, ly, sc * fit, flipNow, !a.clipY && !a.clipPoly, true);
     ctx.restore();
     if (a.after) a.after(ctx, lx, ly - img.height * sc, sc, NN.S);
   }
