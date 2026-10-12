@@ -262,9 +262,9 @@ NN.ui = (function () {
         <button class="btn small" data-import="${i}" title="Aus Datei laden" ${i === 0 ? 'hidden' : ''}>⭱</button></div></div>`);
     }
     open(`<div class="panel" style="width:min(820px,92vw)"><h1>${mode === 'save' ? 'Speichern' : 'Laden'}</h1>
-      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände als Datei sichern</button> <button class="btn" data-a="impall">⭱ Spielstände aus Datei laden</button> <button class="btn small" data-a="copyall" title="Falls der Download nicht klappt">Als Text kopieren</button> <button class="btn small" data-a="pasteall" title="Text aus der Zwischenablage laden">Text einfügen</button></div>
+      <div style="margin:0 0 4px"><button class="btn" data-a="expall">⭳ Alle Spielstände und Einstellungen als Datei sichern</button> <button class="btn" data-a="impall">⭱ Aus Datei laden (Spielstand und/oder Einstellungen)</button> <button class="btn small" data-a="copyall" title="Falls der Download nicht klappt">Als Text kopieren</button> <button class="btn small" data-a="pasteall" title="Text aus der Zwischenablage laden">Text einfügen</button></div>
       <div id="exportmsg" class="small" style="margin:0 0 6px;color:#7dffb0;min-height:1.2em"></div>
-      <div class="muted small" style="margin-bottom:10px">Die Datei kannst du in einem anderen Browser oder auf einem anderen Gerät laden (auch iPhone).</div>
+      <div class="muted small" style="margin-bottom:10px">Jede Datei enthält auch deine Einstellungen. Beim Laden wählst du, ob du Spielstand und/oder Einstellungen übernimmst. Die Datei funktioniert auch in einem anderen Browser oder auf einem anderen Gerät (auch iPhone).</div>
 ${items.join('')}
       ${B('zurueck', 'Zurück', 'data-a="back"', 'primary')}<input type="file" id="importfile" accept=".neonsave,.json" hidden><input type="file" id="importall" accept=".neonsave,.json,application/json" hidden></div>`);
     on('[data-a=back]', () => (back ? back() : close()));
@@ -297,15 +297,18 @@ ${items.join('')}
     on('[data-a=pasteall]', () => {
       const t = prompt('Text der Spielstand-Datei hier einfügen:');
       if (!t) return;
-      try { const r = NN.importAny(t); G.toast = { text: r.slot ? 'Importiert in Platz ' + r.slot : r.count + ' Spielstände geladen', t: 2.8 }; showSlots(mode, back); }
-      catch (e) { alert('Das war kein gültiger Spielstand: ' + e.message); }
+      (async () => {
+        try { const w = await askImport(NN.importInfo(t)); if (w) G.toast = { text: importMsg(NN.importAny(t, w)), t: 2.8 }; showSlots(mode, back); }
+        catch (e) { alert('Das war kein gültiger Spielstand: ' + e.message); }
+      })();
     });
     const allInput = overlay.querySelector('#importall');
     on('[data-a=impall]', () => allInput.click());
     allInput.addEventListener('change', async () => {
       const f = allInput.files[0]; if (!f) return;
-      try { const r = NN.importAny(await f.text()); G.toast = { text: r.slot ? 'Importiert in Platz ' + r.slot : r.count + ' Spielstände geladen', t: 2.8 }; }
+      try { const t = await f.text(), w = await askImport(NN.importInfo(t)); if (w) G.toast = { text: importMsg(NN.importAny(t, w)), t: 2.8 }; }
       catch (e) { alert('Datei konnte nicht gelesen werden: ' + e.message); }
+      allInput.value = '';
       showSlots(mode, back);
     });
     const fileInput = overlay.querySelector('#importfile');
@@ -313,10 +316,33 @@ ${items.join('')}
     on('[data-import]', el => { importSlot = +el.dataset.import; fileInput.click(); });
     fileInput.addEventListener('change', async () => {
       const f = fileInput.files[0]; if (!f) return;
-      try { NN.importSave(importSlot, await f.text()); G.toast = { text: 'Importiert in Platz ' + importSlot, t: 2.4 }; }
+      try { const t = await f.text(), w = await askImport(NN.importInfo(t)); if (w) G.toast = { text: importMsg(NN.importSave(importSlot, t, w)), t: 2.4 }; }
       catch (e) { alert('Datei konnte nicht gelesen werden: ' + e.message); }
+      fileInput.value = '';
       showSlots(mode, back);
     });
+  }
+
+  // Auswahl beim Laden aus einer Datei: Spielstand und/oder Einstellungen
+  function askImport(info) {
+    return new Promise(res => {
+      const box = document.createElement('div');
+      box.style.cssText = 'position:fixed;inset:0;background:rgba(5,0,15,.78);z-index:99999;display:flex;align-items:center;justify-content:center';
+      box.innerHTML = `<div class="panel" style="width:min(460px,92vw)"><h1>Was soll geladen werden?</h1>
+        <label style="display:block;margin:10px 0;font-size:1.1em"><input type="checkbox" id="ia_s" ${info.slotCount ? 'checked' : 'disabled'}> Spielstand ${info.slotCount ? '(' + info.slotCount + (info.slotCount === 1 ? ' Platz)' : ' Plätze)') : '(nicht in der Datei)'}</label>
+        <label style="display:block;margin:10px 0;font-size:1.1em"><input type="checkbox" id="ia_o" ${info.hasOptions ? 'checked' : 'disabled'}> Einstellungen ${info.hasOptions ? '' : '(nicht in der Datei)'}</label>
+        <div style="margin-top:14px"><button class="btn primary" id="ia_ok">Laden</button> <button class="btn" id="ia_no">Abbrechen</button></div></div>`;
+      document.body.appendChild(box);
+      const done = v => { box.remove(); res(v); };
+      box.querySelector('#ia_ok').onclick = () => { const w = { saves: box.querySelector('#ia_s').checked, options: box.querySelector('#ia_o').checked }; done(w.saves || w.options ? w : null); };
+      box.querySelector('#ia_no').onclick = () => done(null);
+    });
+  }
+  function importMsg(r) {
+    const parts = [];
+    if (r.slot) parts.push('Spielstand in Platz ' + r.slot); else if (r.count) parts.push(r.count + (r.count === 1 ? ' Spielstand' : ' Spielstände'));
+    if (r.options) { parts.push('Einstellungen'); applyOptions('quality'); }
+    return (parts.join(' und ') || 'Nichts') + ' geladen';
   }
 
   // ---------- Hilfe ----------

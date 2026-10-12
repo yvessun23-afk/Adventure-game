@@ -45,15 +45,14 @@ NN.readSlot = function (slot) {
 
 NN.deleteSlot = function (slot) { try { localStorage.removeItem('nn.save.' + slot); } catch (e) { /* ignore */ } };
 
-NN.exportSave = function (slot) { return safeGet('nn.save.' + slot); };
-
-NN.importSave = function (slot, text) {
-  const data = JSON.parse(text);
-  if (!data || !data.state || !data.meta) throw new Error('Keine gültige Speicherdatei');
-  safeSet('nn.save.' + slot, JSON.stringify(data));
+// Dateiformat (.neonsave): { nnBundle: 1, saved, slots: { Platz: { meta, state } }, options }
+// Jeder Export (auch ein einzelner Platz) enthält die Einstellungen. Beim Laden kann man wählen: nur Spielstand, nur Einstellungen oder beides.
+NN.exportSave = function (slot) {
+  const s = NN.readSlot(slot); if (!s) return null;
+  return JSON.stringify({ nnBundle: 1, saved: Date.now(), slots: { [slot]: s }, options: NN.opts });
 };
 
-// Alle Spielstände (und Optionen) in einer Datei sichern / aus einer Datei laden (auch für den Wechsel zwischen Browsern und Geräten)
+// Alle Spielstände und Einstellungen in einer Datei sichern (auch für den Wechsel zwischen Browsern und Geräten)
 NN.exportAll = function () {
   const slots = {};
   for (let i = 0; i <= NN.SLOTS; i++) { const s = NN.readSlot(i); if (s) slots[i] = s; }
@@ -61,19 +60,47 @@ NN.exportAll = function () {
   if (NN.game && NN.game.def) { NN.saveGame(0, null); const a = NN.readSlot(0); if (a) slots[0] = a; }
   return JSON.stringify({ nnBundle: 1, saved: Date.now(), slots, options: NN.opts });
 };
-NN.importAny = function (text) {
+
+// Inhalt einer Datei lesen (neues Format und alte Einzel-Speicherdateien)
+NN.parseImport = function (text) {
   const d = JSON.parse(text);
   if (d && d.nnBundle && d.slots) {
-    let n = 0;
-    Object.keys(d.slots).forEach(k => { const s = d.slots[k]; if (s && s.state && s.meta) { safeSet('nn.save.' + k, JSON.stringify(s)); n++; } });
-    if (d.options) { Object.assign(NN.opts, d.options); NN.saveOptions(); }
-    return { count: n, slot: null };
+    const slots = {};
+    Object.keys(d.slots).forEach(k => { const s = d.slots[k]; if (s && s.state && s.meta) slots[k] = s; });
+    return { slots, options: d.options && typeof d.options === 'object' ? d.options : null, legacy: false };
   }
-  if (d && d.state && d.meta) { // einzelner Spielstand: in den ersten freien Platz (sonst Platz 1)
-    let slot = 1; for (let i = 1; i <= NN.SLOTS; i++) { if (!NN.readSlot(i)) { slot = i; break; } }
-    safeSet('nn.save.' + slot, JSON.stringify(d)); return { count: 1, slot };
-  }
+  if (d && d.state && d.meta) return { slots: { 1: d }, options: null, legacy: true }; // alte Datei: nur ein Spielstand
   throw new Error('Keine gültige Speicherdatei');
+};
+NN.importInfo = function (text) { const p = NN.parseImport(text); return { slotCount: Object.keys(p.slots).length, hasOptions: !!p.options }; };
+
+function importOptions(o) { Object.assign(NN.opts, o); NN.saveOptions(); }
+
+// what = { saves: true/false, options: true/false } (ohne Angabe: beides)
+NN.importAny = function (text, what) {
+  what = what || { saves: true, options: true };
+  const p = NN.parseImport(text), res = { count: 0, slot: null, options: false };
+  if (what.saves) {
+    const keys = Object.keys(p.slots);
+    if (p.legacy || (keys.length === 1 && keys[0] === '0')) { // einzelner Spielstand: in den ersten freien Platz (sonst Platz 1)
+      let slot = 1; for (let i = 1; i <= NN.SLOTS; i++) { if (!NN.readSlot(i)) { slot = i; break; } }
+      safeSet('nn.save.' + slot, JSON.stringify(p.slots[keys[0]])); res.count = 1; res.slot = slot;
+    } else keys.forEach(k => { safeSet('nn.save.' + k, JSON.stringify(p.slots[k])); res.count++; });
+  }
+  if (what.options && p.options) { importOptions(p.options); res.options = true; }
+  return res;
+};
+
+// Einzelner Platz aus einer Datei in den gewählten Platz laden
+NN.importSave = function (slot, text, what) {
+  what = what || { saves: true, options: true };
+  const p = NN.parseImport(text), res = { count: 0, slot: null, options: false };
+  if (what.saves) {
+    const keys = Object.keys(p.slots); if (!keys.length) throw new Error('Kein Spielstand in der Datei');
+    safeSet('nn.save.' + slot, JSON.stringify(p.slots[keys[0]])); res.count = 1; res.slot = slot;
+  }
+  if (what.options && p.options) { importOptions(p.options); res.options = true; }
+  return res;
 };
 
 NN.latestSlot = function () {

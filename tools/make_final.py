@@ -27,6 +27,15 @@ def copy_png(src, dst):
             shutil.copy(f, dst / f.name)
 
 
+def brighten(path, gamma=0.74, gain=1.06, sat=1.11):
+    """Pixel wirkte neben den Hintergründen zu dunkel: Schatten aufhellen, Farben leicht sättigen (in die Bilder gerechnet, kein Browser-Filter nötig)."""
+    a = np.asarray(Image.open(path).convert("RGBA")).astype(np.float32) / 255
+    rgb = a[..., :3] ** gamma * gain
+    lum = (rgb * [0.3, 0.59, 0.11]).sum(-1, keepdims=True)
+    a[..., :3] = np.clip(lum + (rgb - lum) * sat, 0, 1)
+    Image.fromarray((a * 255 + 0.5).astype(np.uint8), "RGBA").save(path, optimize=True)
+
+
 def feet_for(path):
     a = np.asarray(Image.open(path).convert("RGBA"))[..., 3] > 60
     h, w = a.shape
@@ -67,7 +76,7 @@ def main():
     added = 0
     for f in sorted(V2.iterdir()):
         if REPL.match(f.name):
-            shutil.copy(f, ch / f.name); added += 1
+            shutil.copy(f, ch / f.name); brighten(ch / f.name); added += 1
     # Index, Fußpunkte, Laufbild-Anzahl
     idx = {d: sorted(f for f in os.listdir(OUT / "assets/sprites" / d) if f.endswith(".png")) for d in ("props", "items", "npcs")}
     idx["bgs"] = sorted(f for f in os.listdir(OUT / "assets/backgrounds/hi") if f.endswith(".webp"))
