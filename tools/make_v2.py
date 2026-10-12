@@ -47,6 +47,12 @@ NN.resolve = function (src) {
     s = (V2 / "index.html").read_text(encoding="utf-8")
     s = s.replace("<title>Neon Noodle</title>", "<title>Neon Noodle 2 (Probeversion)</title>")
     s = s.replace('<script src="data/assets.js"></script>', '<script src="data/v2files.js"></script>\n<script src="data/assets.js"></script>')
+    # Cache-Busting: neue Build-Nummer bei jedem Bau, auch an Skripten/Stil (sonst zeigt der Browser alte Figuren)
+    import time, re as _re
+    bid = str(int(time.time()))
+    (V2 / "data" / "build.js").write_text("window.NN = window.NN || {};\nNN.buildId = '%s';\n" % bid, encoding="utf-8")
+    s = _re.sub(r'(<script src="[^"?]+\.js)"', r'\1?v=' + bid + '"', s)
+    s = s.replace('href="src/style.css"', 'href="src/style.css?v=' + bid + '"')
     (V2 / "index.html").write_text(s, encoding="utf-8")
     # util.js wird vor v2files.js geladen: NN.resolve liest NN.v2Files erst beim Aufruf, das ist ok.
 
