@@ -323,8 +323,19 @@ window.NN = window.NN || {};
     return { x: W / 2, top: 220 };
   }
 
+  // Gesprächspartner anschauen: Pixel dreht sich zum sprechenden NPC (oder zu dem, mit dem er gerade spricht), der NPC dreht sich zu Pixel
+  function facePartner(who) {
+    const acts = G.def.actors || [];
+    let a = (who !== 'pixel' && who !== 'kruemel') ? acts.find(o => o.id === who && o.sprite) : null;
+    if (a) G.faceNpc = { id: a.id, until: G.time + 10 };
+    else if (G.faceNpc && G.time < G.faceNpc.until) a = acts.find(o => o.id === G.faceNpc.id && o.sprite);
+    if (!a || pixel.moving || pixel.anim) return;
+    const dx = a.x - pixel.x, dy = (a.drawY ?? a.y) - pixel.y;
+    pixel.dir = Math.abs(dx) > Math.abs(dy) * 0.45 && Math.abs(dx) > 30 ? (dx > 0 ? 'right' : 'left') : (dy < 0 ? 'up' : 'down');
+  }
   function say(who, text) {
     if (NN.debug && NN.debug.fast) return Promise.resolve();
+    facePartner(who);
     return new Promise(res => {
       const ends = [], starts = []; const re = /\S+/g; let m;
       while ((m = re.exec(text))) { ends.push(m.index + m[0].length); starts.push(m.index); }
@@ -437,6 +448,9 @@ window.NN = window.NN || {};
   }
 
   async function approach(obj) {
+    // NPCs: berechneter Gesprächsplatz (guter Abstand, freie Fläche, Blick zum NPC) statt der Handwerte in den Szenen
+    const ts = obj.id && NN.talkSpots && NN.talkSpots[G.def.id] && NN.talkSpots[G.def.id][obj.id];
+    if (ts) obj = Object.assign({}, obj, { walkTo: [ts[0], ts[1]], facing: ts[2] });
     const t = obj.walkTo || U.clampToPoly(...U.centroid(obj.poly), G.def.walk);
     const tok = ++G.tok;
     const ok = await walkPixel(t[0], t[1]);
@@ -784,8 +798,8 @@ window.NN = window.NN || {};
     const fn = G.faceNpc, talkingNow = G.speech && G.speech.who === a.id;
     if (G.speech && fn && fn.id === a.id) fn.until = Math.max(fn.until, G.time + 2.5);
     if (talkingNow || (fn && fn.id === a.id && G.time < fn.until)) { // zu Pixel drehen
-      const nat = (NN.npcNative && (NN.npcNative[base] || NN.npcNative[String(base).split('_')[0]])) || 'left';
-      flipNow = (pixel.x < a.x ? 'left' : 'right') !== nat;
+      const nat = NN.npcNative && (NN.npcNative[base] || NN.npcNative[String(base).split('_')[0]]);
+      if (nat) flipNow = (pixel.x < a.x ? 'left' : 'right') !== nat; // frontal gezeichnete NPCs behalten ihre Grundrichtung
     }
     drawSprite(img, lx, ly, sc * fit, flipNow, !a.clipY && !a.clipPoly, true);
     ctx.restore();
