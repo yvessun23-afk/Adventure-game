@@ -222,9 +222,21 @@ window.NN = window.NN || {};
   // ---------- Laufen ----------
   function cancelWalk() { pixel.target = null; if (pixel.walkRes) { const r = pixel.walkRes; pixel.walkRes = null; r(false); } }
 
+  // Hindernisse (Gegenstände im Hintergrund): Pixel darf nicht hinein, Ziele darin werden an den Rand gelegt
+  const obstacles = () => (NN.obstacles && G.def && NN.obstacles[G.def.id]) || [];
+  const inObs = (x, y) => obstacles().some(r => x > r[0] && x < r[2] && y > r[1] && y < r[3]);
+  function outOfObs(x, y) {
+    for (const r of obstacles()) {
+      if (!(x > r[0] && x < r[2] && y > r[1] && y < r[3])) continue;
+      const c = [[r[0] - 4, y], [r[2] + 4, y], [x, r[3] + 4], [x, r[1] - 4]].filter(q => !inObs(q[0], q[1]));
+      c.sort((a, b) => Math.hypot(a[0] - x, a[1] - y) - Math.hypot(b[0] - x, b[1] - y));
+      if (c.length) return U.clampToPoly(c[0][0], c[0][1], G.def.walk);
+    }
+    return [x, y];
+  }
   function walkPixel(x, y) {
     cancelWalk();
-    const t = U.clampToPoly(x, y, G.def.walk);
+    const t0 = U.clampToPoly(x, y, G.def.walk), t = U.clampToPoly(...outOfObs(t0[0], t0[1]), G.def.walk);
     if (U.dist(t[0], t[1], pixel.x, pixel.y) < 4) return Promise.resolve(true);
     pixel.target = t;
     return new Promise(res => { pixel.walkRes = res; });
@@ -273,6 +285,7 @@ window.NN = window.NN || {};
     if (d <= step) { p.x = p.target[0]; p.y = p.target[1]; p.target = null; p.moving = false; if (p.walkRes) { const r = p.walkRes; p.walkRes = null; r(true); } return; }
     let nx = p.x + dx / d * step, ny = p.y + dy / d * step;
     [nx, ny] = steer(p.x, p.y, nx, ny, p.target[0]);
+    if (!inObs(p.x, p.y) && inObs(nx, ny)) { if (!inObs(nx, p.y)) ny = p.y; else if (!inObs(p.x, ny)) nx = p.x; else { nx = p.x; ny = p.y; } } // an Gegenständen entlanggleiten
     const ox = p.x, oy = p.y;
     if (U.inPoly(nx, ny, G.def.walk)) { p.x = nx; p.y = ny; }
     else {
